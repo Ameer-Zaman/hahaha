@@ -166,7 +166,9 @@ Videos are streamed with byte ranges, so they start quickly and can seek.
 
 Every homepage visit opens with a short "hello" in several languages. While it plays, the site downloads the homepage's videos, poster images, welcome sound and music, so the page is instant once the visitor enters. The greetings keep going until everything is downloaded (at least ~4 seconds, at most 14), and a fine gold line at the bottom shows the progress.
 
-- Videos up to 80 MB are downloaded whole and played from memory. Bigger ones, or any still downloading when the intro ends, simply stream as usual.
+- Videos up to 80 MB are downloaded whole and played from memory, so moving between pages and back to the homepage never waits. Bigger ones, or any still downloading when the intro ends, stream as usual and are saved in the background for next time.
+- Visitors who land on another page first get the homepage videos downloaded quietly in the background (unless they've asked their browser to save data).
+- The videos are also saved in the visitor's browser, so return visits play them straight from disk. A tiny check asks the server whether a file was replaced; if so, the new one is downloaded instead. Replacing a video (same name or in the panel) is picked up automatically.
 - The greetings and timings are at the top of `client/src/components/intro/HelloScreen.jsx`; the preloader is `client/src/lib/preload.js`.
 
 ## Story page videos

@@ -10,6 +10,7 @@ import WelcomeGate from '../intro/WelcomeGate'
 import HelloScreen from '../intro/HelloScreen'
 import MaintenanceScreen, { MaintenancePreviewNotice } from '../site/MaintenanceScreen'
 import { useSiteSettings, useStaffPreview } from '../../lib/siteSettings'
+import { preloadHomeAssets, preloadHomeInBackground } from '../../lib/preload'
 
 /** Pages whose first screen is light (none: the site is black and gold throughout). */
 const LIGHT_TOP = []
@@ -25,10 +26,19 @@ export default function Layout() {
   const [showGate, setShowGate] = useState(() => {
     const show = shouldShowIntro(pathname)
     setIntroActive(show)
+    // start downloading before the page renders, so the videos never start a second download
+    if (show) preloadHomeAssets()
     return show
   })
   // the "hello" intro plays first (and downloads the homepage), then hands over to the gate
   const [showHello, setShowHello] = useState(showGate)
+
+  // Landed on another page? Get the homepage's videos ready in the background, so going
+  // there later is instant. (On the homepage the "hello" intro does this.)
+  useEffect(() => {
+    if (!showHello) preloadHomeInBackground()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // New page: start at the top (or at the anchor), and let ScrollTrigger re-measure.
   useEffect(() => {
