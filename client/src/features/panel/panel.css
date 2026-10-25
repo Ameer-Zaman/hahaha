@@ -1334,3 +1334,23 @@
   flex: 1;
   min-width: 0;
 }
+
+/* ---------- TDM leaderboard editor ---------- */
+.p-tdm td {
+  padding: 0.35rem 0.5rem;
+}
+.p-input--cell {
+  min-height: 36px;
+  padding: 0.35rem 0.6rem;
+}
+.p-tdm td:nth-child(2) .p-input--cell {
+  min-width: 12rem;
+}
+.p-input--num {
+  width: 6.5rem;
+  font-family: var(--font-mono);
+  text-align: right;
+}
+.p-input.is-invalid {
+  border-color: var(--p-red);
+}

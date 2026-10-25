@@ -13,6 +13,7 @@ import { MediaLibrary, SiteMedia } from './screens/MediaScreens'
 import Rules from './screens/Rules'
 import SiteSettings from './screens/SiteSettings'
 import Staff from './screens/Staff'
+import Tdm from './screens/Tdm'
 import Wars from './screens/Wars'
 import { ErrorNote, Loading, ToastProvider } from './ui'
 import './panel.css'
@@ -25,6 +26,7 @@ const NAV = [
     items: [
       { to: '/panel/gangs', label: 'Gangs & players' },
       { to: '/panel/wars', label: 'Wars' },
+      { to: '/panel/tdm', label: 'TDM leaderboard' },
       { to: '/panel/staff', label: 'Staff' },
       { to: '/panel/rules', label: 'Rules' },
     ],
@@ -188,6 +190,7 @@ function Shell() {
           <Route path="gangs" element={<GangList />} />
           <Route path="gangs/:id" element={<GangEditor />} />
           <Route path="wars" element={<Wars />} />
+          <Route path="tdm" element={<Tdm />} />
           <Route path="staff" element={<Staff />} />
           <Route path="rules" element={<Rules />} />
           <Route path="media" element={<MediaLibrary />} />

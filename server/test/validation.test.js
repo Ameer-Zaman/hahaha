@@ -62,3 +62,12 @@ test('staff social links must be https links on the platform itself', () => {
   }
   assert.equal(staffSchema.safeParse({ name: 'A', role: 'B', socials: { myspace: 'https://myspace.com/a' } }).success, false)
 })
+
+test('TDM board: whole numbers only, each player once', async () => {
+  const { tdmBoardSchema } = await import('../src/validation/schemas.js')
+  const ok = tdmBoardSchema.parse({ season: 'Season 1', players: [{ name: 'Mara', kills: 12, deaths: 4 }] })
+  assert.deepEqual(ok.players[0], { name: 'Mara', kills: 12, deaths: 4, wins: 0, matches: 0 })
+  assert.equal(tdmBoardSchema.safeParse({ players: [{ name: 'Mara' }, { name: 'mara' }] }).success, false)
+  assert.equal(tdmBoardSchema.safeParse({ players: [{ name: 'Mara', kills: -1 }] }).success, false)
+  assert.equal(tdmBoardSchema.safeParse({ players: [{ name: 'Mara', kills: 1.5 }] }).success, false)
+})

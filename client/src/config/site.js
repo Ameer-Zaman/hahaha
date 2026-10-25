@@ -111,6 +111,7 @@ export const navigation = [
       { label: 'Clubs', to: '/clubs', hint: 'The clubs of the city' },
     ],
   },
+  { label: 'Leaderboard', to: '/leaderboard' },
   { label: 'Rules', to: '/rules' },
 ]
 

@@ -83,6 +83,24 @@ export const warSchema = z
   .refine((w) => w.sides[0] !== w.sides[1], { message: 'pick two different gangs', path: ['sides'] })
   .refine((w) => w.winner === null || w.sides.includes(w.winner), { message: 'the winner must be one of the two gangs', path: ['winner'] })
 
+const stat = z.number().int().min(0).max(1_000_000)
+
+export const tdmBoardSchema = z.object({
+  season: text(60).optional().default(''),
+  players: z
+    .array(
+      z.object({
+        name: text(60).min(1),
+        kills: stat.optional().default(0),
+        deaths: stat.optional().default(0),
+        wins: stat.optional().default(0),
+        matches: stat.optional().default(0),
+      }),
+    )
+    .max(500, 'at most 500 players')
+    .refine((list) => new Set(list.map((p) => p.name.toLowerCase())).size === list.length, 'each player can only be listed once'),
+})
+
 /** Each social link must be an https address on that platform's own site. */
 export const SOCIAL_HOSTS = {
   discord: ['discord.com', 'discord.gg', 'discordapp.com'],
@@ -151,7 +169,7 @@ export const ruleBookSchema = z.object({
 
 export const settingsSiteSchema = z
   .object({
-    sections: z.partialRecord(z.enum(['story', 'staff', 'gangs', 'clubs', 'rules']), z.boolean()).optional(),
+    sections: z.partialRecord(z.enum(['story', 'staff', 'gangs', 'clubs', 'leaderboard', 'rules']), z.boolean()).optional(),
     maintenance: z
       .object({
         on: z.boolean(),

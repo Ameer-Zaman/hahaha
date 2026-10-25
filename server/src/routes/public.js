@@ -4,6 +4,7 @@ import { Gang } from '../models/Gang.js'
 import { RuleBook } from '../models/RuleBook.js'
 import { MEDIA_SLOTS, readSections, Settings } from '../models/Settings.js'
 import { Staff } from '../models/Staff.js'
+import { TdmBoard } from '../models/TdmBoard.js'
 import { War } from '../models/War.js'
 import { mediaUrl } from '../services/media.js'
 
@@ -67,6 +68,15 @@ router.get('/staff', async (req, res) => {
       online: s.online,
       onDuty: s.onDuty,
     })),
+  })
+})
+
+router.get('/tdm', async (req, res) => {
+  const board = await TdmBoard.findOne({ key: 'main' }).lean()
+  res.json({
+    season: board?.season ?? '',
+    updatedAt: board?.updatedAt ?? null,
+    players: (board?.players ?? []).map(({ name, kills, deaths, wins, matches }) => ({ name, kills, deaths, wins, matches })),
   })
 })
 

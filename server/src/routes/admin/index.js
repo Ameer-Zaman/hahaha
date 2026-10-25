@@ -13,6 +13,7 @@ import media from './media.js'
 import rules from './rules.js'
 import settings from './settings.js'
 import staff from './staff.js'
+import tdm from './tdm.js'
 import users from './users.js'
 import wars from './wars.js'
 
@@ -60,6 +61,7 @@ router.get('/overview', staffRoles, async (req, res) => {
 router.use('/gangs', staffRoles, gangs)
 router.use('/wars', staffRoles, wars)
 router.use('/staff', staffRoles, staff)
+router.use('/tdm', staffRoles, tdm)
 router.use('/rules', staffRoles, rules)
 router.use('/media', staffRoles, media)
 router.use('/settings', staffRoles, settings)

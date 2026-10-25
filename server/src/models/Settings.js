@@ -12,7 +12,7 @@ export const MEDIA_SLOTS = [
 ]
 
 /** Website sections that can be switched off from the panel (Home is always on). */
-export const SECTION_KEYS = ['story', 'staff', 'gangs', 'clubs', 'rules']
+export const SECTION_KEYS = ['story', 'staff', 'gangs', 'clubs', 'leaderboard', 'rules']
 
 export const defaultSections = () => Object.fromEntries(SECTION_KEYS.map((key) => [key, true]))
 
