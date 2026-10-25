@@ -1,0 +1,148 @@
+/*
+ * Design tokens — the single source for colour, type, spacing, borders and motion.
+ * Change the identity here; components only reference these variables.
+ */
+:root {
+  /* ---- Palette: "Gilded night" ----
+   * Cool blue-black surfaces + warm metallic gold. The temperature contrast is what makes
+   * the gold glow instead of looking muddy. Crimson is reserved for war records and errors.
+   */
+  --c-black: #000000;
+  --c-ink: #06070a;          /* obsidian: default page background */
+  --c-charcoal: #0c0f15;     /* night: raised dark sections */
+  --c-graphite: #151922;     /* slate: cards and chips on dark */
+  --c-white: #ffffff;
+  --c-ivory: #faf7f0;        /* light sections */
+  --c-stone: #e8e1d3;
+  --c-smoke: #8d8a84;
+
+  /* ---- Gold ---- */
+  --c-gold: #e3b55a;         /* primary action fill, diamonds, active states */
+  --c-gold-light: #f6e3b0;   /* gold text on dark */
+  --c-gold-deep: #a87a2c;
+  --c-bronze: #7a5a1e;       /* gold text on light — 6:1 on ivory */
+  --gold-gradient: linear-gradient(100deg, #fff2c9 0%, #f2cf80 22%, #e3b55a 46%, #b5852f 72%, #efcb7a 100%);
+  --gold-glow: 0 10px 34px -8px rgb(var(--rgb-gold) / 0.5);
+
+  /* ---- Crimson (sparingly: war records, errors) ---- */
+  --c-crimson: #d0475a;      /* on dark */
+  --c-crimson-deep: #9b2335; /* on light — 7:1 on its tint */
+  --c-crimson-tint: #fbeff0;
+
+  /* ---- Channels for translucent shades: rgb(var(--rgb-gold) / 0.3) ---- */
+  --rgb-ink: 6 7 10;
+  --rgb-card: 21 25 34;
+  --rgb-gold: 227 181 90;
+  --rgb-ivory: 244 239 230;
+
+  /* ---- Semantic: dark treatment (default) ---- */
+  --bg: var(--c-ink);
+  --bg-raised: var(--c-graphite);
+  --fg: #f4efe6;
+  --fg-muted: #a8a49c;
+  --accent: var(--c-gold-light);
+  --accent-fill: var(--c-gold);
+  --rule: rgba(255, 255, 255, 0.09);
+  --card-border: rgb(var(--rgb-gold) / 0.26);
+  --focus: var(--c-gold-light);
+
+  /* ---- Typography ---- */
+  --font-display: 'Anton', 'Impact', 'Arial Narrow Bold', sans-serif;
+  --font-sans: 'Archivo Variable', 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --fs-2xs: 0.75rem; /* 12px floor for the smallest labels */
+  --fs-xs: 0.8125rem;
+  --fs-sm: 0.9375rem;
+  --fs-base: 1.0625rem;
+  --fs-md: 1.25rem;
+  --fs-lg: clamp(1.375rem, 1.15rem + 0.8vw, 1.75rem);
+  --fs-xl: clamp(2rem, 1.3rem + 2.6vw, 3.25rem);
+  --fs-2xl: clamp(2.75rem, 1.4rem + 5vw, 5.5rem);
+  --fs-3xl: clamp(3.5rem, 1.5rem + 7.5vw, 8.5rem);
+  --fs-display: clamp(4.5rem, 1rem + 13vw, 14rem);
+
+  --lh-display: 0.88;
+  --lh-heading: 1;
+  --lh-body: 1.6;
+  --measure: 60ch;
+
+  /* ---- Spacing (8px base) ---- */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-7: 3rem;
+  --sp-8: 4rem;
+  --sp-9: 6rem;
+  --sp-10: 8rem;
+  --section-y: clamp(5rem, 3rem + 7vw, 9rem);
+  --gutter: clamp(1.25rem, 0.5rem + 3vw, 3.5rem);
+  --content-max: 82rem;
+
+  /* ---- Borders & shape ---- */
+  --hairline: 1px;
+  --radius-sm: 6px;
+  --radius-md: 12px;          /* cards and media frames */
+  --radius-lg: 18px;
+  --radius-pill: 999px;       /* buttons, tags, chips */
+
+  /* ---- Motion ---- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 160ms;
+  --dur-base: 260ms;
+  --dur-slow: 600ms;
+
+  /* ---- Layers ---- */
+  --z-header: 50;
+  --z-menu: 60;
+  --z-skip: 100;
+
+  --header-h: 4.5rem;
+}
+
+/* Section treatments */
+.theme-dark,
+.theme-black {
+  --bg: var(--c-ink);
+  --bg-raised: var(--c-graphite);
+  --fg: #f4efe6;
+  --fg-muted: #a8a49c;
+  --accent: var(--c-gold-light);
+  --accent-fill: var(--c-gold);
+  --rule: rgba(255, 255, 255, 0.09);
+  --card-border: rgb(var(--rgb-gold) / 0.26);
+  --focus: var(--c-gold-light);
+  background-color: var(--bg);
+  color: var(--fg);
+}
+
+.theme-black {
+  --bg: var(--c-black);
+}
+
+.theme-raised {
+  --bg: var(--c-charcoal);
+}
+
+.theme-light {
+  --bg: var(--c-ivory);
+  --bg-raised: var(--c-white);
+  --fg: #15130f;
+  --fg-muted: #5c5851;
+  --accent: var(--c-bronze);
+  --accent-fill: var(--c-gold);
+  --rule: var(--c-stone);
+  --card-border: var(--c-stone);
+  --focus: var(--c-bronze);
+  background-color: var(--bg);
+  color: var(--fg);
+}
+
+.theme-white {
+  --bg: var(--c-white);
+  background-color: var(--bg);
+}

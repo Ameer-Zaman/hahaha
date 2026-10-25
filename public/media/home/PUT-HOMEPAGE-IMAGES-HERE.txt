@@ -1,0 +1,11 @@
+Homepage images — drop files here with EXACTLY these names (lowercase, .jpg):
+
+  administration.jpg   "More than a server" poster: Administration panel
+  gangs.jpg            "More than a server" poster: Gangs panel
+  wars.jpg             "More than a server" poster: War archive panel
+  rules.jpg            "More than a server" poster: Rules panel
+  join.jpg             Background of "Your story starts with an application" (How to join)
+
+Size: landscape in-game screenshots, about 1920 px wide, ideally under ~400 KB each.
+Any image you don't add keeps the illustrated city skyline — nothing breaks.
+To use another name or format (.webp etc.), change the path in src/config/site.js -> media.

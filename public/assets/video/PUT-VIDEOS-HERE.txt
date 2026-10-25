@@ -1,0 +1,7 @@
+Videos for the homepage — drop them here with EXACTLY these names:
+
+  home.mp4      the opening (hero) video at the top of the homepage
+  welcome.mp4   the "Welcome to the city" banner video
+
+Both play muted on a loop. Short, compressed MP4s (H.264, 1080p, under ~20 MB) load fastest.
+If a file is missing, the section shows the illustrated city skyline instead.

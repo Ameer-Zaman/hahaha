@@ -1,0 +1,193 @@
+.admin-head {
+  display: grid;
+  gap: var(--sp-7);
+  align-items: end;
+}
+
+@media (min-width: 60rem) {
+  .admin-head {
+    grid-template-columns: 7fr 5fr;
+  }
+}
+
+.admin-updated {
+  font-size: var(--fs-sm);
+  color: var(--fg-muted);
+}
+
+.staff-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: var(--sp-5);
+  margin: 0;
+  padding: 0;
+}
+
+/* a tall photo card: the portrait fills it, name and role sit on a dark fade at the bottom */
+.staff-card {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #0d0f14;
+  color: #f4efe6;
+  border: 1px solid rgb(var(--rgb-gold) / 0.22);
+  box-shadow: 0 24px 40px -28px rgb(0 0 0 / 0.9);
+  isolation: isolate;
+}
+
+.staff-card__photo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(80% 60% at 50% 30%, #262a33, #0d0f14);
+}
+
+.staff-card__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 700ms var(--ease-out);
+}
+
+.staff-card:hover .staff-card__photo img {
+  transform: scale(1.05);
+}
+
+.staff-card__photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 45%, rgb(0 0 0 / 0.85) 100%);
+}
+
+.staff-card__initials {
+  font-family: var(--font-display);
+  font-size: 4.5rem;
+  color: rgb(var(--rgb-gold) / 0.8);
+}
+
+.staff-card__silhouette {
+  width: 62%;
+  margin-top: 12%;
+  fill: rgb(255 255 255 / 0.08);
+}
+
+.staff-card__text {
+  position: absolute;
+  inset: auto 0 0;
+  display: grid;
+  gap: 0.3rem;
+  padding: var(--sp-5);
+}
+
+.staff-card__role {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--c-gold-light);
+}
+
+.staff-card__name {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 1.2rem + 0.8vw, 1.9rem);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.staff-card--slot .staff-card__name {
+  color: rgb(244 239 230 / 0.55);
+}
+
+/* live status pill in the top-left corner */
+.staff-card__live {
+  position: absolute;
+  top: var(--sp-4);
+  left: var(--sp-4);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.6);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.staff-card__live i {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #7d8590;
+}
+
+.staff-card__live--online i {
+  background: #3ddc84;
+}
+
+.staff-card__live--duty i {
+  background: var(--c-gold);
+}
+
+/* online / on duty: the dot pulses */
+.staff-card__live--online i::after,
+.staff-card__live--duty i::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: inherit;
+  animation: live-pulse 1.8s ease-out infinite;
+}
+
+.staff-card.is-offline .staff-card__photo img {
+  filter: grayscale(0.7) brightness(0.8);
+}
+
+@keyframes live-pulse {
+  from {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .staff-card__live i::after {
+    animation: none;
+  }
+
+  .staff-card:hover .staff-card__photo img {
+    transform: none;
+  }
+}
+
+.admin-foot__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-5);
+}
+
+.admin-foot__text {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: var(--fs-xl);
+  line-height: 1.1;
+  max-width: 24ch;
+}

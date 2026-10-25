@@ -1,0 +1,173 @@
+/* Welcome screen — royal, minimal: the name, a hairline, nothing else */
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: var(--c-ink);
+  color: var(--fg);
+  cursor: pointer;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  touch-action: none;
+}
+
+/* Once the water canvas is running, the gate's own background must be transparent so the
+   site shows through where the wave has passed (the canvas paints the screen itself). */
+.gate--ripple {
+  background: transparent;
+}
+
+.gate.is-fading {
+  opacity: 0;
+  transition: opacity 600ms var(--ease-out);
+}
+
+/* ---- the text card (real DOM text: accessible, and the fallback look) ---- */
+.gate__card {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-4);
+  padding-inline: var(--gutter);
+  text-align: center;
+  animation: gate-card-in 1.3s var(--ease-out) both;
+}
+
+.gate--ripple .gate__card {
+  visibility: hidden; /* the canvas paints the same card */
+}
+
+@keyframes gate-card-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.gate__kicker,
+.gate__name {
+  margin: 0;
+  font-family: 'Cinzel', 'Times New Roman', serif;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.gate__kicker {
+  font-size: clamp(0.75rem, 0.6rem + 0.6vw, 1rem);
+  letter-spacing: 0.55em;
+  padding-left: 0.55em; /* balance the trailing tracking so it stays centred */
+  color: rgb(var(--rgb-ivory) / 0.72);
+}
+
+.gate__name {
+  font-size: clamp(2.9rem, 0.8rem + 9.5vw, 8rem);
+  line-height: 1;
+  letter-spacing: 0.2em;
+  padding-left: 0.2em;
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gate__rule {
+  position: relative;
+  display: block;
+  width: min(26rem, 60vw);
+  height: 1px;
+  margin-top: var(--sp-2);
+  background: linear-gradient(90deg, transparent, rgb(var(--rgb-gold) / 0.8) 20%, rgb(var(--rgb-gold) / 0.8) 45%, transparent 45%, transparent 55%, rgb(var(--rgb-gold) / 0.8) 55%, rgb(var(--rgb-gold) / 0.8) 80%, transparent);
+}
+
+.gate__rule > span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  background: var(--c-gold);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* ---- the water canvas ---- */
+.gate__water {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 400ms var(--ease-out);
+  pointer-events: none;
+}
+
+.gate--ripple .gate__water {
+  opacity: 1;
+}
+
+/* ---- scroll hint ---- */
+.gate__hint {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(1.5rem, 5vh, 3rem);
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-3);
+  translate: -50% 0;
+  font-family: 'Cinzel', 'Times New Roman', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgb(var(--rgb-ivory) / 0.55);
+  pointer-events: none;
+  animation: gate-card-in 1.2s var(--ease-out) 1.4s both;
+}
+
+.gate__hint-line {
+  position: relative;
+  width: 1px;
+  height: 2.5rem;
+  overflow: hidden;
+  background: rgb(var(--rgb-gold) / 0.2);
+}
+
+.gate__hint-line::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--c-gold);
+  transform: translateY(-100%);
+  animation: gate-drip 2.4s var(--ease-in-out) infinite;
+}
+
+@keyframes gate-drip {
+  0% { transform: translateY(-100%); }
+  60% { transform: translateY(0); }
+  100% { transform: translateY(100%); }
+}
+
+/* ---- keyboard / screen-reader entry: hidden until focused ---- */
+.gate__enter {
+  position: absolute;
+  top: var(--sp-4);
+  left: 50%;
+  z-index: 2;
+  padding: var(--sp-3) var(--sp-5);
+  border: var(--hairline) solid var(--c-gold);
+  border-radius: var(--radius-pill);
+  background: var(--c-ink);
+  color: var(--c-gold-light);
+  font-family: 'Cinzel', 'Times New Roman', serif;
+  font-size: 0.8125rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  cursor: pointer;
+  translate: -50% -200%;
+  transition: translate var(--dur-base) var(--ease-out);
+}
+
+.gate__enter:focus-visible {
+  translate: -50% 0;
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}

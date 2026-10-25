@@ -1,0 +1,36 @@
+.odo {
+  display: inline-flex;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.odo__digits {
+  display: inline-flex;
+}
+
+/* One digit window: exactly one character tall, clipping the strip */
+.odo__col {
+  display: inline-block;
+  /* A little taller than 1em: display faces (Anton) draw above and below the em box,
+     and a 1em window would show slivers of the neighbouring digits. */
+  height: var(--odo-h, 1.15em);
+  overflow: hidden;
+}
+
+.odo__strip {
+  display: flex;
+  flex-direction: column;
+  transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.odo__strip > span {
+  display: block;
+  height: var(--odo-h, 1.15em);
+  line-height: var(--odo-h, 1.15em);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .odo__strip {
+    transition: none;
+  }
+}

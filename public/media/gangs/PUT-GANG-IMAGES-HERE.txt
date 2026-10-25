@@ -1,0 +1,15 @@
+Gangs page images — drop files here with EXACTLY these names (lowercase, .jpg):
+
+  opening.jpg    Background of the opening screen ("GANGS of the city" + ticket)
+  file-01.jpg    Full-screen background of gang screen 01
+  file-02.jpg    ... screen 02
+  file-03.jpg    ... screen 03
+  file-04.jpg    ... screen 04
+  file-05.jpg    ... screen 05
+  file-06.jpg    ... screen 06
+
+Size: landscape in-game screenshots, about 1920 px wide, ideally under ~400 KB each.
+Any image you don't add keeps the illustrated city skyline — nothing breaks.
+
+Once a gang is confirmed in src/content/gangs.js, its screen uses file-NN.jpg by its
+position in the list, or set its own path with  image: '/media/gangs/your-file.jpg'.

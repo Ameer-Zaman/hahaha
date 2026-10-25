@@ -1,0 +1,86 @@
+/* Background video layer: fills its parent like object-fit: cover, invisible until playing */
+.yt-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease-out);
+}
+
+.yt-bg.is-playing {
+  opacity: 1;
+}
+
+.yt-bg__frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* 16:9 cover, scaled a touch to crop YouTube's edge overlays */
+  width: max(100%, calc(100svh * 16 / 9));
+  height: max(100%, calc(100vw * 9 / 16));
+  border: 0;
+  transform: translate(-50%, -50%) scale(1.18);
+}
+
+.yt-bg__controls {
+  position: absolute;
+  right: var(--gutter);
+  bottom: var(--sp-6);
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-2) var(--sp-3);
+  max-width: calc(50% - 4rem);
+}
+
+.yt-bg__credit {
+  color: rgb(var(--rgb-ivory) / 0.55);
+  text-decoration: none;
+}
+
+.yt-bg__credit:hover {
+  color: var(--c-gold-light);
+}
+
+.yt-bg__btn {
+  min-height: 2.75rem; /* 44px touch target */
+  padding: 0 var(--sp-4);
+  border: var(--hairline) solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--c-white);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out);
+}
+
+.yt-bg__btn:hover,
+.yt-bg__btn[aria-pressed='true'] {
+  border-color: var(--c-gold);
+  color: var(--c-gold-light);
+}
+
+@media (max-width: 40rem) {
+  .yt-bg__controls {
+    left: var(--gutter);
+    right: var(--gutter);
+    max-width: none;
+    justify-content: space-between;
+    bottom: var(--sp-4);
+  }
+}
+
+/* Self-hosted background video fills its frame like object-fit: cover */
+.bg-video__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

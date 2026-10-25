@@ -1,0 +1,452 @@
+/* Shared UI: buttons, eyebrows, tags, cards, status chips, notices, ledger */
+
+/* ---- Buttons: "street" style ----
+   Inspired by open-world crime-game menus and loading-screen art (original, not copied):
+   a slanted plate with a thick black outline and a hard comic-book shadow, condensed
+   slanted capitals, and a black chevron tab. On hover the plate lifts off its shadow and
+   a glint runs across it; the big gold buttons also light a row of five "heat" stars. */
+.btn {
+  --btn-bg: rgb(10 11 14 / 0.6);
+  --btn-fg: var(--fg);
+  --btn-line: currentColor;
+  --btn-shadow: rgb(var(--rgb-gold) / 0.45);
+  --btn-off: 5px; /* shadow offset */
+  --btn-slant: -12deg;
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  min-height: 3rem;
+  padding: 0 1.6rem;
+  border: 0;
+  background: none;
+  color: var(--btn-fg);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-style: oblique 10deg; /* slanted capitals, matching the plate */
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    color var(--dur-base) var(--ease-out);
+}
+
+/* the slanted plate: fill, outline, hard shadow and the glint all live here */
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  transform: skewX(var(--btn-slant));
+  border: 2px solid var(--btn-line);
+  border-radius: 3px;
+  background:
+    linear-gradient(105deg, transparent 42%, rgb(255 255 255 / 0.55) 50%, transparent 58%) no-repeat,
+    var(--btn-bg);
+  background-size: 260% 100%, auto;
+  background-position: 160% 0, 0 0;
+  box-shadow: var(--btn-off) var(--btn-off) 0 var(--btn-shadow);
+  transition:
+    box-shadow 220ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-position 700ms var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
+}
+
+.btn:hover,
+.btn:focus-visible {
+  transform: translate(-2px, -2px);
+}
+
+.btn:hover::before,
+.btn:focus-visible::before {
+  --btn-off: 8px;
+  background-position: -60% 0, 0 0;
+}
+
+.btn:active {
+  transform: translate(3px, 3px);
+}
+
+.btn:active::before {
+  --btn-off: 1px;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 7px;
+}
+
+/* chevron tab at the end of the plate */
+.btn:has(.btn__arrow) {
+  padding-right: 0.45rem;
+}
+
+.btn .btn__arrow {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  width: 2.6rem;
+  margin-block: 0.4rem;
+  transform: skewX(var(--btn-slant));
+  border-radius: 2px;
+  background: #0b0b0b;
+  color: var(--c-gold-light);
+}
+
+.btn .btn__arrow-track {
+  transform: skewX(12deg); /* keep the chevrons upright inside the slanted tab */
+}
+
+/* arrows: a one-glyph window holding two; on hover both slide one place right */
+.btn__arrow {
+  display: inline-grid;
+  place-items: center;
+  font-size: 1rem;
+}
+
+.btn__arrow-track {
+  display: flex;
+  width: 1em;
+  overflow: hidden;
+}
+
+.btn__arrow svg {
+  flex: 0 0 1em;
+  width: 1em;
+  height: 1em;
+  transform: translateX(-100%);
+  transition: transform 450ms var(--ease-out);
+}
+
+.btn:hover .btn__arrow svg,
+.btn:focus-visible .btn__arrow svg,
+.text-link:hover .btn__arrow svg,
+.text-link:focus-visible .btn__arrow svg {
+  transform: translateX(0);
+}
+
+/* gold plate */
+.btn--primary {
+  --btn-bg: var(--c-gold);
+  --btn-fg: #0b0b0b;
+  --btn-line: #0b0b0b;
+  --btn-shadow: var(--c-gold-deep); /* a black shadow would vanish on the dark pages */
+}
+
+.theme-light .btn--primary {
+  --btn-shadow: #0b0b0b;
+}
+
+/* outline plate */
+.btn--ghost {
+  --btn-bg: rgb(10 11 14 / 0.55);
+  --btn-line: currentColor;
+}
+
+.btn--ghost:hover,
+.btn--ghost:focus-visible {
+  --btn-fg: var(--accent);
+  --btn-line: var(--accent);
+}
+
+/* light sections: the outline plate turns ink-on-ivory */
+.theme-light .btn--ghost {
+  --btn-bg: rgb(255 255 255 / 0.6);
+  --btn-shadow: rgb(0 0 0 / 0.85);
+}
+
+.btn--large {
+  min-height: 3.5rem;
+  padding: 0 2rem;
+  font-size: 1.25rem;
+  --btn-off: 6px;
+}
+
+.btn--large:has(.btn__arrow) {
+  padding-right: 0.5rem;
+}
+
+.btn--large .btn__arrow {
+  width: 3rem;
+}
+
+/* five "heat" stars above the big gold buttons, lighting up one after another on hover */
+.btn--primary.btn--large::after {
+  content: '★★★★★' / '';
+  position: absolute;
+  right: 0.6rem;
+  bottom: calc(100% + 0.35rem);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-style: normal;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  color: transparent;
+  background: linear-gradient(90deg, var(--c-gold-light) 50%, rgb(255 255 255 / 0.18) 50%) no-repeat;
+  background-size: 200% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-stroke: 0.5px rgb(0 0 0 / 0.6);
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 250ms var(--ease-out),
+    transform 250ms var(--ease-out),
+    background-position 900ms steps(5, jump-none);
+  pointer-events: none;
+}
+
+.btn--primary.btn--large:hover::after,
+.btn--primary.btn--large:focus-visible::after {
+  opacity: 1;
+  transform: none;
+  background-position: 0 0;
+}
+
+.btn.is-pending {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn.is-pending:hover,
+.btn.is-pending:active {
+  transform: none;
+}
+
+.btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn[disabled]::before {
+  --btn-off: 5px;
+  background-position: 160% 0, 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .btn::before,
+  .btn::after,
+  .btn__arrow svg {
+    transition: none;
+  }
+
+  .btn:hover,
+  .btn:focus-visible,
+  .btn:active {
+    transform: none;
+  }
+}
+
+/* ---- Eyebrow: mono, uppercase, gold diamond ---- */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.eyebrow::before,
+.diamond {
+  content: '';
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--accent-fill);
+  transform: rotate(45deg);
+}
+
+.mono-note {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.06em;
+  color: var(--fg-muted);
+}
+
+/* ---- Gold gradient display text ---- */
+.text-gold {
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---- Text link ---- */
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--accent);
+}
+
+
+/* ---- Tags ---- */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 0.6em 1.1em;
+  border: var(--hairline) solid var(--rule);
+  border-radius: var(--radius-pill);
+  background: var(--bg-raised);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+
+.tag::before {
+  content: '';
+  width: 0.45rem;
+  height: 0.45rem;
+  background: var(--accent-fill);
+  transform: rotate(45deg);
+}
+
+/* ---- Media card ---- */
+.media-card {
+  position: relative;
+  overflow: hidden;
+  border: var(--hairline) solid var(--card-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 30px 60px -30px rgb(var(--rgb-gold) / 0.25);
+}
+
+/* ---- Status chip ---- */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 0.35em 0.9em;
+  border: var(--hairline) solid var(--rule);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+.status::before {
+  content: '';
+  width: 0.45em;
+  height: 0.45em;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status--pending {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent-fill) 45%, transparent);
+}
+
+/* ---- Honest notice ---- */
+.notice {
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-5);
+  border: var(--hairline) solid var(--card-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent-fill) 8%, transparent);
+  max-width: var(--measure);
+}
+
+.notice__title {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: var(--fs-sm);
+  color: var(--fg);
+}
+
+.notice__body {
+  color: var(--fg-muted);
+  font-size: var(--fs-sm);
+}
+
+/* ---- Inner page header ---- */
+.page-head {
+  padding-top: calc(var(--header-h) + clamp(3rem, 2rem + 6vw, 7rem));
+  padding-bottom: clamp(3rem, 2rem + 4vw, 6rem);
+}
+
+.page-head__title {
+  font-size: var(--fs-3xl);
+  line-height: var(--lh-display);
+  margin-top: var(--sp-4);
+}
+
+.page-head .lede {
+  margin-top: var(--sp-5);
+}
+
+/* ---- Ledger: tabular records (wars) ---- */
+.ledger {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+
+.ledger th {
+  padding: 0 0 var(--sp-3);
+  border-bottom: var(--hairline) solid var(--c-crimson); /* crimson marks war records */
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.ledger td {
+  padding-block: var(--sp-5);
+  border-bottom: var(--hairline) solid var(--rule);
+}
+
+.ledger__empty {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+/* Page header with a drifting outlined word behind the title */
+.page-head--word {
+  position: relative;
+  overflow: hidden;
+}
+
+.page-head--word > .container {
+  position: relative;
+  z-index: 1;
+}
+
+.page-head__word {
+  right: -2%;
+  bottom: -0.12em;
+}
