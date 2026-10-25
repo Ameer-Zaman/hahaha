@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-import { applyLink, communityLinks, navigation, site } from '../../config/site'
+import { applyLink, communityLinks, navigationLinks as navigation, site } from '../../config/site'
 import Arrow from '../ui/Arrow'
 import BrandMark from '../ui/BrandMark'
 import './footer.css'

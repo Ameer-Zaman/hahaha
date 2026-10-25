@@ -10,6 +10,7 @@ const AdminPage = lazy(() => import('../features/admin/AdminPage'))
 const GangsPage = lazy(() => import('../features/gangs/GangsPage'))
 const GangPage = lazy(() => import('../features/gangs/GangPage'))
 const RulesPage = lazy(() => import('../features/rules/RulesPage'))
+const ClubsPage = lazy(() => import('../features/clubs/ClubsPage'))
 const NotFoundPage = lazy(() => import('../features/notfound/NotFoundPage'))
 // The admin panel is its own chunk: visitors never download it.
 const PanelApp = lazy(() => import('../features/panel/PanelApp'))
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="admin" element={<Lazy><AdminPage /></Lazy>} />
         <Route path="gangs" element={<Lazy><GangsPage /></Lazy>} />
         <Route path="gangs/:slug" element={<Lazy><GangPage /></Lazy>} />
+        <Route path="clubs" element={<Lazy><ClubsPage /></Lazy>} />
         <Route path="rules" element={<Lazy><RulesPage /></Lazy>} />
         {/* old /apply links: straight on to the Discord invite (or home if it isn't set yet) */}
         <Route path="apply" element={<ApplyRedirect />} />

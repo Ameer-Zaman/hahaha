@@ -96,13 +96,25 @@ export const integrations = {
   staffStatusEndpoint: import.meta.env.VITE_STAFF_STATUS_ENDPOINT ?? '',
 }
 
-/** Primary navigation — order is fixed by the brief. Apply Now is rendered as the CTA. */
+/**
+ * Primary navigation. Apply Now is rendered as the CTA.
+ * An item with `children` becomes a dropdown (desktop) / expandable group (phone menu).
+ */
 export const navigation = [
   { label: 'Home', to: '/' },
   { label: 'Admin', to: '/admin' },
-  { label: 'Gangs', to: '/gangs' },
+  {
+    label: 'Factions', // the dropdown's name — rename freely
+    children: [
+      { label: 'Gangs', to: '/gangs', hint: 'Crews, war records, players' },
+      { label: 'Clubs', to: '/clubs', hint: 'The clubs of the city' },
+    ],
+  },
   { label: 'Rules', to: '/rules' },
 ]
+
+/** Every page link in the navigation, dropdowns flattened (footer, sitemaps). */
+export const navigationLinks = navigation.flatMap((item) => item.children ?? [item])
 
 /** Apply Now opens the Discord server (there is no application page on the site). */
 export const applyLink = { label: 'Apply Now', href: DISCORD_INVITE }

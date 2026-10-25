@@ -8,6 +8,7 @@ import SocialIcon from '../ui/SocialIcon'
 import './header.css'
 import ApplyLink from '../ui/ApplyLink'
 import MusicButton from '../ui/MusicButton'
+import { MobileNavGroup, NavDropdown } from './NavDropdown'
 
 const socials = communityLinks.filter((link) => link.url).slice(0, 3)
 const YEAR = new Date().getFullYear()
@@ -106,13 +107,19 @@ export default function SiteHeader({ tone = 'dark' }) {
 
         <nav className="site-nav" aria-label="Main">
           <ul role="list" className="site-nav__list">
-            {navigation.map((item) => (
-              <li key={item.to}>
-                <NavLink to={item.to} end={item.to === '/'} className="site-nav__link">
-                  {item.label}
-                </NavLink>
-              </li>
-            ))}
+            {navigation.map((item) =>
+              item.children ? (
+                <li key={item.label}>
+                  <NavDropdown item={item} />
+                </li>
+              ) : (
+                <li key={item.to}>
+                  <NavLink to={item.to} end={item.to === '/'} className="site-nav__link">
+                    {item.label}
+                  </NavLink>
+                </li>
+              ),
+            )}
           </ul>
           {socials.length > 0 && (
             <ul role="list" className="site-nav__social">
@@ -154,13 +161,19 @@ export default function SiteHeader({ tone = 'dark' }) {
       >
         <nav aria-label="Main mobile" className="container mobile-menu__inner">
           <ul role="list" className="mobile-menu__list">
-            {navigation.map((item, i) => (
-              <li key={item.to} style={{ '--i': i }}>
-                <NavLink to={item.to} end={item.to === '/'} className="mobile-menu__link">
-                  {item.label}
-                </NavLink>
-              </li>
-            ))}
+            {navigation.map((item, i) =>
+              item.children ? (
+                <li key={item.label} style={{ '--i': i }}>
+                  <MobileNavGroup item={item} />
+                </li>
+              ) : (
+                <li key={item.to} style={{ '--i': i }}>
+                  <NavLink to={item.to} end={item.to === '/'} className="mobile-menu__link">
+                    {item.label}
+                  </NavLink>
+                </li>
+              ),
+            )}
           </ul>
           <div className="mobile-menu__foot" style={{ '--i': navigation.length }}>
             <ApplyLink className="btn btn--primary btn--large mobile-menu__cta" onClick={() => setOpen(false)}>
