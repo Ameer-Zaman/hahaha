@@ -22,9 +22,9 @@ services:
       # Session signing secret — Render generates a long random value.
       - key: JWT_SECRET
         generateValue: true
-      # The website's address, e.g. https://hahaha-1-oqpe.onrender.com (no trailing slash; comma-separate several).
+      # The website's address (no trailing slash; comma-separate several). Change it if the site moves.
       - key: CLIENT_ORIGIN
-        sync: false
+        value: https://hahaha-1-oqpe.onrender.com
       # Website proxy (static site rewrite) → Render proxy → app.
       - key: TRUST_PROXY
         value: "2"

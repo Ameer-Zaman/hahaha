@@ -71,7 +71,7 @@ Uploaded images and videos are stored in the same database (GridFS). The free ti
    | Variable | Value |
    | --- | --- |
    | `MONGODB_URI` | the Atlas string from step 2 |
-   | `CLIENT_ORIGIN` | your Netlify address, e.g. `https://shyastha.netlify.app` (no slash at the end; separate several with commas) |
+   | `CLIENT_ORIGIN` | already set to `https://hahaha-1-oqpe.onrender.com` in `render.yaml`. Change it if the website's address changes (no slash at the end; separate several with commas) |
    | `SUPERADMIN_EMAIL` | the first Super Admin's email |
    | `SUPERADMIN_PASSWORD` | at least 10 characters |
 
