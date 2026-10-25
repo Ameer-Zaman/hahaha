@@ -1,21 +1,35 @@
-# Render Blueprint: deploys the site as a static site.
-# On Render: New → Blueprint → pick this repo (or New → Static Site with the same settings).
+# Render Blueprint: the Shyastha API + admin backend (server/).
+# On Render: New → Blueprint → pick this repo. Render asks for the values marked sync: false.
+# The website itself stays on Netlify (see netlify.toml).
 services:
   - type: web
-    name: shyastha
-    runtime: static
-    buildCommand: npm ci && npm run build
-    staticPublishPath: ./dist
-    pullRequestPreviewsEnabled: false
-    headers:
-      - path: /static/*
-        name: Cache-Control
-        value: public, max-age=31536000, immutable
-      - path: /assets/video/*
-        name: Cache-Control
-        value: public, max-age=3600
-    routes:
-      # single-page app: every page address is served by index.html
-      - type: rewrite
-        source: /*
-        destination: /index.html
+    name: shyastha-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      # MongoDB Atlas connection string (Atlas → Connect → Drivers), including the db name.
+      - key: MONGODB_URI
+        sync: false
+      # Session signing secret — Render generates a long random value.
+      - key: JWT_SECRET
+        generateValue: true
+      # Your Netlify site address, e.g. https://shyastha.netlify.app (comma-separate several).
+      - key: CLIENT_ORIGIN
+        sync: false
+      # Netlify proxy → Render proxy → app.
+      - key: TRUST_PROXY
+        value: "2"
+      # First Super Admin. Only used while the database has no accounts; delete afterwards.
+      - key: SUPERADMIN_EMAIL
+        sync: false
+      - key: SUPERADMIN_PASSWORD
+        sync: false

@@ -25,3 +25,8 @@ dist-ssr
 
 .env
 .env.local
+
+# server secrets
+server/.env
+server/.env.*
+!server/.env.example

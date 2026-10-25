@@ -1,0 +1,41 @@
+# Netlify hosts the website (client/). Build settings are read from here, so the dashboard
+# fields can stay empty — or set Base directory to "client" there too.
+[build]
+  base = "client"
+  command = "npm ci && npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# API: forward /api/* to the server on Render. Keeping the API on the website's own address
+# means the admin login cookie is first-party. ⚠ Replace the address below with your Render
+# service URL (Render dashboard → your service → the .onrender.com link at the top).
+# This rule must stay ABOVE the single-page-app rule.
+[[redirects]]
+  from = "/api/*"
+  to = "https://shyastha-api.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+# Single-page app: every page address (/gangs, /rules, /panel …) is served by index.html.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/video/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/panel/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-store"
