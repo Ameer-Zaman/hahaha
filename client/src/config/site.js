@@ -106,10 +106,9 @@ export const navigation = [
   { label: 'Admin', to: '/admin' },
   {
     label: 'Factions', // the dropdown's name — rename freely
-    kicker: 'The factions of the city', // small heading inside the dropdown
     children: [
-      { label: 'Gangs', to: '/gangs', hint: 'Crews, war records, players', art: 'crest' },
-      { label: 'Clubs', to: '/clubs', hint: 'The clubs of the city', art: 'cards' },
+      { label: 'Gangs', to: '/gangs', hint: 'Crews, war records, players' },
+      { label: 'Clubs', to: '/clubs', hint: 'The clubs of the city' },
     ],
   },
   { label: 'Rules', to: '/rules' },
