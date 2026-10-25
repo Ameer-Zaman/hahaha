@@ -2,7 +2,7 @@ import { Router } from 'express'
 
 import { Gang } from '../models/Gang.js'
 import { RuleBook } from '../models/RuleBook.js'
-import { MEDIA_SLOTS, Settings } from '../models/Settings.js'
+import { defaultSections, MEDIA_SLOTS, Settings } from '../models/Settings.js'
 import { Staff } from '../models/Staff.js'
 import { War } from '../models/War.js'
 import { mediaUrl } from '../services/media.js'
@@ -75,9 +75,14 @@ router.get('/rules', async (req, res) => {
 })
 
 router.get('/site', async (req, res) => {
+  res.set('Cache-Control', 'public, max-age=10') // maintenance and sections should land quickly
   const settings = await Settings.findOne({ key: 'main' }).lean()
   const media = Object.fromEntries(MEDIA_SLOTS.map((slot) => [slot, mediaUrl(settings?.media?.[slot] ?? null)]))
-  res.json({ media })
+  res.json({
+    media,
+    sections: { ...defaultSections(), ...(settings?.sections ?? {}) },
+    maintenance: { on: Boolean(settings?.maintenance?.on), message: settings?.maintenance?.message ?? '' },
+  })
 })
 
 export default router

@@ -7,6 +7,8 @@ import ScrollProgress from './ScrollProgress'
 import { ScrollTrigger } from '../../lib/gsap'
 import { setIntroActive, shouldShowIntro } from '../../lib/intro'
 import WelcomeGate from '../intro/WelcomeGate'
+import MaintenanceScreen, { MaintenancePreviewNotice } from '../site/MaintenanceScreen'
+import { useSiteSettings, useStaffPreview } from '../../lib/siteSettings'
 
 /** Pages whose first screen is light (none: the site is black and gold throughout). */
 const LIGHT_TOP = []
@@ -36,8 +38,17 @@ export default function Layout() {
     return () => cancelAnimationFrame(id)
   }, [pathname, hash])
 
+  // Maintenance mode (Panel → Site settings): visitors get the "be right back" screen;
+  // signed-in panel accounts still see the site, with a notice.
+  const { maintenance } = useSiteSettings({ watch: true })
+  const preview = useStaffPreview(maintenance.on)
+  if (maintenance.on && !preview.staff) {
+    return preview.checked ? <MaintenanceScreen message={maintenance.message} /> : <div className="route-loading" aria-busy="true" />
+  }
+
   return (
     <>
+      {maintenance.on && <MaintenancePreviewNotice />}
       <a className="skip-link" href="#main">
         Skip to content
       </a>

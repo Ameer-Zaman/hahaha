@@ -11,6 +11,7 @@ import { GangEditor, GangList } from './screens/Gangs'
 import Login from './screens/Login'
 import { MediaLibrary, SiteMedia } from './screens/Media'
 import Rules from './screens/Rules'
+import SiteSettings from './screens/SiteSettings'
 import Staff from './screens/Staff'
 import Wars from './screens/Wars'
 import { ErrorNote, Loading, ToastProvider } from './ui'
@@ -18,6 +19,7 @@ import './panel.css'
 
 const NAV = [
   { group: null, items: [{ to: '/panel', label: 'Overview', end: true }] },
+  { group: 'Website', items: [{ to: '/panel/site', label: 'Sections & maintenance' }] },
   {
     group: 'Content',
     items: [
@@ -190,6 +192,7 @@ function Shell() {
           <Route path="rules" element={<Rules />} />
           <Route path="media" element={<MediaLibrary />} />
           <Route path="site-media" element={<SiteMedia />} />
+          <Route path="site" element={<SiteSettings />} />
           <Route path="account" element={<Account />} />
           {isSuper && <Route path="accounts" element={<Accounts />} />}
           {isSuper && <Route path="audit" element={<AuditLog />} />}

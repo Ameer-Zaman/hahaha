@@ -11,12 +11,25 @@ export const MEDIA_SLOTS = [
   'joinImage',
 ]
 
+/** Website sections that can be switched off from the panel (Home is always on). */
+export const SECTION_KEYS = ['story', 'admin', 'gangs', 'clubs', 'rules']
+
+export const defaultSections = () => Object.fromEntries(SECTION_KEYS.map((key) => [key, true]))
+
 const settingsSchema = new mongoose.Schema(
   {
     key: { type: String, default: 'main', unique: true },
     media: {
       type: Object,
       default: () => Object.fromEntries(MEDIA_SLOTS.map((slot) => [slot, null])),
+    },
+    /** Which sections show in the menu and can be opened (missing key = on). */
+    sections: { type: Object, default: defaultSections },
+    /** Maintenance mode: visitors see a "be right back" screen; the panel keeps working. */
+    maintenance: {
+      on: { type: Boolean, default: false },
+      message: { type: String, default: '', maxlength: 300 },
+      changedAt: { type: Date, default: null },
     },
   },
   { timestamps: true, minimize: false },

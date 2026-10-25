@@ -4,6 +4,8 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import Layout from '../components/layout/Layout'
 import HomePage from '../features/home/HomePage'
 import { applyLink } from '../config/site'
+import SectionClosed from '../components/site/SectionClosed'
+import { useSectionOn } from '../lib/siteSettings'
 
 // Inner pages are split into their own chunks so the homepage loads only what it needs.
 const AdminPage = lazy(() => import('../features/admin/AdminPage'))
@@ -22,12 +24,12 @@ export default function App() {
       <Route path="panel/*" element={<Lazy><PanelApp /></Lazy>} />
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
-        <Route path="admin" element={<Lazy><AdminPage /></Lazy>} />
-        <Route path="gangs" element={<Lazy><GangsPage /></Lazy>} />
-        <Route path="gangs/:slug" element={<Lazy><GangPage /></Lazy>} />
-        <Route path="clubs" element={<Lazy><ClubsPage /></Lazy>} />
-        <Route path="story" element={<Lazy><StoryPage /></Lazy>} />
-        <Route path="rules" element={<Lazy><RulesPage /></Lazy>} />
+        <Route path="admin" element={<Section to="/admin"><AdminPage /></Section>} />
+        <Route path="gangs" element={<Section to="/gangs"><GangsPage /></Section>} />
+        <Route path="gangs/:slug" element={<Section to="/gangs"><GangPage /></Section>} />
+        <Route path="clubs" element={<Section to="/clubs"><ClubsPage /></Section>} />
+        <Route path="story" element={<Section to="/story"><StoryPage /></Section>} />
+        <Route path="rules" element={<Section to="/rules"><RulesPage /></Section>} />
         {/* old /apply links: straight on to the Discord invite (or home if it isn't set yet) */}
         <Route path="apply" element={<ApplyRedirect />} />
         <Route path="*" element={<Lazy><NotFoundPage /></Lazy>} />
@@ -38,6 +40,11 @@ export default function App() {
 
 function Lazy({ children }) {
   return <Suspense fallback={<div className="route-loading" aria-busy="true" />}>{children}</Suspense>
+}
+
+/** A page that can be switched off in the panel (Site settings → Sections). */
+function Section({ to, children }) {
+  return useSectionOn(to) ? <Lazy>{children}</Lazy> : <SectionClosed />
 }
 
 function ApplyRedirect() {

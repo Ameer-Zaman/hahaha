@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 
-import { applyLink, communityLinks, navigation, site } from '../../config/site'
+import { applyLink, communityLinks, site } from '../../config/site'
+import { useNavigation } from '../../lib/siteSettings'
 import Arrow from '../ui/Arrow'
 import BrandMark from '../ui/BrandMark'
 import SocialIcon from '../ui/SocialIcon'
@@ -21,6 +22,7 @@ const YEAR = new Date().getFullYear()
  * scroll up — but never hides near the top, while the menu is open, or while it has focus.
  */
 export default function SiteHeader({ tone = 'dark' }) {
+  const { navigation } = useNavigation()
   const [scrolled, setScrolled] = useState(false)
   const [tucked, setTucked] = useState(false)
   const headerRef = useRef(null)

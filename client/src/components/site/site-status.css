@@ -1,0 +1,105 @@
+/* Maintenance screen */
+.maint {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  padding: var(--sp-7) var(--gutter);
+  background:
+    radial-gradient(60% 50% at 50% 40%, rgb(var(--rgb-gold) / 0.1), transparent 70%),
+    var(--c-ink);
+  color: var(--fg);
+  text-align: center;
+}
+.maint__card {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-4);
+  max-width: 36rem;
+}
+.maint__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 var(--sp-5);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.maint__mark {
+  width: 1.6rem;
+  height: 1.6rem;
+  color: var(--c-gold);
+}
+.maint__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--c-gold-light);
+}
+.maint__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c-gold);
+  box-shadow: 0 0 0 0 rgb(var(--rgb-gold) / 0.6);
+  animation: maint-pulse 2s ease-out infinite;
+}
+@keyframes maint-pulse {
+  to {
+    box-shadow: 0 0 0 10px rgb(var(--rgb-gold) / 0);
+  }
+}
+.maint__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-display);
+  text-transform: uppercase;
+}
+.maint__message {
+  margin: 0 0 var(--sp-4);
+  max-width: 32rem;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  color: var(--fg-muted);
+  white-space: pre-line;
+}
+
+/* Notice for signed-in panel accounts during maintenance */
+.maint-notice {
+  position: fixed;
+  z-index: 90;
+  left: 50%;
+  bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: max-content;
+  max-width: calc(100vw - 2rem);
+  margin: 0;
+  padding: 0.6rem 1rem;
+  border: 1px solid rgb(var(--rgb-gold) / 0.45);
+  border-radius: 999px;
+  background: rgb(7 7 10 / 0.95);
+  color: var(--fg);
+  font-size: var(--fs-xs);
+  transform: translateX(-50%);
+  box-shadow: 0 12px 30px -10px rgb(0 0 0 / 0.8);
+}
+.maint-notice a {
+  color: var(--c-gold-light);
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maint__dot {
+    animation: none;
+  }
+}

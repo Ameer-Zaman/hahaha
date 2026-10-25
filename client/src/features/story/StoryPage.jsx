@@ -8,6 +8,7 @@ import { site } from '../../config/site'
 import { chapters, storyIntro, storyOutro } from '../../content/story'
 import usePageTitle from '../../hooks/usePageTitle'
 import { gsap, MOTION_OK, ScrollTrigger, useGSAP } from '../../lib/gsap'
+import { useSectionOn } from '../../lib/siteSettings'
 import LoopMedia from './LoopMedia'
 import ScrubMedia from './ScrubMedia'
 import './story.css'
@@ -141,9 +142,9 @@ function Chapter({ ch }) {
               </p>
             ))}
             {ch.link && (
-              <Link to={ch.link.to} className="btn btn--ghost ch__reveal ch__link">
+              <SectionLink to={ch.link.to} className="btn btn--ghost ch__reveal ch__link">
                 {ch.link.label} <Arrow />
-              </Link>
+              </SectionLink>
             )}
           </div>
           <div className="ch__cards">
@@ -214,9 +215,9 @@ function StoryOutro() {
         <ApplyLink className="btn btn--primary btn--large">
           Apply now <Arrow />
         </ApplyLink>
-        <Link to="/rules" className="btn btn--ghost btn--large">
+        <SectionLink to="/rules" className="btn btn--ghost btn--large">
           Read the rules
-        </Link>
+        </SectionLink>
       </div>
     </section>
   )
@@ -241,4 +242,9 @@ export default function StoryPage() {
       <StoryOutro />
     </div>
   )
+}
+
+/** A link to another section, left out while that section is switched off in the panel. */
+function SectionLink({ to, ...rest }) {
+  return useSectionOn(to) ? <Link to={to} {...rest} /> : null
 }

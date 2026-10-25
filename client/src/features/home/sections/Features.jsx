@@ -7,6 +7,7 @@ import { media } from '../../../config/site'
 import { useSiteMedia } from '../../../lib/publicData'
 import { features } from '../../../content/home'
 import { gsap, MOTION_OK, useGSAP } from '../../../lib/gsap'
+import { sectionOf, useSiteSettings } from '../../../lib/siteSettings'
 
 const PLATE_SETTINGS = {
   administration: { seed: 7, horizon: 0.82 },
@@ -34,8 +35,11 @@ export default function Features() {
   }
   const tabs = useRef([])
   const hoverTimer = useRef(0)
-  const [active, setActive] = useState(0)
-  const rows = features.rows
+  const [chosen, setActive] = useState(0)
+  const { sections } = useSiteSettings()
+  // panels for sections switched off in the admin panel are left out
+  const rows = features.rows.filter((row) => sections[sectionOf(row.to)] !== false)
+  const active = Math.min(chosen, Math.max(0, rows.length - 1))
 
   useGSAP(
     () => {
@@ -74,6 +78,8 @@ export default function Features() {
     setActive(next)
     tabs.current[next]?.focus()
   }
+
+  if (rows.length === 0) return null // every section in this block is switched off
 
   return (
     <section ref={root} className="features theme-dark section" aria-labelledby="features-title">

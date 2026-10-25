@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 
-import { applyLink, communityLinks, navigationLinks as navigation, site } from '../../config/site'
+import { applyLink, communityLinks, site } from '../../config/site'
+import { useNavigation } from '../../lib/siteSettings'
 import Arrow from '../ui/Arrow'
 import BrandMark from '../ui/BrandMark'
 import './footer.css'
@@ -10,6 +11,7 @@ const YEAR = new Date().getFullYear()
 
 export default function SiteFooter() {
   const links = communityLinks.filter((link) => link.url)
+  const { links: navigation } = useNavigation()
 
   return (
     <footer className="site-footer theme-black">

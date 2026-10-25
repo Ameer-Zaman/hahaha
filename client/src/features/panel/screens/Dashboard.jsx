@@ -17,6 +17,17 @@ export default function Dashboard() {
       {loading && !data && <Loading />}
       {data && (
         <>
+          {(data.maintenance || data.sectionsOff?.length > 0) && (
+            <Panel className={data.maintenance ? 'p-maint is-on' : ''}>
+              <p className="p-text">
+                {data.maintenance ? 'Maintenance mode is on: visitors see the “We’ll be right back” screen. ' : ''}
+                {data.sectionsOff?.length > 0 ? `Switched off: ${data.sectionsOff.join(', ')}. ` : ''}
+                <Link to="/panel/site" className="p-link">
+                  Sections & maintenance
+                </Link>
+              </p>
+            </Panel>
+          )}
           <ul className="p-stats" role="list">
             <Stat to="/panel/gangs" label="Gangs" value={data.gangs} />
             <Stat to="/panel/gangs" label="Players listed" value={data.players} />

@@ -2,6 +2,7 @@ import { Router } from 'express'
 
 import { authenticate, requireRole } from '../../middleware/auth.js'
 import { Gang } from '../../models/Gang.js'
+import { Settings } from '../../models/Settings.js'
 import { RuleBook } from '../../models/RuleBook.js'
 import { Staff } from '../../models/Staff.js'
 import { War } from '../../models/War.js'
@@ -32,13 +33,14 @@ const staffRoles = requireRole('admin', 'superadmin')
 const superOnly = requireRole('superadmin')
 
 router.get('/overview', staffRoles, async (req, res) => {
-  const [gangCount, warCount, staffCount, online, book, recent] = await Promise.all([
+  const [gangCount, warCount, staffCount, online, book, recent, site] = await Promise.all([
     Gang.countDocuments(),
     War.countDocuments(),
     Staff.countDocuments(),
     Staff.countDocuments({ online: true }),
     RuleBook.findOne({ key: 'main' }).lean(),
     req.user.role === 'superadmin' ? AuditLog.find().sort({ at: -1 }).limit(6).lean() : [],
+    Settings.findOne({ key: 'main' }, 'maintenance sections').lean(),
   ])
   const rosters = await Gang.find({}, 'members').lean()
   const players = rosters.reduce((n, g) => n + (g.members?.length ?? 0), 0)
@@ -48,6 +50,8 @@ router.get('/overview', staffRoles, async (req, res) => {
     wars: warCount,
     staff: staffCount,
     staffOnline: online,
+    maintenance: Boolean(site?.maintenance?.on),
+    sectionsOff: Object.entries(site?.sections ?? {}).filter(([, on]) => on === false).map(([key]) => key),
     rules: { published: Boolean(book?.published), publishedAt: book?.publishedAt ?? null, draftSections: book?.draft?.length ?? 0 },
     recent: recent.map(({ _id, actor, ...e }) => ({ id: String(_id), ...e })),
   })

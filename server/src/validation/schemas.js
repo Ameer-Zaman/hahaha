@@ -114,6 +114,19 @@ export const ruleBookSchema = z.object({
     .max(40),
 })
 
+export const settingsSiteSchema = z
+  .object({
+    sections: z.partialRecord(z.enum(['story', 'admin', 'gangs', 'clubs', 'rules']), z.boolean()).optional(),
+    maintenance: z
+      .object({
+        on: z.boolean(),
+        message: z.string().trim().max(300).default(''),
+      })
+      .optional(),
+  })
+  .strict()
+  .refine((v) => v.sections || v.maintenance, 'Nothing to change.')
+
 export const settingsMediaSchema = z.object({
   media: z.record(z.string(), z.string().regex(/^[a-f0-9]{24}$/).nullable()),
 })
