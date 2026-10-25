@@ -73,7 +73,24 @@ Uploaded images and videos are stored in the same database (GridFS). The free ti
 
 > Render's free plan sleeps after 15 minutes without visitors, and the next request takes up to a minute to wake it. Public pages don't wait: they show the built-in content and pick up live data on the next visit. The panel shows "waking the server…" and retries on its own.
 
-## 4 · Point the website at the server (Netlify)
+## 4 · Point the website at the server (website on Render)
+
+If the website is a **Render static site** (for example `https://hahaha-1-oqpe.onrender.com`):
+
+1. Open the static site on Render → **Redirects/Rewrites**, and make the rules exactly these, in this order:
+
+   | # | Source | Destination | Action |
+   | --- | --- | --- | --- |
+   | 1 | `/api/*` | `https://<your-api>.onrender.com/api/*` | Rewrite |
+   | 2 | `/*` | `/index.html` | Rewrite |
+
+   The `/api/*` rule must be above `/*`. Otherwise API calls get the website page back, and the panel says "Server not connected".
+2. Static site → **Environment**: delete `VITE_USE_API` if it's there.
+3. **Manual Deploy → Clear build cache & deploy.**
+4. On the API service, `CLIENT_ORIGIN` must be the website's address exactly, e.g. `https://hahaha-1-oqpe.onrender.com` (no slash at the end).
+5. Open `/panel` on the website and sign in with the Super Admin email and password.
+
+## 4b · Point the website at the server (website on Netlify)
 
 1. In **`netlify.toml`**, replace `https://shyastha-api.onrender.com` in the `/api/*` rule with your Render address. Commit and push.
 2. Netlify → Site configuration → Build & deploy: leave **Base directory** empty (`netlify.toml` sets `client`), or set it to `client`. Then **Clear cache and deploy**.

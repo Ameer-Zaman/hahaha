@@ -1,6 +1,6 @@
 # Render Blueprint: the Shyastha API + admin backend (server/).
 # On Render: New → Blueprint → pick this repo. Render asks for the values marked sync: false.
-# The website itself stays on Netlify (see netlify.toml).
+# The website is a separate static site (Render or Netlify): see README step 4 to forward /api to this service.
 services:
   - type: web
     name: shyastha-api
@@ -22,10 +22,10 @@ services:
       # Session signing secret — Render generates a long random value.
       - key: JWT_SECRET
         generateValue: true
-      # Your Netlify site address, e.g. https://shyastha.netlify.app (comma-separate several).
+      # The website's address, e.g. https://hahaha-1-oqpe.onrender.com (no trailing slash; comma-separate several).
       - key: CLIENT_ORIGIN
         sync: false
-      # Netlify proxy → Render proxy → app.
+      # Website proxy (static site rewrite) → Render proxy → app.
       - key: TRUST_PROXY
         value: "2"
       # First Super Admin. Only used while the database has no accounts; delete afterwards.
