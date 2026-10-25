@@ -14,7 +14,7 @@
  *   'signature' — inhale, heartbeat, strike with a gold ring and brass bloom
  *   'cinematic' — the first one: knock, boom and a dark swell
  */
-const VARIANT = 'motif'
+const VARIANT = 'cinematic'
 
 let ctx = null
 let played = false
