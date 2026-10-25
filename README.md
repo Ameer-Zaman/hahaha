@@ -9,7 +9,7 @@ The website works on its own. Every public page reads from the API when it answe
 
 The **admin panel** lives at **`/panel`** on the website. From there the team manages:
 
-- **Sections & maintenance**: switch Story, Admin, Gangs, Clubs or Rules off (they leave the menu, footer and homepage, and their page says "Closed for now"), and turn on **maintenance mode** with a message, so visitors see a "We'll be right back" screen. Signed-in panel accounts still see the site while it's closed. Every switch is in the audit log.
+- **Sections & maintenance**: switch Story, Staffs, Gangs, Clubs or Rules off (they leave the menu, footer and homepage, and their page says "Closed for now"), and turn on **maintenance mode** with a message, so visitors see a "We'll be right back" screen. Signed-in panel accounts still see the site while it's closed. Every switch is in the audit log.
 - **Gangs & players**: name, territory, leader, card image or **short looping video**, emblem and player list. Players can be **imported from JSON**, for one gang or many at once.
 - **Wars**: date, the two gangs, winner or draw, and the result. Wars show on both gangs' pages.
 - **Staff**: cards on the **Staffs** page (`/staff`), each with a **department** (Management, PD, EMS … — the page groups by department and gets a filter for each) and optional **social links** (Discord, YouTube, Twitch, Kick, TikTok, Instagram, X, Facebook — shown as the brands' own logos and colours). **Online / On duty** switches show on the site within 30 seconds, and visitors can filter to **Live now**.
