@@ -231,7 +231,7 @@ export default function WelcomeGate({ onDone }) {
 
       <div ref={hintRef} className="gate__hint" aria-hidden="true">
         <span className="gate__hint-line" />
-        <span className="gate__hint-text">Click to enter</span>
+        <span className="gate__hint-text">Scroll to enter</span>
       </div>
 
       <button

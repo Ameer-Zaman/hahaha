@@ -171,15 +171,3 @@
   outline: 2px solid var(--focus);
   outline-offset: 3px;
 }
-
-/* "Tap to enter" on touch screens */
-@media (hover: none) {
-  .gate__hint-text {
-    font-size: 0;
-  }
-  .gate__hint-text::after {
-    content: 'Tap to enter';
-    font-size: 0.75rem;
-  }
-}
-
