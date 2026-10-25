@@ -8,26 +8,8 @@
  * allowed (or becomes allowed within half a second, e.g. when a finger lifts after a swipe).
  * A mouse-wheel scroll alone never unlocks audio, so that path is silent by design.
  */
-const KEY = 'shyastha:sound'
 let ctx = null
 let played = false
-
-export function isSoundOn() {
-  try {
-    return window.localStorage.getItem(KEY) !== 'off'
-  } catch {
-    return true
-  }
-}
-
-export function setSoundOn(on) {
-  try {
-    window.localStorage.setItem(KEY, on ? 'on' : 'off')
-  } catch {
-    /* storage unavailable: the choice lasts for this visit only */
-  }
-  if (!on) ctx?.suspend().catch(() => {})
-}
 
 function getContext() {
   if (ctx) return ctx
@@ -39,14 +21,13 @@ function getContext() {
 
 /** Call inside a click / tap / key handler: lets the browser start audio. */
 export function primeIntroSound() {
-  if (!isSoundOn()) return
   const c = getContext()
   if (c && c.state !== 'running') c.resume().catch(() => {})
 }
 
 /** Plays the entrance hit once, if sound is on and the browser allows audio right now. */
 export function playIntroSound() {
-  if (played || !isSoundOn() || document.hidden) return
+  if (played || document.hidden) return
   const c = getContext()
   if (!c) return
   const askedAt = performance.now()
