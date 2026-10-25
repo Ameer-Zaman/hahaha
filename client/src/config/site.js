@@ -12,8 +12,8 @@ export const site = {
   /** Short line under the name in the hero. Keep it factual: the server has not launched. */
   tagline: 'A serious roleplay city, in preparation.',
 
-  /** The welcome screen: small line above the name, and the gold badge below it ('' = no badge). */
-  welcome: { kicker: 'Welcome to', badge: 'Roleplay City' },
+  /** The welcome screen: the handwritten line over the name, and the small line below it ('' = none). */
+  welcome: { script: 'Welcome to', tagline: 'The city is waiting' },
 
   /** Shown in the footer and meta description. */
   description:

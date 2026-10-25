@@ -179,9 +179,9 @@ export function createRipple(canvas, paint) {
 /** Paints the royal, minimal welcome card: "Welcome to" · SHYASTHA · a gold hairline. */
 /**
  * The welcome card, painted for the water canvas — the same design as the DOM card:
- * "WELCOME TO" between hairlines, the name huge in gold, a slanted gold badge below.
+ * the name huge in ivory, a gold handwritten "Welcome to" across its top, a small line below.
  */
-export function paintWelcome(name, { kicker = 'Welcome to', badge = '' } = {}) {
+export function paintWelcome(name, { script = 'Welcome to', tagline = '' } = {}) {
   return (ctx, w, h, dpr) => {
     ctx.clearRect(0, 0, w, h)
     ctx.fillStyle = '#050507'
@@ -197,71 +197,59 @@ export function paintWelcome(name, { kicker = 'Welcome to', badge = '' } = {}) {
     const phone = w / dpr < 600
     ctx.textBaseline = 'alphabetic'
 
-    // the name: as wide as ~60% of the screen (86% on phones), capped for very wide screens
+    // the name: ~65% of the screen wide (88% on phones), capped on very wide screens
     const title = name.toUpperCase()
-    const tracking = 0.02
+    const tracking = 0.01
     ctx.font = `100px Anton, Impact, "Arial Narrow Bold", sans-serif`
     const per100 = spacedWidth(ctx, title, 100 * tracking) - 100 * tracking
-    const size = Math.min(((phone ? 0.86 : 0.6) * w * 100) / per100, 240 * dpr)
+    const size = Math.min(((phone ? 0.88 : 0.65) * w * 100) / per100, 260 * dpr)
     ctx.font = `${size}px Anton, Impact, "Arial Narrow Bold", sans-serif`
     const titleW = spacedWidth(ctx, title, size * tracking) - size * tracking
-    const capH = ctx.measureText('H').actualBoundingBoxAscent || size * 0.86 // the capitals' real height
-    const baseline = cy + capH / 2 - size * 0.04
-    const grad = ctx.createLinearGradient(cx - titleW / 2, 0, cx + titleW / 2, 0)
-    grad.addColorStop(0, '#fff2c9')
-    grad.addColorStop(0.25, '#f2cf80')
-    grad.addColorStop(0.5, '#e3b55a')
-    grad.addColorStop(0.75, '#b5852f')
-    grad.addColorStop(1, '#efcb7a')
-    ctx.save()
-    ctx.shadowColor = 'rgba(227,181,90,0.25)'
-    ctx.shadowBlur = 40 * dpr
-    ctx.fillStyle = grad
+    const capH = ctx.measureText('H').actualBoundingBoxAscent || size * 0.86
+    const baseline = cy + capH / 2
+    const ivory = ctx.createLinearGradient(0, baseline - capH, 0, baseline)
+    ivory.addColorStop(0, '#fbf7ef')
+    ivory.addColorStop(1, '#e9e1d2')
+    ctx.fillStyle = ivory
     drawSpaced(ctx, title, cx - titleW / 2, baseline, size * tracking)
+
+    // "Welcome to" in gold script, tilted, across the top of the name
+    const sSize = size * (phone ? 0.7 : 0.56)
+    ctx.font = `${sSize}px Sacramento, "Brush Script MT", cursive`
+    const sW = ctx.measureText(script).width
+    const sy = baseline - capH * 0.66
+    ctx.save()
+    ctx.translate(cx, sy)
+    ctx.rotate((-6 * Math.PI) / 180)
+    const gold = ctx.createLinearGradient(-sW / 2, 0, sW / 2, 0)
+    gold.addColorStop(0, '#fff2c9')
+    gold.addColorStop(0.3, '#f2cf80')
+    gold.addColorStop(0.6, '#e3b55a')
+    gold.addColorStop(1, '#b5852f')
+    ctx.shadowColor = 'rgba(0,0,0,0.9)'
+    ctx.shadowBlur = 18 * dpr
+    ctx.shadowOffsetY = 4 * dpr
+    ctx.fillStyle = gold
+    ctx.textAlign = 'center'
+    ctx.fillText(script, 0, 0)
+    ctx.shadowColor = 'transparent'
+    ctx.fillText(script, 0, 0) // a second pass keeps the strokes crisp over the shadow
+    ctx.strokeStyle = gold // a fine outline gives the thin script a little more body
+    ctx.lineWidth = Math.max(1, sSize * 0.012)
+    ctx.lineJoin = 'round'
+    ctx.strokeText(script, 0, 0)
     ctx.restore()
 
-    // "WELCOME TO" between two hairlines, above
-    const small = Math.max(11 * dpr, Math.min(size * 0.085, 16 * dpr))
-    ctx.font = `${small}px "Space Mono", ui-monospace, monospace`
-    const kText = kicker.toUpperCase()
-    const kTrack = small * 0.6
-    const kW = spacedWidth(ctx, kText, kTrack) - kTrack
-    const ky = baseline - capH - small * 1.9
-    ctx.fillStyle = 'rgba(244,239,230,0.72)'
-    drawSpaced(ctx, kText, cx - kW / 2, ky, kTrack)
-    const lineW = Math.min(60 * dpr, w * 0.08)
-    const gap = small * 1.2
-    const ly = ky - small * 0.35
-    ctx.strokeStyle = 'rgba(227,181,90,0.7)'
-    ctx.lineWidth = Math.max(1, dpr)
-    ctx.beginPath()
-    ctx.moveTo(cx - kW / 2 - gap - lineW, ly)
-    ctx.lineTo(cx - kW / 2 - gap, ly)
-    ctx.moveTo(cx + kW / 2 + gap, ly)
-    ctx.lineTo(cx + kW / 2 + gap + lineW, ly)
-    ctx.stroke()
-
-    // the slanted gold badge, below
-    if (badge) {
-      const bSize = Math.max(13 * dpr, Math.min(size * 0.105, 22 * dpr))
-      ctx.font = `${bSize}px Anton, Impact, "Arial Narrow Bold", sans-serif`
-      const bText = badge.toUpperCase()
-      const bTrack = bSize * 0.18
-      const bW = spacedWidth(ctx, bText, bTrack) - bTrack
-      const padX = bSize * 1.1
-      const boxH = bSize * 2.2
-      const top = baseline + size * 0.16
-      const skew = boxH * 0.21
-      ctx.fillStyle = '#e3b55a'
-      ctx.beginPath()
-      ctx.moveTo(cx - bW / 2 - padX + skew, top)
-      ctx.lineTo(cx + bW / 2 + padX + skew, top)
-      ctx.lineTo(cx + bW / 2 + padX - skew, top + boxH)
-      ctx.lineTo(cx - bW / 2 - padX - skew, top + boxH)
-      ctx.closePath()
-      ctx.fill()
-      ctx.fillStyle = '#0b0b0e'
-      drawSpaced(ctx, bText, cx - bW / 2, top + boxH / 2 + bSize * 0.36, bTrack)
+    // the small line below
+    if (tagline) {
+      const tSize = Math.max(11 * dpr, Math.min(size * 0.06, 14 * dpr))
+      ctx.font = `${tSize}px "Space Mono", ui-monospace, monospace`
+      const text = tagline.toUpperCase()
+      const tTrack = tSize * 0.5
+      const tW = spacedWidth(ctx, text, tTrack) - tTrack
+      ctx.textAlign = 'left'
+      ctx.fillStyle = 'rgba(244,239,230,0.55)'
+      drawSpaced(ctx, text, cx - tW / 2, baseline + Math.max(tSize * 2.6, size * 0.16), tTrack)
     }
   }
 }

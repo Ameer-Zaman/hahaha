@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
+import '@fontsource/sacramento/latin-400.css'
 import { media, site } from '../../config/site'
 import { enterSite, markIntroSeen } from '../../lib/intro'
 import { loadIntroSound, playIntroSound, primeIntroSound, scrubIntroSound } from '../../lib/introSound'
@@ -73,7 +74,7 @@ export default function WelcomeGate({ onDone, paused = false }) {
   useEffect(() => {
     if (modeRef.current === 'fade') return undefined
     let cancelled = false
-    const fontReady = Promise.all([document.fonts?.load('64px Anton'), document.fonts?.load('16px "Space Mono"')])
+    const fontReady = Promise.all([document.fonts?.load('64px Anton'), document.fonts?.load('64px Sacramento'), document.fonts?.load('16px "Space Mono"')])
     const timeout = new Promise((resolve) => setTimeout(resolve, 1500))
     Promise.race([fontReady, timeout]).then(() => {
       if (cancelled || !canvasRef.current) return
@@ -233,19 +234,11 @@ export default function WelcomeGate({ onDone, paused = false }) {
     >
       {/* The real text: shown as-is without WebGL; under the water canvas otherwise */}
       <div className="gate__card">
-        <p className="gate__kicker">
-          <i aria-hidden="true" />
-          {site.welcome?.kicker ?? 'Welcome to'}
-          <i aria-hidden="true" />
-        </p>
-        <h2 id="gate-title" className="gate__name">
-          {site.name}
+        <h2 id="gate-title" className="gate__lockup">
+          <span className="gate__script">{site.welcome?.script ?? 'Welcome to'} </span>
+          <span className="gate__name">{site.name}</span>
         </h2>
-        {site.welcome?.badge && (
-          <p className="gate__badge">
-            <span>{site.welcome.badge}</span>
-          </p>
-        )}
+        {site.welcome?.tagline && <p className="gate__tagline">{site.welcome.tagline}</p>}
       </div>
 
       <canvas ref={canvasRef} className="gate__water" aria-hidden="true" />

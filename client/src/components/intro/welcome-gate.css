@@ -43,57 +43,52 @@
   to { opacity: 1; transform: none; }
 }
 
-/* "WELCOME TO" between hairlines · the name huge in gold · a slanted gold badge */
-.gate__kicker {
-  display: flex;
-  align-items: center;
-  gap: 1.1em;
+/* the name huge in ivory · a gold handwritten "Welcome to" across its top · a small line below */
+.gate__lockup {
+  position: relative;
+  display: grid;
+  justify-items: center;
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: clamp(0.72rem, 0.6rem + 0.35vw, 1rem);
-  letter-spacing: 0.6em;
-  text-transform: uppercase;
-  color: rgb(var(--rgb-ivory) / 0.72);
-}
-.gate__kicker i {
-  display: block;
-  width: min(60px, 8vw);
-  height: 1px;
-  background: rgb(var(--rgb-gold) / 0.7);
-}
-.gate__kicker i:last-child {
-  margin-left: -0.6em; /* the trailing letter-spacing */
-}
-
-.gate__name {
-  margin: 0;
-  font-family: var(--font-display);
   font-weight: 400;
-  font-size: clamp(4rem, 1rem + 15vw, 15rem);
-  line-height: 0.9;
-  letter-spacing: 0.02em;
+}
+.gate__name {
+  font-family: var(--font-display);
+  font-size: clamp(4.4rem, 1rem + 16vw, 16rem);
+  line-height: 0.85;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
-  background: linear-gradient(100deg, #fff2c9 0%, #f2cf80 25%, #e3b55a 50%, #b5852f 75%, #efcb7a 100%);
+  background: linear-gradient(180deg, #fbf7ef, #e9e1d2);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 0 30px rgb(var(--rgb-gold) / 0.2));
 }
-
-.gate__badge {
-  margin: var(--sp-3) 0 0;
-  padding: 0.45em 1.2em;
-  background: var(--c-gold);
-  color: #0b0b0e;
-  font-family: var(--font-display);
-  font-size: clamp(0.9rem, 0.7rem + 0.5vw, 1.35rem);
-  letter-spacing: 0.18em;
+.gate__script {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  z-index: 1;
+  font-family: 'Sacramento', 'Brush Script MT', cursive;
+  font-size: clamp(2.6rem, 0.6rem + 9vw, 9rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none; /* headings are uppercase site-wide; script must not be */
+  white-space: nowrap;
+  background: linear-gradient(100deg, #fff2c9, #f2cf80 30%, #e3b55a 60%, #b5852f);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  transform: translate(-50%, -38%) rotate(-6deg);
+  filter: drop-shadow(0 4px 14px rgb(0 0 0 / 0.9));
+}
+.gate__tagline {
+  margin: var(--sp-5) 0 0;
+  font-family: var(--font-mono);
+  font-size: clamp(0.7rem, 0.6rem + 0.25vw, 0.875rem);
+  letter-spacing: 0.5em;
+  padding-left: 0.5em;
   text-transform: uppercase;
-  transform: skewX(-12deg);
-}
-.gate__badge span {
-  display: inline-block;
-  transform: skewX(12deg);
+  color: rgb(var(--rgb-ivory) / 0.55);
 }
 
 /* ---- the water canvas ---- */

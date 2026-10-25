@@ -170,7 +170,7 @@ A visitor's **first** visit opens with a short "hello" in several languages (aft
 - Visitors who land on another page first get the homepage videos downloaded quietly in the background (unless they've asked their browser to save data).
 - The videos are also saved in the visitor's browser, so return visits play them straight from disk. A tiny check asks the server whether a file was replaced; if so, the new one is downloaded instead. Replacing a video (same name or in the panel) is picked up automatically.
 - The greetings and timings are at the top of `client/src/components/intro/HelloScreen.jsx`; the preloader is `client/src/lib/preload.js`.
-- The welcome screen's small line above the name and its gold badge are `site.welcome` in `client/src/config/site.js` (an empty badge hides it).
+- The welcome screen's handwritten line and the small line below the name are `site.welcome` in `client/src/config/site.js` (an empty tagline hides it).
 
 ## Story page videos
 
