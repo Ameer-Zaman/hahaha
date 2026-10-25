@@ -1,0 +1,226 @@
+/* =========================================================
+   Clubs — a deck of cards dealt by the scroll
+   ========================================================= */
+.clubs {
+  --card-w: clamp(150px, 19vw, 270px);
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 58%, rgb(var(--rgb-gold) / 0.08), transparent 70%),
+    #050506;
+  color: #f4efe6;
+}
+
+.clubs-deck {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  justify-items: center;
+  padding: calc(var(--header-h) + clamp(1rem, 4svh, 2.5rem)) var(--gutter, 1.25rem) clamp(1.5rem, 5svh, 3rem);
+}
+
+.clubs-deck__title {
+  text-align: center;
+  z-index: 0;
+}
+.clubs-deck__title .eyebrow {
+  margin: 0 0 var(--sp-2);
+  color: var(--c-gold-light);
+}
+.clubs-deck__h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(4rem, 1rem + 12vw, 11rem);
+  line-height: 0.85;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+/* the table: cards are stacked in the middle and fanned by the scroll */
+.clubs-deck__table {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-height: calc(var(--card-w) * 1.4 + 4rem);
+  perspective: 1600px;
+}
+.club-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--card-w);
+  aspect-ratio: 5 / 7;
+  margin: calc(var(--card-w) * -0.7) 0 0 calc(var(--card-w) / -2);
+  transform-origin: 50% 90%;
+  will-change: transform;
+}
+.club-card__lift {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.club-card__inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+.club-card__side {
+  position: absolute;
+  inset: 0;
+  border-radius: clamp(10px, 1.1vw, 16px);
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow:
+    0 0 0 1px rgb(var(--rgb-gold) / 0.25),
+    0 30px 60px -24px rgb(0 0 0 / 0.95),
+    0 12px 24px -12px rgb(0 0 0 / 0.8);
+}
+.club-card__side--face {
+  transform: rotateY(180deg);
+}
+.club-card__art {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+@media (hover: hover) {
+  .club-card:hover .club-card__lift {
+    transform: translateY(-14px);
+  }
+}
+
+/* ---- card face ---- */
+.club-face {
+  position: relative;
+  height: 100%;
+  background:
+    radial-gradient(ellipse at 50% 40%, #fffaf0, #efe6d4);
+  color: #111;
+}
+.club-face.is-red {
+  color: #8f1d2c;
+}
+.club-face__frame {
+  position: absolute;
+  inset: 7%;
+  border: 1.5px solid var(--c-gold-deep, #a87a2c);
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 4px #f6efe2, inset 0 0 0 5px rgb(168 122 44 / 0.45);
+}
+.club-face__corner {
+  position: absolute;
+  display: grid;
+  justify-items: center;
+  line-height: 1;
+  font-family: var(--font-display);
+}
+.club-face__corner b {
+  font-weight: 400;
+  font-size: calc(var(--card-w) * 0.075);
+}
+.club-face__corner i {
+  font-style: normal;
+  font-size: calc(var(--card-w) * 0.08);
+}
+.club-face__corner--tl {
+  top: 2.5%;
+  left: 3%;
+}
+.club-face__corner--br {
+  right: 3%;
+  bottom: 2.5%;
+  transform: rotate(180deg);
+}
+.club-face__body {
+  position: absolute;
+  inset: 12% 10%;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: calc(var(--card-w) * 0.025);
+  text-align: center;
+}
+.club-face__suit {
+  font-size: calc(var(--card-w) * 0.42);
+  line-height: 0.9;
+}
+.club-face__emblem {
+  width: 62%;
+  height: auto;
+}
+.club-face__type {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: calc(var(--card-w) * 0.05);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--c-gold-deep, #a87a2c);
+}
+.club-face__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: calc(var(--card-w) * 0.13);
+  line-height: 0.95;
+  text-transform: uppercase;
+  color: #111;
+}
+.club-face__soon {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: calc(var(--card-w) * 0.046);
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  text-transform: uppercase;
+  color: rgb(17 17 17 / 0.55);
+}
+
+/* ---- under the table ---- */
+.clubs-deck__foot {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-4);
+  text-align: center;
+  z-index: 1;
+}
+.clubs-deck__note {
+  margin: 0;
+  max-width: 34rem;
+  color: rgb(244 239 230 / 0.7);
+}
+.clubs-deck__hint {
+  position: absolute;
+  bottom: clamp(1rem, 3svh, 2rem);
+  left: 50%;
+  margin: 0;
+  translate: -50% 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgb(244 239 230 / 0.5);
+  pointer-events: none;
+}
+.clubs-deck.is-animated .clubs-deck__foot {
+  opacity: 0;
+}
+
+/* ---- reduced motion: the cards simply face up, in a fan ---- */
+.clubs-deck.is-static .club-card {
+  --off: calc((var(--i) - (var(--n) - 1) / 2));
+  transform: translate(calc(var(--off) * min(20vw, 230px)), calc(var(--off) * var(--off) * 8px)) rotate(calc(var(--off) * 8deg));
+}
+.clubs-deck.is-static .club-card__inner {
+  transform: rotateY(180deg);
+}
+
+@media (max-width: 640px) {
+  .clubs {
+    --card-w: clamp(130px, 40vw, 180px);
+  }
+}
