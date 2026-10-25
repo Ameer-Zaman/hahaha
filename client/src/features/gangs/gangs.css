@@ -817,3 +817,119 @@
     display: none;
   }
 }
+
+/* =========================================================
+   Film-reel feel: proportions, depth, cursor and live grain
+   ========================================================= */
+.reel {
+  /* one card every 85% of the screen height; the card fills it bar a black gap */
+  --card-h: calc(85svh - var(--gap));
+  --gap: clamp(1.25rem, 4svh, 2.75rem);
+  --reel-x: 4.5vw;
+}
+.reel.is-loop .reel__slot {
+  width: calc(100% - 2 * var(--reel-x));
+}
+.reel-card__frame {
+  border-radius: clamp(14px, 1.5vw, 24px);
+}
+.reel.is-loop .reel__track {
+  will-change: filter;
+}
+
+/* top-left credit block */
+.reel-card__topline {
+  position: absolute;
+  top: clamp(1.75rem, 3.6vw, 3.75rem);
+  left: clamp(1.75rem, 3.6vw, 3.75rem);
+  width: min(25rem, 30%);
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  text-align: center;
+  will-change: transform;
+}
+.reel-card__year {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 1rem + 1.4vw, 2.4rem);
+  line-height: 1;
+  text-transform: uppercase;
+}
+.reel-card__turf {
+  margin: 0;
+  max-width: 14rem;
+  font-family: var(--font-display);
+  font-size: clamp(0.85rem, 0.7rem + 0.35vw, 1.05rem);
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+.reel-card__emblem {
+  width: clamp(2.5rem, 4vw, 3.5rem);
+  height: auto;
+  margin-top: 0.4rem;
+}
+.reel-card__left {
+  will-change: transform;
+}
+
+/* cursor ring that trails the mouse */
+.reel__cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: rgb(244 239 230 / 0.85);
+}
+.reel__cursor.is-on {
+  opacity: 1;
+}
+.reel__cursor-ring {
+  position: absolute;
+  left: -23px;
+  top: -23px;
+  width: 46px;
+  height: 46px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.3s ease;
+}
+.reel__cursor-arrow {
+  position: absolute;
+  left: -6px;
+  top: 26px;
+  transition: opacity 0.2s ease;
+}
+.reel__cursor.is-link .reel__cursor-ring {
+  transform: scale(1.45);
+  border-color: var(--c-gold);
+}
+.reel__cursor.is-link .reel__cursor-arrow {
+  opacity: 0;
+}
+.reel__stage.is-dragging ~ .reel__cursor .reel__cursor-ring,
+.reel.is-loop:has(.reel__stage.is-dragging) .reel__cursor-ring {
+  transform: scale(0.8);
+}
+
+/* the film grain flickers, like projected film */
+@media (prefers-reduced-motion: no-preference) {
+  .reel__grain {
+    inset: -50%;
+    animation: reel-grain 0.6s steps(6) infinite;
+  }
+}
+@keyframes reel-grain {
+  0% { transform: translate(0, 0); }
+  17% { transform: translate(-3%, 2%); }
+  33% { transform: translate(2%, -4%); }
+  50% { transform: translate(-4%, -1%); }
+  67% { transform: translate(3%, 3%); }
+  83% { transform: translate(-1%, 4%); }
+  100% { transform: translate(0, 0); }
+}

@@ -5,6 +5,8 @@ import RollText from '../../../components/ui/RollText'
 import { formatFileNumber } from '../gangsModel'
 import CardVideo from './CardVideo'
 
+const PENDING = 'To be confirmed'
+
 /**
  * One gang, set like a film's poster card: backdrop, a rolling title over a credits table
  * bottom-left, and Explore bottom-right.
@@ -27,6 +29,14 @@ export default function ReelCard({ file, active, total }) {
         {file.demo && <span className="demo-tag">Demo data</span>}
 
         <div className="reel-card__body">
+          {/* top left, like a festival credit: founding year, turf and emblem */}
+          {!file.reserved && file.established !== PENDING && (
+            <div className="reel-card__topline">
+              <p className="reel-card__year">{file.established}</p>
+              <p className="reel-card__turf">{file.territory !== PENDING ? file.territory : file.type}</p>
+              {file.emblem && <img className="reel-card__emblem" src={file.emblem} alt="" loading="lazy" />}
+            </div>
+          )}
           <div className="reel-card__left">
             <div className="reel-card__titleblock">
               {!file.reserved && <p className="reel-card__category">{file.type}</p>}

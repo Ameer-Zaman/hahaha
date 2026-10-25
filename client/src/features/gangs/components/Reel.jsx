@@ -6,21 +6,39 @@ import { gsap } from '../../../lib/gsap'
 import { formatFileNumber } from '../gangsModel'
 import ReelCard from './ReelCard'
 
-const LERP = 0.085 // how quickly the reel catches up with where it's heading (lower = heavier glide)
-const INTRO_TURNS = 2 // full laps the reel spins through on arrival
-const INTRO_SECONDS = 3.2
+/*
+ * Motion model (the same feel as a film reel):
+ *  - `target` is where the reel is heading, in cards. Every frame it is pulled 10% of the way
+ *    to the nearest whole card, so the reel always comes to rest on a card — small nudges
+ *    spring back, bigger ones carry on to the next.
+ *  - `pos` (what you see) eases 5% per frame towards `target` (9% on touch screens): a slow,
+ *    heavy glide.
+ *  - `speed` follows the input and decays; the smoothed speed blurs the reel while it moves.
+ */
+const PULL = 0.1 // per frame, target → nearest card
+const EASE_DESKTOP = 0.05 // per frame, pos → target
+const EASE_TOUCH = 0.09
+const WHEEL = 0.0018 // cards per wheel pixel (a 3-notch scroll moves one card)
+const WHEEL_HOLD = 140 // ms: while the wheel is turning, the pull to the nearest card waits
+const DRAG = 0.005 // cards per dragged pixel (200 px = one card)
+const INTRO_CARDS = 60 // the arrival spin runs through this many cards
+const BLUR_MAX = 28 // px, cap for the motion blur
 
 const mod = (n, m) => ((n % m) + m) % m
+const lerp = (a, b, t) => a + (b - a) * t
+/** Per-frame easing factor `k` (tuned at 60 fps), adjusted for the actual frame time. */
+const frame = (k, dt) => 1 - (1 - k) ** (dt * 60)
 
 /**
  * The gangs as an endless film reel: rounded cards stacked vertically, the neighbours
  * peeking in above and below, and after the last gang comes the first again.
  *
- * - On arrival the reel spins through every gang and eases to a stop on the first one.
+ * - On arrival the reel spins through the gangs at full speed, blurred, and eases out onto
+ *   the first one.
  * - It doesn't scroll the page: the wheel, trackpad, touch, mouse drag and arrow keys turn
- *   the reel. Movement glides with weight and each gesture settles on the next card.
- * - While it turns fast it leans with the speed; pictures drift inside their frames and the
- *   cards away from the centre shrink and dim.
+ *   the reel, which always settles on a card.
+ * - While it moves fast everything blurs with the speed; pictures and text drift at
+ *   different depths inside the cards.
  * - A ticket in the corner counts the gangs (rolling digits).
  * - Reduced motion: no spin, no loop — the cards are simply stacked and the page scrolls.
  */
@@ -28,10 +46,12 @@ export default function Reel({ files }) {
   const root = useRef(null)
   const stage = useRef(null)
   const trackRef = useRef(null)
+  const cursorRef = useRef(null)
   const slotEls = useRef([])
-  const motion = useRef({ pos: 0, target: 0, spacing: 1, intro: null, last: 0 })
+  const motion = useRef({ pos: 0, target: 0, speed: 0, lspeed: 0, spacing: 1, dragging: false, holdUntil: 0 })
   const [active, setActive] = useState(0)
   const [reduced] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+  const [touch] = useState(() => window.matchMedia('(pointer: coarse)').matches)
   const count = files.length
   const location = useLocation()
   const focusSlug = location.state?.focus ?? null
@@ -43,55 +63,65 @@ export default function Reel({ files }) {
     const slots = slotEls.current.filter(Boolean).map((slot) => ({
       slot,
       media: slot.querySelector('.reel-card__media'),
+      left: slot.querySelector('.reel-card__left'),
+      top: slot.querySelector('.reel-card__topline'),
     }))
     const trackEl = trackRef.current
+    const ease = touch ? EASE_TOUCH : EASE_DESKTOP
 
     const measure = () => {
-      const first = slots[0]?.slot
-      if (!first) return
-      // same gap as the CSS: clamp(1.5rem, 4.5svh, 3rem)
-      const gap = Math.min(48, Math.max(24, window.innerHeight * 0.045))
-      m.spacing = first.offsetHeight + gap
+      // one card every 85% of the screen height
+      m.spacing = window.innerHeight * 0.85
     }
     measure()
     window.addEventListener('resize', measure)
 
-    // Arrival: spin through every gang and land on the first (or on the gang we came back to).
+    // Arrival: a fast, blurred spin through the reel that eases out onto the first gang
+    // (or straight onto the gang we came back to).
     const startAt = Math.max(0, files.findIndex((f) => f.slug === focusSlug))
     if (focusSlug) {
-      m.pos = m.target = m.last = startAt
+      m.pos = m.target = startAt
     } else {
-      m.pos = m.target = m.last = -count * INTRO_TURNS
-      m.intro = gsap.to(m, {
-        pos: 0,
-        duration: INTRO_SECONDS,
-        ease: 'expo.inOut',
-        onComplete: () => {
-          m.target = 0
-          m.intro = null
-        },
-      })
+      m.pos = 0
+      m.target = Math.max(1, Math.round(INTRO_CARDS / count)) * count // lands on card 0
+      if (!touch) m.speed = m.lspeed = 10
     }
 
     let activeIndex = -1
-    const skewTo = gsap.quickTo(trackEl, 'skewY', { duration: 0.5, ease: 'power3.out' })
+    let lastBlur = -1
+    let last = performance.now()
 
     const tick = () => {
-      if (!m.intro) m.pos += (m.target - m.pos) * LERP
-      const velocity = m.pos - m.last
-      m.last = m.pos
-      skewTo(gsap.utils.clamp(-1.6, 1.6, velocity * -9))
+      const now = performance.now()
+      const dt = Math.min(0.05, (now - last) / 1000)
+      last = now
 
-      slots.forEach(({ slot, media }, i) => {
-        // offset from the centre, wrapped so the reel loops: range [-count/2, count/2)
+      if (!m.dragging && now > m.holdUntil) m.target = lerp(m.target, Math.round(m.target), frame(PULL, dt))
+      m.pos = lerp(m.pos, m.target, frame(ease, dt))
+      m.speed *= 0.85 ** (dt * 60)
+      m.lspeed = lerp(m.lspeed, Math.abs(m.speed), frame(0.1, dt))
+
+      // motion blur while the reel moves (not on phones, to keep them smooth)
+      if (!touch) {
+        const blur = Math.min(BLUR_MAX, m.lspeed * 10)
+        const rounded = blur < 0.25 ? 0 : Math.round(blur * 4) / 4
+        if (rounded !== lastBlur) {
+          trackEl.style.filter = rounded ? `blur(${rounded}px)` : ''
+          lastBlur = rounded
+        }
+      }
+
+      slots.forEach(({ slot, media, left, top }, i) => {
+        // offset from the centre in cards, wrapped so the reel loops: [-count/2, count/2)
         const o = mod(i - m.pos + count / 2, count) - count / 2
         // cards far from the centre stay in the page (so they can be reached with Tab) but invisible
         const far = Math.abs(o) >= 2
-        const dist = Math.min(Math.abs(o), 1.2)
-        slot.style.transform = `translate3d(0, ${o * m.spacing}px, 0) scale(${1 - dist * 0.09})`
-        slot.style.opacity = far ? '0' : String(1 - Math.min(dist, 1) * 0.55)
-        slot.style.zIndex = String(100 - Math.round(Math.abs(o) * 10))
+        slot.style.transform = `translate3d(0, ${o * m.spacing}px, 0)`
+        slot.style.opacity = far ? '0' : '1'
+        // depth: the picture and the text drift at different speeds inside the card
         if (media) media.style.transform = `translate3d(0, ${o * -9}%, 0)`
+        if (left) left.style.transform = `translate3d(0, ${o * 14}%, 0)`
+        if (top) top.style.transform = `translate3d(0, ${o * 22}%, 0)`
       })
 
       const idx = mod(Math.round(m.pos), count)
@@ -105,14 +135,12 @@ export default function Reel({ files }) {
 
     return () => {
       gsap.ticker.remove(tick)
-      m.intro?.kill()
-      m.intro = null
       window.removeEventListener('resize', measure)
-      gsap.set(trackEl, { clearProps: 'transform' })
+      trackEl.style.filter = ''
     }
     // runs once per visit; focusSlug/files are read at arrival only
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reduced, count])
+  }, [reduced, count, touch])
 
   /* ---------- input: wheel, touch, drag, keys ---------- */
   useEffect(() => {
@@ -120,64 +148,38 @@ export default function Reel({ files }) {
     const m = motion.current
     const el = stage.current
 
-    const stopIntro = () => {
-      if (m.intro) {
-        m.intro.kill()
-        m.intro = null
-        m.target = m.pos
-      }
-    }
-
-    // Settle on a card: the next one in the direction of travel, or back if it was a nudge.
-    const settleToward = (dir) => {
-      const near = Math.round(m.target)
-      if (!dir || Math.abs(m.target - near) < 0.06) m.target = near
-      else m.target = dir > 0 ? Math.ceil(m.target) : Math.floor(m.target)
-    }
-
-    // Wheel / trackpad: each gesture carries the reel on to the next card.
-    let gesture = 0
-    let timer = 0
+    // Wheel / trackpad: the reel follows the wheel; the pull to the nearest card does the rest.
     const onWheel = (event) => {
       event.preventDefault()
-      stopIntro()
-      const delta = event.deltaMode === 1 ? event.deltaY * 32 : event.deltaY
-      gesture += delta
-      // follow the wheel freely, but never more than ~1.6 cards past the nearest card
-      const anchor = Math.round(m.pos)
-      m.target = gsap.utils.clamp(anchor - 1.6, anchor + 1.6, m.target + (delta / m.spacing) * 1.1)
-      window.clearTimeout(timer)
-      timer = window.setTimeout(() => {
-        settleToward(Math.sign(gesture))
-        gesture = 0
-      }, 120)
+      const delta = event.deltaMode === 1 ? event.deltaY * 30 : event.deltaMode === 2 ? event.deltaY * window.innerHeight : event.deltaY
+      m.target += delta * WHEEL
+      m.speed += delta * 0.0005
+      m.holdUntil = performance.now() + WHEEL_HOLD
     }
 
-    // Touch and mouse drag: the reel follows the hand; release settles (a flick goes on).
+    // Touch and mouse drag: the reel follows the hand (200 px = one card); release settles.
     let drag = null
     const onPointerDown = (e) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return
-      stopIntro()
-      drag = { startY: e.clientY, startTarget: m.target, lastY: e.clientY, lastT: performance.now(), v: 0, moved: false }
+      drag = { startY: e.clientY, startTarget: m.target, lastY: e.clientY, moved: false }
+      m.dragging = true
       el.classList.add('is-dragging')
     }
     const onPointerMove = (e) => {
       if (!drag) return
-      const now = performance.now()
-      drag.v = (e.clientY - drag.lastY) / Math.max(1, now - drag.lastT) // px per ms
+      const dy = e.clientY - drag.startY
+      if (Math.abs(dy) > 6) drag.moved = true
+      m.speed += Math.abs(e.clientY - drag.lastY) * 0.0002
       drag.lastY = e.clientY
-      drag.lastT = now
-      if (Math.abs(e.clientY - drag.startY) > 6) drag.moved = true
-      m.target = drag.startTarget - ((e.clientY - drag.startY) / m.spacing) * 1.25
+      m.target = drag.startTarget - dy * DRAG
     }
     const onPointerUp = () => {
       if (!drag) return
-      const { v, moved, startTarget } = drag
+      const { moved } = drag
       drag = null
+      m.dragging = false
       el.classList.remove('is-dragging')
       if (!moved) return
-      const pulled = Math.sign(m.target - startTarget)
-      settleToward(Math.abs(v) > 0.5 ? -Math.sign(v) : pulled)
       // swallow the click that ends a drag, so a drag never opens a gang by accident
       const swallow = (event) => {
         event.preventDefault()
@@ -187,7 +189,8 @@ export default function Reel({ files }) {
       window.setTimeout(() => el.removeEventListener('click', swallow, { capture: true }), 60)
     }
 
-    // Keys: arrows, Page Up/Down and Space turn the reel one card.
+    // Keys: arrows, Page Up/Down and Space turn the reel one card (at most every 200 ms).
+    let lastKey = 0
     const onKey = (event) => {
       if (event.altKey || event.ctrlKey || event.metaKey) return
       const tag = document.activeElement?.tagName
@@ -196,9 +199,37 @@ export default function Reel({ files }) {
       const prev = ['ArrowUp', 'PageUp'].includes(event.key) || (event.key === ' ' && event.shiftKey)
       if (!next && !prev) return
       event.preventDefault()
-      stopIntro()
+      const now = performance.now()
+      if (now - lastKey < 200) return
+      lastKey = now
       m.target = Math.round(m.target) + (next ? 1 : -1)
+      m.speed += 0.5
     }
+
+    // Cursor ring that trails the mouse (fine pointers only)
+    const cursor = cursorRef.current
+    let cx = -100
+    let cy = -100
+    let tx = -100
+    let ty = -100
+    let raf = 0
+    const follow = () => {
+      cx = lerp(cx, tx, 0.2)
+      cy = lerp(cy, ty, 0.2)
+      if (cursor) cursor.style.transform = `translate3d(${cx}px, ${cy}px, 0)`
+      raf = Math.abs(cx - tx) + Math.abs(cy - ty) > 0.2 ? requestAnimationFrame(follow) : 0
+    }
+    const onMouse = (e) => {
+      if (e.pointerType && e.pointerType !== 'mouse') return
+      tx = e.clientX
+      ty = e.clientY
+      if (cursor) {
+        cursor.classList.add('is-on')
+        cursor.classList.toggle('is-link', Boolean(e.target.closest?.('a, button')))
+      }
+      if (!raf) raf = requestAnimationFrame(follow)
+    }
+    const onLeave = () => cursor?.classList.remove('is-on')
 
     window.addEventListener('wheel', onWheel, { passive: false })
     el.addEventListener('pointerdown', onPointerDown)
@@ -206,14 +237,18 @@ export default function Reel({ files }) {
     window.addEventListener('pointerup', onPointerUp)
     window.addEventListener('pointercancel', onPointerUp)
     window.addEventListener('keydown', onKey)
+    window.addEventListener('pointermove', onMouse)
+    document.documentElement.addEventListener('mouseleave', onLeave)
     return () => {
-      window.clearTimeout(timer)
+      cancelAnimationFrame(raf)
       window.removeEventListener('wheel', onWheel)
       el.removeEventListener('pointerdown', onPointerDown)
       window.removeEventListener('pointermove', onPointerMove)
       window.removeEventListener('pointerup', onPointerUp)
       window.removeEventListener('pointercancel', onPointerUp)
       window.removeEventListener('keydown', onKey)
+      window.removeEventListener('pointermove', onMouse)
+      document.documentElement.removeEventListener('mouseleave', onLeave)
     }
   }, [reduced])
 
@@ -221,8 +256,6 @@ export default function Reel({ files }) {
   const onFocusCard = (i) => {
     if (reduced) return
     const m = motion.current
-    m.intro?.kill()
-    m.intro = null
     const base = Math.round(m.target)
     m.target = base + (mod(i - base + count / 2, count) - count / 2) // shortest way round
   }
@@ -238,6 +271,14 @@ export default function Reel({ files }) {
       </h1>
 
       <div className="reel__grain" aria-hidden="true" />
+      {!reduced && !touch && (
+        <div ref={cursorRef} className="reel__cursor" aria-hidden="true">
+          <span className="reel__cursor-ring" />
+          <svg className="reel__cursor-arrow" viewBox="0 0 12 8" width="12" height="8">
+            <path d="M1 1.5 6 6.5l5-5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+      )}
 
       {/* Corner ticket: the gang counter */}
       <div className="reel__hud">
