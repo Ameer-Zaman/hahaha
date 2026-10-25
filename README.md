@@ -162,6 +162,13 @@ ffmpeg -i in.mp4 -vf scale=-2:1080 -c:v libx264 -preset veryfast -crf 26 -movfla
 
 Videos are streamed with byte ranges, so they start quickly and can seek.
 
+## Opening "hello" and preloading
+
+Every homepage visit opens with a short "hello" in several languages. While it plays, the site downloads the homepage's videos, poster images, welcome sound and music, so the page is instant once the visitor enters. The greetings keep going until everything is downloaded (at least ~4 seconds, at most 14), and a fine gold line at the bottom shows the progress.
+
+- Videos up to 80 MB are downloaded whole and played from memory. Bigger ones, or any still downloading when the intro ends, simply stream as usual.
+- The greetings and timings are at the top of `client/src/components/intro/HelloScreen.jsx`; the preloader is `client/src/lib/preload.js`.
+
 ## Story page videos
 
 The Story page (`/story`) is a long cinematic scroll in the style of the GTA VI site. Its full-screen **scene videos scrub with the scroll**: scrolling moves the video forward and back. Smooth scrubbing needs a keyframe in every few frames, so encode scene videos like this (1080p, no audio):

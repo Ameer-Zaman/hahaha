@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { whenEntered } from "../../lib/intro";
+import { useVideoSource } from "../../lib/preload";
 import "./youtube-background.css";
 
 /**
@@ -17,6 +18,8 @@ export default function BackgroundVideo({
   label = "Background video",
   controls = true,
 }) {
+  // While the intro is preloading this file, wait for it (then play it from memory).
+  const source = useVideoSource(src);
   const videoRef = useRef(null);
   const userPaused = useRef(false);
   const wantSound = useRef(false); // "Enter with sound" chosen before the video had mounted
@@ -44,7 +47,7 @@ export default function BackgroundVideo({
     });
     observer.observe(video);
     return () => observer.disconnect();
-  }, [started]);
+  }, [started, source]);
 
   // "Enter with sound" on the welcome screen: unmute inside that click, which browsers
   // accept as the gesture needed for audio.
@@ -98,11 +101,11 @@ export default function BackgroundVideo({
         className={`yt-bg ${playing ? "is-playing" : ""}`}
         aria-hidden="true"
       >
-        {started && (
+        {started && source && (
           <video
             ref={videoRef}
             className="bg-video__media"
-            src={src}
+            src={source}
             poster={poster ?? undefined}
             autoPlay
             muted

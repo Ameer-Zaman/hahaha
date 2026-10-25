@@ -24,7 +24,7 @@ const easeInOutSine = (t) => -(Math.cos(Math.PI * t) - 1) / 2
  *
  * Without WebGL, or with reduced motion, the same text simply fades away.
  */
-export default function WelcomeGate({ onDone }) {
+export default function WelcomeGate({ onDone, paused = false }) {
   const rootRef = useRef(null)
   const canvasRef = useRef(null)
   const buttonRef = useRef(null)
@@ -35,6 +35,10 @@ export default function WelcomeGate({ onDone }) {
   )
   const modeRef = useRef(initialMode)
   const onDoneRef = useRef(onDone)
+  const pausedRef = useRef(paused) // true while the "hello" intro is still on top
+  useEffect(() => {
+    pausedRef.current = paused
+  }, [paused])
   const state = useRef({ target: 0, current: 0, committed: false, lastInput: 0, done: false, glideFrom: 0, glideAt: 0 })
   const [mode, setMode] = useState(initialMode) // pending → ripple | fade
   const [fading, setFading] = useState(false)
@@ -171,6 +175,7 @@ export default function WelcomeGate({ onDone }) {
     if (!root) return undefined
     const onWheel = (event) => {
       event.preventDefault()
+      if (pausedRef.current) return
       const scale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1
       actions.current.push((event.deltaY * scale) / 1400)
     }
@@ -181,6 +186,7 @@ export default function WelcomeGate({ onDone }) {
     const onTouchMove = (event) => {
       if (touchY === null) return
       event.preventDefault()
+      if (pausedRef.current) return
       const y = event.touches[0].clientY
       actions.current.push((touchY - y) / 520)
       touchY = y
@@ -188,6 +194,7 @@ export default function WelcomeGate({ onDone }) {
     // Lifting the finger after a swipe counts as a tap, which lets the sound play.
     const onTouchEnd = () => primeIntroSound()
     const onKey = (event) => {
+      if (pausedRef.current) return
       if (['Enter', ' ', 'ArrowDown', 'PageDown', 'End', 'Escape'].includes(event.key)) {
         event.preventDefault()
         primeIntroSound()

@@ -7,6 +7,7 @@ import ScrollProgress from './ScrollProgress'
 import { ScrollTrigger } from '../../lib/gsap'
 import { setIntroActive, shouldShowIntro } from '../../lib/intro'
 import WelcomeGate from '../intro/WelcomeGate'
+import HelloScreen from '../intro/HelloScreen'
 import MaintenanceScreen, { MaintenancePreviewNotice } from '../site/MaintenanceScreen'
 import { useSiteSettings, useStaffPreview } from '../../lib/siteSettings'
 
@@ -26,6 +27,8 @@ export default function Layout() {
     setIntroActive(show)
     return show
   })
+  // the "hello" intro plays first (and downloads the homepage), then hands over to the gate
+  const [showHello, setShowHello] = useState(showGate)
 
   // New page: start at the top (or at the anchor), and let ScrollTrigger re-measure.
   useEffect(() => {
@@ -61,7 +64,8 @@ export default function Layout() {
         </div>
       </main>
       {!NO_FOOTER.includes(pathname) && <SiteFooter />}
-      {showGate && <WelcomeGate onDone={() => setShowGate(false)} />}
+      {showGate && <WelcomeGate paused={showHello} onDone={() => setShowGate(false)} />}
+      {showHello && <HelloScreen onDone={() => setShowHello(false)} />}
     </>
   )
 }

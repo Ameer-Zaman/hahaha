@@ -59,6 +59,9 @@ function load() {
   return loading
 }
 
+/** Fetch and decode the music early (used by the intro preloader). */
+export const preloadMusic = () => load()
+
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 /** Starts the loop with a fade-in. `delay` and `fade` are in seconds. Quietly does nothing if audio isn't allowed. */
