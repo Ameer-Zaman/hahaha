@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import '@fontsource/cinzel/latin-500.css'
 import { site } from '../../config/site'
 import { enterSite, markIntroSeen } from '../../lib/intro'
+import { isSoundOn, playIntroSound, primeIntroSound, setSoundOn } from '../../lib/introSound'
 import { createRipple, paintWelcome } from './rippleRenderer'
 import './welcome-gate.css'
 
@@ -35,6 +36,8 @@ export default function WelcomeGate({ onDone }) {
   const state = useRef({ target: 0, current: 0, committed: false, lastInput: 0, done: false, glideFrom: 0, glideAt: 0 })
   const [mode, setMode] = useState(initialMode) // pending → ripple | fade
   const [fading, setFading] = useState(false)
+  const [soundOn, setSoundOnState] = useState(isSoundOn)
+  const soundRef = useRef(null)
 
   useEffect(() => {
     onDoneRef.current = onDone
@@ -98,9 +101,12 @@ export default function WelcomeGate({ onDone }) {
         s.glideFrom = s.current
         s.glideAt = performance.now()
         markIntroSeen()
-        if (hintRef.current) {
-          hintRef.current.style.transition = 'opacity 250ms ease-out'
-          hintRef.current.style.opacity = '0'
+        playIntroSound() // the cinematic hit, timed with the wave reveal
+        for (const el of [hintRef.current, soundRef.current]) {
+          if (!el) continue
+          el.style.transition = 'opacity 250ms ease-out'
+          el.style.opacity = '0'
+          el.style.pointerEvents = 'none'
         }
         enterSite() // the hero begins its entrance as the wave reveals it
         if (modeRef.current !== 'ripple') {
@@ -172,25 +178,32 @@ export default function WelcomeGate({ onDone }) {
       actions.current.push((touchY - y) / 520)
       touchY = y
     }
+    // Lifting the finger after a swipe counts as a tap, which lets the sound play.
+    const onTouchEnd = () => primeIntroSound()
     const onKey = (event) => {
+      if (event.target === soundRef.current && (event.key === 'Enter' || event.key === ' ')) return
       if (['Enter', ' ', 'ArrowDown', 'PageDown', 'End', 'Escape'].includes(event.key)) {
         event.preventDefault()
+        primeIntroSound()
         actions.current.commit()
       }
       if (event.key === 'Tab') {
-        // Keep focus on the welcome screen's only control (and reveal it for keyboard users).
+        // Keep focus inside the welcome screen: Enter button ↔ Sound button.
         event.preventDefault()
-        buttonRef.current?.focus()
+        if (document.activeElement === buttonRef.current) soundRef.current?.focus()
+        else buttonRef.current?.focus()
       }
     }
     root.addEventListener('wheel', onWheel, { passive: false })
     root.addEventListener('touchstart', onTouchStart, { passive: true })
     root.addEventListener('touchmove', onTouchMove, { passive: false })
+    root.addEventListener('touchend', onTouchEnd, { passive: true })
     document.addEventListener('keydown', onKey)
     return () => {
       root.removeEventListener('wheel', onWheel)
       root.removeEventListener('touchstart', onTouchStart)
       root.removeEventListener('touchmove', onTouchMove)
+      root.removeEventListener('touchend', onTouchEnd)
       document.removeEventListener('keydown', onKey)
     }
   }, [])
@@ -202,7 +215,10 @@ export default function WelcomeGate({ onDone }) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="gate-title"
-      onClick={() => actions.current.commit()}
+      onClick={() => {
+        primeIntroSound()
+        actions.current.commit()
+      }}
     >
       {/* The real text: shown as-is without WebGL; under the water canvas otherwise */}
       <div className="gate__card">
@@ -219,10 +235,42 @@ export default function WelcomeGate({ onDone }) {
 
       <div ref={hintRef} className="gate__hint" aria-hidden="true">
         <span className="gate__hint-line" />
-        <span>Scroll to enter</span>
+        <span className="gate__hint-text">Click to enter</span>
       </div>
 
-      <button ref={buttonRef} type="button" className="gate__enter" onClick={() => actions.current.commit()}>
+      <button
+        ref={soundRef}
+        type="button"
+        className={`gate__sound ${soundOn ? 'is-on' : ''}`}
+        aria-pressed={soundOn}
+        aria-label={soundOn ? 'Sound on — turn off' : 'Sound off — turn on'}
+        onClick={(event) => {
+          event.stopPropagation() // toggling sound doesn't enter the site
+          setSoundOn(!soundOn)
+          setSoundOnState(!soundOn)
+        }}
+      >
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+          <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="currentColor" />
+          {soundOn ? (
+            <path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          ) : (
+            <path d="M16 9.5l5 5M21 9.5l-5 5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          )}
+        </svg>
+        <span>{soundOn ? 'Sound on' : 'Sound off'}</span>
+      </button>
+
+      <button
+        ref={buttonRef}
+        type="button"
+        className="gate__enter"
+        onClick={(event) => {
+          event.stopPropagation()
+          primeIntroSound()
+          actions.current.commit()
+        }}
+      >
         Enter the city
       </button>
     </div>,

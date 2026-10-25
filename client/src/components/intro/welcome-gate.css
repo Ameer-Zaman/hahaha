@@ -171,3 +171,61 @@
   outline: 2px solid var(--focus);
   outline-offset: 3px;
 }
+
+/* "Tap to enter" on touch screens */
+@media (hover: none) {
+  .gate__hint-text {
+    font-size: 0;
+  }
+  .gate__hint-text::after {
+    content: 'Tap to enter';
+    font-size: 0.75rem;
+  }
+}
+
+/* ---- Sound on / off: quiet control in the corner ---- */
+.gate__sound {
+  position: absolute;
+  right: clamp(1rem, 3vw, 2rem);
+  bottom: clamp(1.5rem, 5vh, 3rem);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  min-height: 44px;
+  padding: 0 0.9rem;
+  border: var(--hairline) solid rgb(var(--rgb-gold) / 0.25);
+  border-radius: var(--radius-pill);
+  background: rgb(0 0 0 / 0.35);
+  color: rgb(var(--rgb-ivory) / 0.55);
+  font-family: 'Cinzel', 'Times New Roman', serif;
+  font-size: 0.6875rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  animation: gate-card-in 1.2s var(--ease-out) 1.6s both;
+}
+.gate__sound:hover,
+.gate__sound.is-on {
+  color: var(--c-gold-light);
+  border-color: rgb(var(--rgb-gold) / 0.5);
+}
+.gate__sound:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.gate.is-fading .gate__sound,
+.gate--ripple .gate__sound {
+  transition: opacity 0.4s;
+}
+@media (max-width: 480px) {
+  .gate__sound span {
+    display: none;
+  }
+  .gate__sound {
+    padding: 0;
+    width: 44px;
+    justify-content: center;
+  }
+}
