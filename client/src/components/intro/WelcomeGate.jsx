@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import '@fontsource/cinzel/latin-500.css'
-import { site } from '../../config/site'
+import { media, site } from '../../config/site'
 import { enterSite, markIntroSeen } from '../../lib/intro'
-import { playIntroSound, primeIntroSound } from '../../lib/introSound'
+import { loadIntroSound, playIntroSound, primeIntroSound, scrubIntroSound } from '../../lib/introSound'
 import { createRipple, paintWelcome } from './rippleRenderer'
 import './welcome-gate.css'
 
@@ -40,6 +40,11 @@ export default function WelcomeGate({ onDone }) {
   useEffect(() => {
     onDoneRef.current = onDone
   }, [onDone])
+
+  // fetch + decode the welcome sound straight away, so it's ready for the first scroll
+  useEffect(() => {
+    loadIntroSound(media.introSound)
+  }, [])
 
   const switchMode = (next) => {
     modeRef.current = next
@@ -99,7 +104,7 @@ export default function WelcomeGate({ onDone }) {
         s.glideFrom = s.current
         s.glideAt = performance.now()
         markIntroSeen()
-        playIntroSound() // the cinematic hit, timed with the wave reveal
+        playIntroSound() // swells to full as the wave carries the visitor in
         for (const el of [hintRef.current]) {
           if (!el) continue
           el.style.transition = 'opacity 250ms ease-out'
@@ -145,6 +150,7 @@ export default function WelcomeGate({ onDone }) {
         s.current += (s.target - s.current) * (1 - Math.exp(-dt * 7))
       }
       rippleRef.current?.setProgress(s.current)
+      if (!s.committed) scrubIntroSound(s.current / COMMIT_AT) // the sound follows the scroll
       if (hintRef.current) hintRef.current.style.opacity = String(Math.max(0, 1 - s.current * 9))
       if (s.committed && s.current >= 0.999) {
         actions.current.finish()

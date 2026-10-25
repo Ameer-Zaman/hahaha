@@ -1,23 +1,28 @@
 /**
- * The welcome screen's entrance sound: an original, dark cinematic "hit" — a soft knock, a
- * deep sub-bass boom, a slow dark brass-like A-minor swell and a long hall echo — synthesised
- * with the Web Audio API, so there is no file to download and it starts instantly.
+ * The welcome screen's sound, driven by the scroll.
  *
- * Browsers only allow audio after the visitor clicks, taps or presses a key. `primeIntroSound()`
- * is called from those gestures to unlock audio; `playIntroSound()` plays the hit if audio is
- * allowed (or becomes allowed within half a second, e.g. when a finger lifts after a swipe).
- * A mouse-wheel scroll alone never unlocks audio, so that path is silent by design.
+ * The sound is a real audio file (media.introSound in config/site.js, default
+ * /assets/audio/intro.mp3 — swap in any MP3). While the visitor scrolls the welcome wave,
+ * the sound plays along: it starts muffled and quiet, grows louder and clearer as the wave
+ * spreads, and fades away if they stop and the wave settles back. Once they've scrolled far
+ * enough to enter, it swells to full and plays out as the site appears.
+ *
+ * Browsers only allow audio after a click, tap or key press. `primeIntroSound()` is called
+ * from those gestures. A phone swipe counts once the finger lifts; a mouse-wheel scroll on
+ * its own never unlocks audio, so on computers the wheel path stays silent unless the visitor
+ * has clicked or pressed a key. If the file can't load, a synthesised version plays instead.
  */
-/**
- * Which sound plays on entering:
- *   'motif'     — melodic logo: three gold plucks rising into an 808 slide
- *   'signature' — inhale, heartbeat, strike with a gold ring and brass bloom
- *   'cinematic' — the first one: knock, boom and a dark swell
- */
+/** Fallback synthesised sound if the file can't be used: 'cinematic' | 'signature' | 'motif'. */
 const VARIANT = 'cinematic'
 
+const MIN_CUTOFF = 280 // Hz: how muffled the sound is at the very start of a scroll
+const MAX_CUTOFF = 20000
+
 let ctx = null
-let played = false
+let buffer = null
+let loading = null
+let voice = null // { source, gain, filter } while the scroll-driven sound is playing
+let finished = false // played out in full (entered the site)
 
 function getContext() {
   if (ctx) return ctx
@@ -27,27 +32,101 @@ function getContext() {
   return ctx
 }
 
+/** Fetches and decodes the sound early (decoding works before audio is unlocked). */
+export function loadIntroSound(url) {
+  if (loading || !url) return loading
+  const c = getContext()
+  if (!c) return null
+  loading = fetch(url)
+    .then((res) => (res.ok ? res.arrayBuffer() : Promise.reject(new Error(String(res.status)))))
+    .then((data) => c.decodeAudioData(data))
+    .then((decoded) => {
+      buffer = decoded
+      return decoded
+    })
+    .catch(() => null)
+  return loading
+}
+
 /** Call inside a click / tap / key handler: lets the browser start audio. */
 export function primeIntroSound() {
   const c = getContext()
   if (c && c.state !== 'running') c.resume().catch(() => {})
 }
 
-/** Plays the entrance hit once, if sound is on and the browser allows audio right now. */
+const canPlay = () => ctx && ctx.state === 'running' && buffer && !finished && !document.hidden
+
+function startVoice(level) {
+  const c = ctx
+  const source = c.createBufferSource()
+  source.buffer = buffer
+  const filter = c.createBiquadFilter()
+  filter.type = 'lowpass'
+  filter.Q.value = 0.5
+  filter.frequency.value = cutoffFor(level)
+  const gain = c.createGain()
+  gain.gain.value = 0.0001
+  source.connect(filter).connect(gain).connect(c.destination)
+  source.start()
+  const v = { source, gain, filter }
+  source.onended = () => {
+    if (voice === v) voice = null
+  }
+  voice = v
+  return v
+}
+
+const cutoffFor = (level) => MIN_CUTOFF * (MAX_CUTOFF / MIN_CUTOFF) ** Math.min(1, Math.max(0, level))
+
+/**
+ * Called every frame while the visitor is scrolling the welcome wave (before entering).
+ * `level` 0 → 1 is how far they've pushed it towards entering.
+ */
+export function scrubIntroSound(level) {
+  if (!canPlay()) return
+  const now = ctx.currentTime
+  if (!voice) {
+    if (level < 0.03) return
+    startVoice(level)
+  }
+  if (level < 0.015) {
+    // they stopped and the wave settled back: let the sound fade out, ready to start again
+    const v = voice
+    v.gain.gain.setTargetAtTime(0.0001, now, 0.12)
+    v.source.stop(now + 0.6)
+    voice = null
+    return
+  }
+  voice.gain.gain.setTargetAtTime(Math.min(1, 0.15 + level * 0.85), now, 0.06)
+  voice.filter.frequency.setTargetAtTime(cutoffFor(level), now, 0.06)
+}
+
+/** Called once on entering: the sound swells to full and plays out. */
 export function playIntroSound() {
-  if (played || document.hidden) return
+  if (finished || document.hidden) return
   const c = getContext()
   if (!c) return
   const askedAt = performance.now()
   const go = () => {
-    if (played || c.state !== 'running' || performance.now() - askedAt > 500) return
-    played = true
-    if (VARIANT === 'motif') renderMotif(c)
+    if (finished || c.state !== 'running' || performance.now() - askedAt > 500) return
+    finished = true
+    const now = c.currentTime
+    if (buffer) {
+      const v = voice ?? startVoice(0.4)
+      v.gain.gain.cancelScheduledValues(now)
+      v.gain.gain.setTargetAtTime(1, now, 0.08)
+      v.filter.frequency.cancelScheduledValues(now)
+      v.filter.frequency.setTargetAtTime(MAX_CUTOFF, now, 0.12)
+    } else if (VARIANT === 'motif') renderMotif(c)
     else if (VARIANT === 'signature') renderSignature(c)
     else render(c)
   }
-  if (c.state === 'running') go()
-  else c.resume().then(go).catch(() => {})
+  // the file may still be decoding (e.g. a very fast entry): wait for it briefly
+  const ready = loading ? Promise.race([loading, new Promise((r) => setTimeout(r, 300))]) : Promise.resolve()
+  ready.then(() => {
+    if (c.state === 'running') go()
+    else c.resume().then(go).catch(() => {})
+  })
 }
 
 /* ------------------------------------------------------------------ synthesis */
