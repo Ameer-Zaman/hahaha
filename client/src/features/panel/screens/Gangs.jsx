@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
-import { MediaField, Thumb } from '../media'
+import { MediaField, Thumb } from '../mediaKit'
 import { adminApi } from '../panelApi'
 import { move, slugify } from '../format'
 import { useAction, useResource, useToast } from '../hooks'

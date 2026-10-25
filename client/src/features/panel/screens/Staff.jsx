@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { MediaField, Thumb } from '../media'
+import { MediaField, Thumb } from '../mediaKit'
 import { adminApi } from '../panelApi'
 import { formatWhen } from '../format'
 import { useAction, useResource } from '../hooks'

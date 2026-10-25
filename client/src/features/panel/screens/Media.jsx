@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { MediaField, Thumb, UploadButton } from '../media'
+import { MediaField, Thumb, UploadButton } from '../mediaKit'
 import { adminApi, formatBytes } from '../panelApi'
 import { formatWhen } from '../format'
 import { useAction, useResource } from '../hooks'
