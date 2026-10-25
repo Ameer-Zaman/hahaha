@@ -12,9 +12,16 @@ export const MEDIA_SLOTS = [
 ]
 
 /** Website sections that can be switched off from the panel (Home is always on). */
-export const SECTION_KEYS = ['story', 'admin', 'gangs', 'clubs', 'rules']
+export const SECTION_KEYS = ['story', 'staff', 'gangs', 'clubs', 'rules']
 
 export const defaultSections = () => Object.fromEntries(SECTION_KEYS.map((key) => [key, true]))
+
+/** Saved switches over the defaults. ("admin" is the old name of the Staffs section.) */
+export function readSections(settings) {
+  const saved = { ...(settings?.sections ?? {}) }
+  if (saved.staff === undefined && saved.admin !== undefined) saved.staff = saved.admin
+  return Object.fromEntries(SECTION_KEYS.map((key) => [key, saved[key] !== false]))
+}
 
 const settingsSchema = new mongoose.Schema(
   {

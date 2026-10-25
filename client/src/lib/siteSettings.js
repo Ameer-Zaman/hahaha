@@ -14,7 +14,7 @@ import { usePublic } from './publicData'
  * itself out because the server is asleep).
  */
 const STORAGE_KEY = 'shy-site-settings'
-const ALL_ON = { story: true, admin: true, gangs: true, clubs: true, rules: true }
+const ALL_ON = { story: true, staff: true, gangs: true, clubs: true, rules: true }
 const DEFAULTS = { sections: ALL_ON, maintenance: { on: false, message: '' } }
 
 /** The section a path belongs to, or null for pages that are always on. */
@@ -33,8 +33,11 @@ function readStored() {
 }
 
 function normalise(data) {
+  const saved = { ...(data?.sections ?? {}) }
+  if (saved.staff === undefined && saved.admin !== undefined) saved.staff = saved.admin // old name
+  delete saved.admin
   return {
-    sections: { ...ALL_ON, ...(data?.sections ?? {}) },
+    sections: { ...ALL_ON, ...saved },
     maintenance: { on: Boolean(data?.maintenance?.on), message: data?.maintenance?.message ?? '' },
   }
 }

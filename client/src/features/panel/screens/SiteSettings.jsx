@@ -8,7 +8,7 @@ import { ConfirmButton, ErrorNote, Loading, PageHead, Panel, Switch, TextField }
 /** The website sections that can be switched off. Home is always on. */
 const SECTIONS = [
   { key: 'story', label: 'Story', path: '/story' },
-  { key: 'admin', label: 'Admin', path: '/admin' },
+  { key: 'staff', label: 'Staffs', path: '/staff' },
   { key: 'gangs', label: 'Gangs', path: '/gangs', note: 'In the Factions menu' },
   { key: 'clubs', label: 'Clubs', path: '/clubs', note: 'In the Factions menu' },
   { key: 'rules', label: 'Rules', path: '/rules' },

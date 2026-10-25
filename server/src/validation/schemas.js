@@ -83,9 +83,44 @@ export const warSchema = z
   .refine((w) => w.sides[0] !== w.sides[1], { message: 'pick two different gangs', path: ['sides'] })
   .refine((w) => w.winner === null || w.sides.includes(w.winner), { message: 'the winner must be one of the two gangs', path: ['winner'] })
 
+/** Each social link must be an https address on that platform's own site. */
+export const SOCIAL_HOSTS = {
+  discord: ['discord.com', 'discord.gg', 'discordapp.com'],
+  youtube: ['youtube.com', 'youtu.be'],
+  twitch: ['twitch.tv'],
+  kick: ['kick.com'],
+  tiktok: ['tiktok.com'],
+  instagram: ['instagram.com'],
+  x: ['x.com', 'twitter.com'],
+  facebook: ['facebook.com', 'fb.com'],
+}
+
+const socialUrl = (platform) =>
+  z
+    .string()
+    .trim()
+    .max(300)
+    .refine((value) => {
+      if (!value) return true
+      try {
+        const url = new URL(value)
+        const host = url.hostname.toLowerCase().replace(/^(www|m)\./, '')
+        return url.protocol === 'https:' && SOCIAL_HOSTS[platform].some((h) => host === h || host.endsWith(`.${h}`))
+      } catch {
+        return false
+      }
+    }, `must be an https link on ${SOCIAL_HOSTS[platform][0]}`)
+
+export const staffSocialsSchema = z
+  .object(Object.fromEntries(Object.keys(SOCIAL_HOSTS).map((p) => [p, socialUrl(p).optional()])))
+  .strict()
+  .transform((links) => Object.fromEntries(Object.entries(links).filter(([, v]) => v)))
+
 export const staffSchema = z.object({
   name: text(60).min(1),
   role: text(60).min(1),
+  department: text(40).optional().default(''),
+  socials: staffSocialsSchema.optional().default({}),
   portrait: mediaId,
   order: z.number().int().min(0).max(9999).optional().default(0),
   online: z.boolean().optional().default(false),
@@ -116,7 +151,7 @@ export const ruleBookSchema = z.object({
 
 export const settingsSiteSchema = z
   .object({
-    sections: z.partialRecord(z.enum(['story', 'admin', 'gangs', 'clubs', 'rules']), z.boolean()).optional(),
+    sections: z.partialRecord(z.enum(['story', 'staff', 'gangs', 'clubs', 'rules']), z.boolean()).optional(),
     maintenance: z
       .object({
         on: z.boolean(),

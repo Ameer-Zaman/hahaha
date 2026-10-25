@@ -14,7 +14,7 @@ export const site = {
 
   /** Shown in the footer and meta description. */
   description:
-    'A FiveM roleplay community preparing for launch. Read the rules, meet the administration and apply before the city opens.',
+    'A FiveM roleplay community preparing for launch. Read the rules, meet the staff and apply before the city opens.',
 
   /**
    * Launch status. Keep `isLive: false` until the game server is actually open to players.
@@ -103,7 +103,7 @@ export const integrations = {
 export const navigation = [
   { label: 'Home', to: '/' },
   { label: 'Story', to: '/story' },
-  { label: 'Admin', to: '/admin' },
+  { label: 'Staffs', to: '/staff' },
   {
     label: 'Factions', // the dropdown's name — rename freely
     children: [

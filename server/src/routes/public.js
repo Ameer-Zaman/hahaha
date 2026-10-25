@@ -2,7 +2,7 @@ import { Router } from 'express'
 
 import { Gang } from '../models/Gang.js'
 import { RuleBook } from '../models/RuleBook.js'
-import { defaultSections, MEDIA_SLOTS, Settings } from '../models/Settings.js'
+import { MEDIA_SLOTS, readSections, Settings } from '../models/Settings.js'
 import { Staff } from '../models/Staff.js'
 import { War } from '../models/War.js'
 import { mediaUrl } from '../services/media.js'
@@ -61,6 +61,8 @@ router.get('/staff', async (req, res) => {
       id: String(s._id),
       name: s.name,
       role: s.role,
+      department: s.department || '',
+      socials: s.socials ?? {},
       portrait: mediaUrl(s.portrait),
       online: s.online,
       onDuty: s.onDuty,
@@ -80,7 +82,7 @@ router.get('/site', async (req, res) => {
   const media = Object.fromEntries(MEDIA_SLOTS.map((slot) => [slot, mediaUrl(settings?.media?.[slot] ?? null)]))
   res.json({
     media,
-    sections: { ...defaultSections(), ...(settings?.sections ?? {}) },
+    sections: readSections(settings),
     maintenance: { on: Boolean(settings?.maintenance?.on), message: settings?.maintenance?.message ?? '' },
   })
 })

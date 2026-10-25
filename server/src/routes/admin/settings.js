@@ -2,7 +2,7 @@ import { Router } from 'express'
 
 import { HttpError } from '../../middleware/errors.js'
 import { validateBody } from '../../middleware/validate.js'
-import { defaultSections, MEDIA_SLOTS, SECTION_KEYS, Settings } from '../../models/Settings.js'
+import { MEDIA_SLOTS, readSections, SECTION_KEYS, Settings } from '../../models/Settings.js'
 import { audit } from '../../services/audit.js'
 import { findFile } from '../../services/media.js'
 import { settingsMediaSchema, settingsSiteSchema } from '../../validation/schemas.js'
@@ -15,7 +15,7 @@ const getSettings = async () =>
   (await Settings.findOne({ key: 'main' })) ?? (await Settings.create({ key: 'main' }))
 
 const siteState = (settings) => ({
-  sections: { ...defaultSections(), ...(settings.sections ?? {}) },
+  sections: readSections(settings),
   maintenance: {
     on: Boolean(settings.maintenance?.on),
     message: settings.maintenance?.message ?? '',

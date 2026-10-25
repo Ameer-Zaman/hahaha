@@ -12,7 +12,7 @@ The **admin panel** lives at **`/panel`** on the website. From there the team ma
 - **Sections & maintenance**: switch Story, Admin, Gangs, Clubs or Rules off (they leave the menu, footer and homepage, and their page says "Closed for now"), and turn on **maintenance mode** with a message, so visitors see a "We'll be right back" screen. Signed-in panel accounts still see the site while it's closed. Every switch is in the audit log.
 - **Gangs & players**: name, territory, leader, card image or **short looping video**, emblem and player list. Players can be **imported from JSON**, for one gang or many at once.
 - **Wars**: date, the two gangs, winner or draw, and the result. Wars show on both gangs' pages.
-- **Staff**: cards on the Admin page, with **Online / On duty** switches that visitors see within 30 seconds.
+- **Staff**: cards on the **Staffs** page (`/staff`), each with a **department** (Management, PD, EMS … — the page groups by department and gets a filter for each) and optional **social links** (Discord, YouTube, Twitch, Kick, TikTok, Instagram, X, Facebook — shown as the brands' own logos and colours). **Online / On duty** switches show on the site within 30 seconds, and visitors can filter to **Live now**.
 - **Rules**: edit a draft, then publish. Until something is published, the site shows its built-in draft.
 - **Media library**: upload images (JPG/PNG/WebP/GIF, up to 5 MB) and videos (MP4/WebM, up to 60 MB).
 - **Homepage media**: swap the hero video, the welcome video, the four posters and the application-section background without redeploying.
@@ -200,7 +200,7 @@ Set `VITE_USE_API=false` to build a purely static site that never calls the API.
 client/src/
   app/              routes (/panel is its own lazy chunk)
   config/ content/  site settings and built-in content
-  features/         home, gangs, admin, rules — and panel/ (the admin panel)
+  features/         home, story, staff, gangs, clubs, rules — and panel/ (the admin panel)
   lib/api.js        API client;  lib/publicData.js  cached public reads + fallback
 server/src/
   config/env.js     environment (fails fast if anything required is missing)

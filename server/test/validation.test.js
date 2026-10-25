@@ -5,7 +5,7 @@ import { test } from 'node:test'
 process.env.MONGODB_URI ??= 'mongodb://127.0.0.1:27017/test'
 process.env.JWT_SECRET ??= 'test-secret-test-secret-test-secret-123'
 
-const { gangSchema, warSchema, createUserSchema, ruleBookSchema } = await import('../src/validation/schemas.js')
+const { gangSchema, warSchema, createUserSchema, ruleBookSchema, staffSchema } = await import('../src/validation/schemas.js')
 const { detectType } = await import('../src/services/media.js')
 
 const id = (n) => String(n).padStart(24, 'a')
@@ -47,4 +47,18 @@ test('uploads are recognised by their bytes, not their name', () => {
   assert.equal(detectType(jpg)?.type, 'image/jpeg')
   assert.equal(detectType(mp4)?.kind, 'video')
   assert.equal(detectType(svg), null)
+})
+
+test('staff social links must be https links on the platform itself', () => {
+  const ok = staffSchema.parse({
+    name: 'A',
+    role: 'B',
+    department: 'PD',
+    socials: { youtube: 'https://www.youtube.com/@someone', x: 'https://twitter.com/someone', twitch: '' },
+  })
+  assert.deepEqual(ok.socials, { youtube: 'https://www.youtube.com/@someone', x: 'https://twitter.com/someone' })
+  for (const bad of ['https://evil.example/youtube.com', 'https://youtube.com.evil.example/', 'http://youtube.com/a', 'javascript:alert(1)']) {
+    assert.equal(staffSchema.safeParse({ name: 'A', role: 'B', socials: { youtube: bad } }).success, false, bad)
+  }
+  assert.equal(staffSchema.safeParse({ name: 'A', role: 'B', socials: { myspace: 'https://myspace.com/a' } }).success, false)
 })

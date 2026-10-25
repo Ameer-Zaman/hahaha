@@ -8,7 +8,7 @@ import SectionClosed from '../components/site/SectionClosed'
 import { useSectionOn } from '../lib/siteSettings'
 
 // Inner pages are split into their own chunks so the homepage loads only what it needs.
-const AdminPage = lazy(() => import('../features/admin/AdminPage'))
+const StaffPage = lazy(() => import('../features/staff/StaffPage'))
 const GangsPage = lazy(() => import('../features/gangs/GangsPage'))
 const GangPage = lazy(() => import('../features/gangs/GangPage'))
 const RulesPage = lazy(() => import('../features/rules/RulesPage'))
@@ -24,7 +24,9 @@ export default function App() {
       <Route path="panel/*" element={<Lazy><PanelApp /></Lazy>} />
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
-        <Route path="admin" element={<Section to="/admin"><AdminPage /></Section>} />
+        <Route path="staff" element={<Section to="/staff"><StaffPage /></Section>} />
+        {/* the page used to be called Admin */}
+        <Route path="admin" element={<Navigate to="/staff" replace />} />
         <Route path="gangs" element={<Section to="/gangs"><GangsPage /></Section>} />
         <Route path="gangs/:slug" element={<Section to="/gangs"><GangPage /></Section>} />
         <Route path="clubs" element={<Section to="/clubs"><ClubsPage /></Section>} />

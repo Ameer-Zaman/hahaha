@@ -1302,3 +1302,35 @@
     display: none;
   }
 }
+
+/* ---------- staff social links ---------- */
+.p-socials {
+  margin: var(--sp-5) 0 var(--sp-5);
+  padding: 0;
+  border: 0;
+}
+.p-socials__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+  gap: var(--sp-2) var(--sp-4);
+  margin-top: var(--sp-3);
+}
+.p-socials__item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.p-socials__icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--p-line-strong);
+  border-radius: 50%;
+  background: var(--p-bg);
+}
+.p-socials__item .p-input {
+  flex: 1;
+  min-width: 0;
+}

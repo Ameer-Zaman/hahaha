@@ -22,10 +22,10 @@ export const features = {
   rows: [
     {
       id: 'administration',
-      title: 'The administration',
-      body: 'Meet the people who keep the city running — their names, their roles, and once the server is connected, who is on duty right now.',
-      cta: 'Meet the team',
-      to: '/admin',
+      title: 'The staff',
+      body: 'Meet the people who keep the city running — every department, their roles, their socials, and once the server is connected, who is online right now.',
+      cta: 'Meet the staff',
+      to: '/staff',
     },
     {
       id: 'gangs',
