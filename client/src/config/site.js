@@ -102,6 +102,7 @@ export const integrations = {
  */
 export const navigation = [
   { label: 'Home', to: '/' },
+  { label: 'Story', to: '/story' },
   { label: 'Admin', to: '/admin' },
   {
     label: 'Factions', // the dropdown's name — rename freely

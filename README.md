@@ -137,6 +137,24 @@ ffmpeg -i in.mp4 -vf scale=-2:1080 -c:v libx264 -preset veryfast -crf 26 -movfla
 
 Videos are streamed with byte ranges, so they start quickly and can seek.
 
+## Story page videos
+
+The Story page (`/story`) is a long cinematic scroll in the style of the GTA VI site. Its full-screen **scene videos scrub with the scroll**: scrolling moves the video forward and back. Smooth scrubbing needs a keyframe in every few frames, so encode scene videos like this (1080p, no audio):
+
+```bash
+ffmpeg -i in.mp4 -vf scale=1920:-2 -c:v libx264 -preset veryfast -crf 24 -g 6 -keyint_min 6 -pix_fmt yuv420p -movflags +faststart -an city.mp4
+```
+
+Keep scene clips short (5–15 s) and under ~25 MB. Drop them into `client/public/assets/video/story/` with these names:
+
+| Scene | File |
+| --- | --- |
+| Chapter one: The City | `city.mp4`, cards `city-a.mp4`, `city-b.mp4`, quote `quote-1.mp4` |
+| Chapter two: The Streets | `streets.mp4`, cards `streets-a.mp4`, `streets-b.mp4`, quote `quote-2.mp4` |
+| Chapter three: After Dark | `night.mp4`, cards `night-a.mp4`, `night-b.mp4` |
+
+Card videos simply loop while on screen, so normal encoding is fine for them. Missing files show the illustrated skyline instead. The text, the file names and the number of chapters are all in `client/src/content/story.js`. The copy there is a draft: rewrite it freely.
+
 ## Website content without the panel
 
 The built-in content is what visitors see while the API has nothing (or is down):
