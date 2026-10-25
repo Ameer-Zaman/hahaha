@@ -414,3 +414,23 @@
     transition: none;
   }
 }
+
+/* ---------- loading skeleton ---------- */
+.lb-podium--skeleton .lb-podium__card {
+  border-color: transparent;
+  background: none;
+}
+.lb-table-wrap--skeleton {
+  display: grid;
+  min-width: 0;
+}
+.lb-skel-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgb(var(--rgb-ivory) / 0.06);
+}
+.lb-skel-row:last-child {
+  border-bottom: 0;
+}

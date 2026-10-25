@@ -16,6 +16,18 @@ export default defineConfig(({ mode }) => {
       // Built JS/CSS go to /static (cached forever, filenames are hashed).
       // /assets is left for your own files, e.g. public/assets/video/home.mp4.
       assetsDir: 'static',
+      rollupOptions: {
+        output: {
+          // Libraries in their own files: they change rarely, so returning visitors keep them
+          // cached even after the site's own code is updated.
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return undefined
+            if (/[\\/](react|react-dom|scheduler|react-router|react-router-dom)[\\/]/.test(id)) return 'react'
+            if (/[\\/](gsap|@gsap)[\\/]/.test(id)) return 'gsap'
+            return undefined
+          },
+        },
+      },
     },
   }
 })

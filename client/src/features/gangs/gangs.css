@@ -72,8 +72,7 @@
   inset: 0;
   z-index: 40;
   pointer-events: none;
-  opacity: 0.09;
-  mix-blend-mode: overlay;
+  opacity: 0.05; /* plain blending: a blend mode here re-mixes the whole screen every frame */
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -106,7 +105,7 @@
   position: absolute;
   inset: 0;
   z-index: -2;
-  mix-blend-mode: soft-light;
+  opacity: 0.55; /* plain blending instead of soft-light: same warmth, far cheaper to draw */
 }
 
 .reel-card--gold .reel-card__tint {
@@ -779,23 +778,6 @@
   background: var(--c-black, #000);
   display: grid;
   place-items: center;
-}
-.gangs-wait::after {
-  content: '';
-  width: 42px;
-  height: 2px;
-  background: var(--c-gold);
-  animation: gangs-wait 1.1s ease-in-out infinite;
-  transform-origin: left;
-}
-@keyframes gangs-wait {
-  0% { transform: scaleX(0); }
-  50% { transform: scaleX(1); transform-origin: left; }
-  51% { transform-origin: right; }
-  100% { transform: scaleX(0); transform-origin: right; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .gangs-wait::after { animation: none; }
 }
 
 /* A gang's short looping clip over its card image (fades in once it is really playing). */

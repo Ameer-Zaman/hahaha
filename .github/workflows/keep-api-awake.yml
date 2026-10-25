@@ -1,0 +1,20 @@
+# Render's free plan puts the API to sleep after 15 minutes without visitors, and the next
+# visitor waits up to a minute for live data. This pings it every 10 minutes so it stays awake.
+# (One always-on free service uses ~744 of Render's 750 free hours a month.)
+# Change the address below if the API moves; disable this workflow on GitHub to stop it.
+name: Keep the API awake
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping /api/health
+        run: curl --silent --show-error --max-time 90 --retry 2 https://shyastha-api.onrender.com/api/health

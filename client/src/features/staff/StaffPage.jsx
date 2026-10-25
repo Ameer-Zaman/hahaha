@@ -9,6 +9,7 @@ import { SocialLinks } from '../../components/ui/BrandIcons'
 import ParallaxScope from '../../components/ui/ParallaxScope'
 import ParallaxWord from '../../components/ui/ParallaxWord'
 import ApplyLink from '../../components/ui/ApplyLink'
+import { Skeleton, SkeletonGroup } from '../../components/ui/Skeleton'
 
 const STATUS_COPY = {
   'not-connected': {
@@ -95,8 +96,10 @@ export default function StaffPage() {
 
       <section className="staff-dir theme-black section" aria-label="Staff directory">
         <div className="container">
-          {staff.length > 0 ? (
-            <>
+          {status.state === 'loading' ? (
+            <StaffSkeleton />
+          ) : staff.length > 0 ? (
+            <div className="reveal-stagger">
               <div className="staff-filters" role="group" aria-label="Filter staff">
                 <div className="staff-filters__chips" role="group" aria-label="Department">
                   <Chip active={current === 'all'} onClick={() => setDepartment('all')} label="All" count={staff.length} />
@@ -147,7 +150,7 @@ export default function StaffPage() {
                   </button>
                 </p>
               )}
-            </>
+            </div>
           ) : (
             <ul role="list" className="staff-grid">
               {Array.from({ length: staffSlots }, (_, i) => (
@@ -171,6 +174,30 @@ export default function StaffPage() {
 }
 
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+
+/** While the staff list loads: the filter row and a few cards, shimmering. */
+function StaffSkeleton() {
+  return (
+    <SkeletonGroup label="Loading staff">
+      <div className="staff-filters">
+        <div className="staff-filters__chips">
+          {[64, 120, 56, 64].map((w, i) => (
+            <Skeleton key={i} w={`${w + 30}px`} h="44px" radius={999} />
+          ))}
+        </div>
+        <Skeleton w="140px" h="44px" radius={999} />
+      </div>
+      <Skeleton w="min(18rem, 60%)" h="2.4rem" style={{ marginBottom: 'var(--sp-5)' }} />
+      <ul role="list" className="staff-grid">
+        {Array.from({ length: 4 }, (_, i) => (
+          <li key={i} className="staff-card staff-card--skeleton">
+            <Skeleton w="100%" h="100%" radius={16} />
+          </li>
+        ))}
+      </ul>
+    </SkeletonGroup>
+  )
+}
 
 function Chip({ active, onClick, label, count }) {
   return (

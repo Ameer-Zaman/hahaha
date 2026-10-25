@@ -69,9 +69,11 @@ export default function Reel({ files }) {
     const trackEl = trackRef.current
     const ease = touch ? EASE_TOUCH : EASE_DESKTOP
 
+    let drawnPos = NaN // where the cards were last drawn: skip the work while nothing moves
     const measure = () => {
       // one card every 85% of the screen height
       m.spacing = window.innerHeight * 0.85
+      drawnPos = NaN // redraw at the new size
     }
     measure()
     window.addEventListener('resize', measure)
@@ -110,6 +112,10 @@ export default function Reel({ files }) {
           lastBlur = rounded
         }
       }
+
+      // at rest (same spot, no blur left): nothing to redraw this frame
+      if (Math.abs(m.pos - drawnPos) < 0.0002 && lastBlur <= 0) return
+      drawnPos = m.pos
 
       slots.forEach(({ slot, media, left, top }, i) => {
         // offset from the centre in cards, wrapped so the reel loops: [-count/2, count/2)

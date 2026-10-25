@@ -61,7 +61,6 @@ export default function Hero() {
         seed={19}
         horizon={0.66}
         priority
-        parallax
       />
       {heroVideo && (
         <BackgroundVideo key={heroVideo} src={heroVideo} poster={media.hero.videoPoster} label="Shyastha city footage" controls={false} />

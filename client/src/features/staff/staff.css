@@ -373,3 +373,10 @@
     transform: none;
   }
 }
+
+/* loading skeleton cards keep the real card's shape */
+.staff-card--skeleton {
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+}

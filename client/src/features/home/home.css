@@ -13,6 +13,15 @@
   position: absolute;
   inset: 0;
 }
+/* the whole backdrop sinks as one prepared layer while the hero scrolls away */
+.hero__plate .plate__media,
+.hero .yt-bg {
+  will-change: transform;
+}
+/* once the video is really playing, the skyline under it doesn't need drawing */
+.hero:has(.yt-bg.is-playing) .hero__plate {
+  visibility: hidden;
+}
 
 .hero__shade {
   position: absolute;
@@ -129,6 +138,11 @@
     opacity: 0.2;
   }
 
+  .hero.is-lit .hero__neon,
+  .hero.is-lit .hero__tube {
+    will-change: opacity;
+  }
+
   .hero.is-lit .hero__neon {
     animation:
       neon-on 1.4s steps(1, end) both,
@@ -165,19 +179,19 @@
   }
 }
 
+/* the hum: a brief dip in opacity (handled by the GPU, no repaint every frame) */
 @keyframes neon-hum {
   0%,
+  46%,
+  54%,
   100% {
-    filter: brightness(1);
-  }
-  48% {
-    filter: brightness(1.12) saturate(1.1);
+    opacity: 1;
   }
   50% {
-    filter: brightness(0.82);
+    opacity: 0.78;
   }
   52% {
-    filter: brightness(1.1);
+    opacity: 0.95;
   }
 }
 

@@ -5,6 +5,8 @@ import Layout from '../components/layout/Layout'
 import HomePage from '../features/home/HomePage'
 import { applyLink } from '../config/site'
 import SectionClosed from '../components/site/SectionClosed'
+import { PageLoader } from '../components/ui/Skeleton'
+import { useLoadingSignal } from '../lib/loading'
 import { useSectionOn } from '../lib/siteSettings'
 
 // Inner pages are split into their own chunks so the homepage loads only what it needs.
@@ -43,7 +45,13 @@ export default function App() {
 }
 
 function Lazy({ children }) {
-  return <Suspense fallback={<div className="route-loading" aria-busy="true" />}>{children}</Suspense>
+  return <Suspense fallback={<RouteLoading />}>{children}</Suspense>
+}
+
+/** While a page's code downloads: the gold line runs, and the diamond appears if it takes a moment. */
+function RouteLoading() {
+  useLoadingSignal(true)
+  return <PageLoader label="Loading page" />
 }
 
 /** A page that can be switched off in the panel (Site settings → Sections). */

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import Plate from '../../components/media/Plate'
+import GangsLoading from './components/GangsLoading'
 import RollText from '../../components/ui/RollText'
 import Arrow from '../../components/ui/Arrow'
 import usePageTitle from '../../hooks/usePageTitle'
@@ -31,7 +32,7 @@ export default function GangPage() {
   const file = index >= 0 ? files[index] : null
   usePageTitle(file ? file.title : ready ? 'Gang not found' : 'Gangs')
 
-  if (!ready) return <div className="gangs-wait" aria-busy="true" aria-label="Loading gang" />
+  if (!ready) return <GangsLoading label="Loading gang" />
   if (!file) return <GangNotFound />
 
   const prev = files[(index - 1 + files.length) % files.length]

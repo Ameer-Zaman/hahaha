@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore } from 'react'
 
 import { api, USE_API } from './api'
+import { useLoadingSignal } from './loading'
 
 /**
  * Cached reads of the public API (/api/public/*). Each entry is
@@ -47,6 +48,7 @@ export function loadPublic(path, { force = false } = {}) {
 /** Read one public endpoint. `refreshMs` re-fetches it on an interval (e.g. live staff status). */
 export function usePublic(path, { refreshMs = 0 } = {}) {
   const entry = useSyncExternalStore(subscribe, () => (USE_API ? (cache.get(path) ?? LOADING) : OFF))
+  useLoadingSignal(entry.status === 'loading') // the gold line at the top follows it
   useEffect(() => {
     if (!USE_API) return undefined
     loadPublic(path)

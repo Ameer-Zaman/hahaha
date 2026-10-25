@@ -4,6 +4,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import SiteHeader from './SiteHeader'
 import SiteFooter from './SiteFooter'
 import ScrollProgress from './ScrollProgress'
+import TopProgress from '../ui/TopProgress'
 import { ScrollTrigger } from '../../lib/gsap'
 import { setIntroActive, shouldShowHello, shouldShowIntro } from '../../lib/intro'
 import WelcomeGate from '../intro/WelcomeGate'
@@ -62,6 +63,7 @@ export default function Layout() {
 
   return (
     <>
+      <TopProgress />
       {maintenance.on && <MaintenancePreviewNotice />}
       <a className="skip-link" href="#main">
         Skip to content

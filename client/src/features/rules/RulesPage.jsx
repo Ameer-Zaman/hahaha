@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import usePageTitle from '../../hooks/usePageTitle'
 import { ruleCategories as staticCategories, rulesMeta } from '../../content/rules'
 import { usePublic } from '../../lib/publicData'
+import { Skeleton, SkeletonGroup } from '../../components/ui/Skeleton'
 import './rules.css'
 import Arrow from '../../components/ui/Arrow'
 import ParallaxScope from '../../components/ui/ParallaxScope'
@@ -35,6 +36,7 @@ function useActiveSection(ids) {
  */
 function useRuleBook() {
   const entry = usePublic('/rules')
+  if (entry.status === 'loading') return { loading: true, categories: [], status: 'draft', lastUpdated: null }
   if (entry.status === 'ok' && entry.data?.status === 'published' && entry.data.categories?.length) {
     return {
       categories: entry.data.categories,
@@ -43,6 +45,27 @@ function useRuleBook() {
     }
   }
   return { categories: staticCategories, status: rulesMeta.status, lastUpdated: rulesMeta.lastUpdated }
+}
+
+/** While the rule book loads: two sections of headings and lines, shimmering. */
+function RulesSkeleton() {
+  return (
+    <SkeletonGroup label="Loading the rules">
+      {[0, 1].map((k) => (
+        <div key={k} className="rule-cat">
+          <Skeleton w="55%" h="2.6rem" style={{ marginBottom: 'var(--sp-3)' }} />
+          <Skeleton w="35%" h="1rem" style={{ marginBottom: 'var(--sp-6)' }} />
+          {[0, 1, 2].map((r) => (
+            <div key={r} style={{ display: 'grid', gap: '0.6rem', marginBottom: 'var(--sp-6)' }}>
+              <Skeleton w="40%" h="1.1rem" />
+              <Skeleton w="92%" h="0.9rem" />
+              <Skeleton w="78%" h="0.9rem" />
+            </div>
+          ))}
+        </div>
+      ))}
+    </SkeletonGroup>
+  )
 }
 
 function formatDay(value) {
@@ -57,7 +80,7 @@ export default function RulesPage() {
   const ruleCategories = book.categories
   const categoryIds = useMemo(() => ruleCategories.map((c) => c.id), [ruleCategories])
   const active = useActiveSection(categoryIds)
-  const isDraft = book.status !== 'published'
+  const isDraft = !book.loading && book.status !== 'published'
 
   return (
     <>
@@ -82,6 +105,7 @@ export default function RulesPage() {
               </p>
             </div>
           ) : (
+            !book.loading &&
             book.lastUpdated && (
               <p className="rules-updated">
                 Last updated <time dateTime={book.lastUpdated}>{formatDay(book.lastUpdated)}</time>
@@ -103,7 +127,8 @@ export default function RulesPage() {
             </div>
           </nav>
 
-          <div className="rules-content">
+          <div className={`rules-content ${book.loading ? '' : 'reveal-stagger'}`}>
+            {book.loading && <RulesSkeleton />}
             {ruleCategories.map((category, ci) => (
               <section key={category.id} id={category.id} className="rule-cat" aria-labelledby={`${category.id}-title`}>
                 <header className="rule-cat__head">

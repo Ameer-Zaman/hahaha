@@ -6,6 +6,7 @@ import ParallaxWord from '../../components/ui/ParallaxWord'
 import usePageTitle from '../../hooks/usePageTitle'
 import { usePublic } from '../../lib/publicData'
 import { useGangFiles } from '../gangs/gangsModel'
+import { Skeleton, SkeletonGroup } from '../../components/ui/Skeleton'
 import { formatKd, rankTdm, rankWars } from './ranking'
 import './leaderboard.css'
 
@@ -95,7 +96,7 @@ function TdmBoard() {
   const [query, setQuery] = useState('')
   const ranked = useMemo(() => rankTdm(entry.data?.players), [entry.data])
 
-  if (entry.status === 'loading') return <p className="lb-note">Loading the board…</p>
+  if (entry.status === 'loading') return <BoardSkeleton label="Loading the TDM board" />
   if (ranked.length === 0) {
     return (
       <Empty title="No TDM results yet">The board fills in once the team posts the first match results.</Empty>
@@ -108,7 +109,7 @@ function TdmBoard() {
   const shown = q ? ranked.filter((r) => r.name.toLowerCase().includes(q)) : ranked
 
   return (
-    <>
+    <div className="reveal-stagger">
       <BoardMeta season={entry.data?.season} updatedAt={entry.data?.updatedAt} count={ranked.length} noun="player" />
       {!q && <Podium rows={ranked.slice(0, 3)} stat={(r) => `${r.kills} kills · ${formatKd(r.kills, r.deaths)} K/D`} />}
       <div className="lb-tools">
@@ -130,7 +131,7 @@ function TdmBoard() {
         columns={columns}
         empty={`No player matches “${query}”.`}
       />
-    </>
+    </div>
   )
 }
 
@@ -149,14 +150,14 @@ function WarBoard() {
   const { files, ready } = useGangFiles()
   const ranked = useMemo(() => rankWars(files), [files])
 
-  if (!ready) return <p className="lb-note">Loading the war record…</p>
+  if (!ready) return <BoardSkeleton label="Loading the war record" />
   if (ranked.length === 0) {
     return <Empty title="No wars on the record yet">Standings appear here as soon as the first war between gangs is logged.</Empty>
   }
   const demo = ranked.some((r) => r.demo)
 
   return (
-    <>
+    <div className="reveal-stagger">
       {demo && (
         <p className="lb-demo" role="note">
           Demo data — example gangs and wars, shown until the real ones are published.
@@ -178,11 +179,36 @@ function WarBoard() {
         columns={WAR_COLUMNS}
       />
       <p className="lb-note">Ranked by wins, then win rate, then fewest losses. Draws count as played.</p>
-    </>
+    </div>
   )
 }
 
 /* ---------------------------------------------------------------- shared */
+
+/** While a board loads: a podium and a few table rows, shimmering. */
+function BoardSkeleton({ label }) {
+  return (
+    <SkeletonGroup label={label}>
+      <Skeleton w="14rem" h="1rem" style={{ marginBottom: 'var(--sp-6)' }} />
+      <div className="lb-podium lb-podium--skeleton">
+        {[2, 1, 3].map((p) => (
+          <div key={p} className={`lb-podium__card lb-podium__card--pos${p}`}>
+            <Skeleton w="100%" h="100%" radius={16} />
+          </div>
+        ))}
+      </div>
+      <div className="lb-table-wrap lb-table-wrap--skeleton">
+        {Array.from({ length: 6 }, (_, i) => (
+          <div key={i} className="lb-skel-row">
+            <Skeleton w="2rem" h="2rem" radius={999} />
+            <Skeleton w={`${40 - i * 4}%`} h="1rem" />
+            <Skeleton w="18%" h="1rem" style={{ marginLeft: 'auto' }} />
+          </div>
+        ))}
+      </div>
+    </SkeletonGroup>
+  )
+}
 
 function BoardMeta({ season, updatedAt, count, noun }) {
   return (

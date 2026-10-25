@@ -180,8 +180,13 @@ function loadImage(url) {
 
 /* ------------------------------------------------------------ public API */
 
-/** Starts downloading everything the homepage shows. Safe to call more than once. */
-export function preloadHomeAssets() {
+/**
+ * Starts downloading everything the homepage shows. Safe to call more than once.
+ * `audio: false` (background mode) leaves out the welcome sound and music: they load
+ * when the welcome screen opens anyway, and are the heaviest part for a visitor who may
+ * never go to the homepage.
+ */
+export function preloadHomeAssets({ audio = true } = {}) {
   if (state.started) return
   state.started = true
 
@@ -222,8 +227,10 @@ export function preloadHomeAssets() {
     state.listed = true
     emit()
     imageUrls.forEach((url) => track(loadImage(url)))
-    track(loadIntroSound(media.introSound))
-    track(preloadMusic())
+    if (audio) {
+      track(loadIntroSound(media.introSound))
+      track(preloadMusic())
+    }
     track(document.fonts?.ready)
 
     Promise.allSettled(tasks).then(() => {
@@ -241,7 +248,7 @@ export function preloadHomeAssets() {
  */
 export function preloadHomeInBackground() {
   if (state.started || navigator.connection?.saveData) return
-  const run = () => preloadHomeAssets()
+  const run = () => preloadHomeAssets({ audio: false })
   const idle = window.requestIdleCallback ?? ((fn) => setTimeout(fn, 1500))
   if (document.readyState === 'complete') idle(run, { timeout: 4000 })
   else window.addEventListener('load', () => idle(run, { timeout: 4000 }), { once: true })
