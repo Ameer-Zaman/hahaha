@@ -22,20 +22,26 @@ The **admin panel** lives at **`/panel`** on the website. From there the team ma
 
 ## 1 · Run it on your computer
 
-Needs Node 22 and a MongoDB database. A free MongoDB Atlas cluster works (see step 2), or MongoDB installed locally.
+Needs **Node 22**. Nothing else: no database to install, no accounts to create.
 
 ```bash
 npm install              # root helper (runs both apps together)
 npm run install:all      # installs client/ and server/
-cp server/.env.example server/.env    # then fill it in (see below)
 npm run dev              # API on :4000 + website on http://localhost:5173
 ```
 
-Open **http://localhost:5173/panel** and sign in with the `SUPERADMIN_EMAIL` / `SUPERADMIN_PASSWORD` from `server/.env`.
+The first `npm run dev`:
+- creates `server/.env` with a random session secret and a first **Super Admin login**, printed in a box in the terminal (also saved in `server/.env`);
+- starts a **built-in local database** that keeps its data in `server/.local-db/`. The very first start downloads MongoDB once (~100 MB), so give it a minute.
+
+Then open **http://localhost:5173/panel** and sign in with the email and password from the box. Change the password in the panel under **Account**.
+
+- **Use MongoDB Atlas instead:** put its connection string in `MONGODB_URI` in `server/.env` (see step 2).
+- **Start the database from scratch:** stop the app and delete `server/.local-db/`. The Super Admin from `server/.env` is created again on the next start.
 
 Other commands: `npm run build` (website → `client/dist`), `npm run lint`, `npm test` (server unit tests).
 
-In development, Vite forwards `/api/*` to the local server, the same way Netlify does in production.
+In development, Vite forwards `/api/*` to the local server, the same way the hosted website does.
 
 ---
 
