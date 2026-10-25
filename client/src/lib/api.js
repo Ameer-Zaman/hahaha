@@ -9,9 +9,10 @@ export const USE_API = import.meta.env.VITE_USE_API !== 'false'
 export const API_DIRECT_URL = (import.meta.env.VITE_API_DIRECT_URL ?? '').replace(/\/$/, '')
 
 export class ApiError extends Error {
-  constructor(status, message) {
+  constructor(status, message, code = '') {
     super(message)
     this.status = status
+    this.code = code
   }
 }
 
@@ -37,6 +38,11 @@ export async function api(path, { method = 'GET', body, signal, timeout = 0, for
     } catch (err) {
       if (signal?.aborted) throw err
       throw new ApiError(0, 'The server could not be reached.')
+    }
+    // No API behind /api: the host answered with a web page (e.g. the site's index.html).
+    if (!(res.headers.get('content-type') ?? '').includes('application/json')) {
+      if ([502, 503, 504].includes(res.status)) throw new ApiError(res.status, 'The server is starting up.')
+      throw new ApiError(404, 'The API server is not connected to this website yet.', 'not_connected')
     }
     const data = await res.json().catch(() => null)
     if (!res.ok) throw new ApiError(res.status, data?.message ?? `Request failed (${res.status}).`)

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Navigate, NavLink, Route, Routes } from 'react-router-dom'
 
 import { site } from '../../config/site'
+import { USE_API } from '../../lib/api'
 import { AuthProvider } from './auth'
 import { useAuth } from './authContext'
 import { Account, Accounts, AuditLog } from './screens/Accounts'
@@ -60,6 +61,9 @@ export default function PanelApp() {
     }
   }, [])
 
+  // A site built without the API (VITE_USE_API=false) has no server to sign in to.
+  if (!USE_API) return <NotConnected reason="off" />
+
   return (
     <AuthProvider>
       <ToastProvider>
@@ -85,8 +89,37 @@ function Gate() {
       </main>
     )
   }
+  if (auth.status === 'unconnected') return <NotConnected reason="missing" />
   if (auth.status === 'out') return <Login />
   return <Shell />
+}
+
+/** Shown when the website runs without its server: the panel needs the API to sign in. */
+function NotConnected({ reason }) {
+  return (
+    <main className="p-login">
+      <div className="p-login__card">
+        <p className="p-brand">
+          {site.name}
+          <span>Panel</span>
+        </p>
+        <h1 className="p-login__title">Server not connected</h1>
+        <p className="p-login__sub">
+          The admin panel signs in through the Shyastha API server, and this website isn't connected to one
+          {reason === 'off' ? ' (it was built with VITE_USE_API=false).' : ' yet.'}
+        </p>
+        <ol className="p-steps">
+          <li>Deploy the <code>server/</code> folder (Render web service) with a MongoDB Atlas database.</li>
+          <li>Forward this website's <code>/api/*</code> to that server, and remove <code>VITE_USE_API=false</code>.</li>
+          <li>Redeploy the website, then come back to <code>/panel</code>.</li>
+        </ol>
+        <p className="p-login__sub">The public website works without it, using its built-in content.</p>
+        <a className="pbtn pbtn--ghost pbtn--block" href="/">
+          Back to the website
+        </a>
+      </div>
+    </main>
+  )
 }
 
 function Shell() {

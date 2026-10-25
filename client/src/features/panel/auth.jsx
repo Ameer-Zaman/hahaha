@@ -17,7 +17,8 @@ export function AuthProvider({ children }) {
       .then(({ user }) => alive && setState({ status: 'in', user, waking: false }))
       .catch((err) => {
         if (!alive) return
-        setState({ status: err.status === 401 ? 'out' : 'down', user: null, waking: false, error: err.message })
+        const status = err.code === 'not_connected' ? 'unconnected' : err.status === 401 ? 'out' : 'down'
+        setState({ status, user: null, waking: false, error: err.message })
       })
     return () => {
       alive = false
