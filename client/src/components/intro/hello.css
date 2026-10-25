@@ -1,81 +1,137 @@
-/* The opening "hello" — greetings while the homepage downloads */
+/* The opening "hello" — greetings while the homepage downloads (first visit only) */
 .hello {
   position: fixed;
   inset: 0;
   z-index: 210; /* above the welcome screen, which waits underneath */
   display: grid;
   place-items: center;
-  background: var(--c-ink, #06070a);
+  overflow: hidden;
+  background: #050507;
   color: #f6e3b0;
-  opacity: 1;
-  transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    opacity 900ms cubic-bezier(0.65, 0, 0.35, 1),
+    transform 900ms cubic-bezier(0.65, 0, 0.35, 1),
+    filter 900ms cubic-bezier(0.65, 0, 0.35, 1);
 }
+/* the exit: a slow push forward that dissolves into the welcome screen */
 .hello.is-leaving {
   opacity: 0;
+  transform: scale(1.06);
+  filter: blur(10px);
+}
+
+/* a warm light that breathes behind the words */
+.hello__glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(120vw, 70rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(227 181 90 / 0.16), rgb(227 181 90 / 0.05) 45%, transparent 72%);
+  transform: translate(-50%, -50%) scale(0.85);
+  animation: hello-breathe 4.8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes hello-breathe {
+  50% {
+    transform: translate(-50%, -50%) scale(1.05);
+    opacity: 0.75;
+  }
+}
+
+/* fine film grain, so the black feels like a screen and not a void */
+.hello__grain {
+  position: absolute;
+  inset: -50%;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation: hello-grain 0.9s steps(5) infinite;
+  pointer-events: none;
+}
+@keyframes hello-grain {
+  20% { transform: translate(-3%, 2%); }
+  40% { transform: translate(2%, -3%); }
+  60% { transform: translate(-2%, -1%); }
+  80% { transform: translate(3%, 3%); }
 }
 
 .hello__stage {
+  position: relative;
   display: grid;
   place-items: center;
   width: min(92vw, 56rem);
   height: min(40vw, 22rem);
 }
 
-/* the first word, written out in one stroke, then filled */
+/* ---- the first word: written by a sweep of light ---- */
 .hello__draw {
   width: 100%;
   height: 100%;
   overflow: visible;
+  animation: hello-out 0.55s cubic-bezier(0.55, 0, 1, 0.45) 2.2s forwards; /* leaves just before the next greeting */
+}
+.hello__draw-text,
+.hello__draw-glow {
+  font-family: 'Sacramento', 'Brush Script MT', cursive;
+  font-size: 220px;
 }
 .hello__draw-text {
-  font-family: 'Sacramento', 'Brush Script MT', cursive;
-  font-size: 210px;
   fill: url(#hello-gold);
-  fill-opacity: 0;
-  stroke: url(#hello-gold);
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 1400;
-  stroke-dashoffset: 1400;
-  animation:
-    hello-write 1.7s cubic-bezier(0.55, 0.1, 0.35, 1) forwards,
-    hello-fill 0.6s ease-out 1.25s forwards;
 }
-.hello__draw {
-  animation: hello-out 0.35s ease-in 1.85s forwards; /* fades just before the next greeting */
+.hello__draw-glow {
+  fill: #f2cf80;
+  opacity: 0.55;
+}
+.hello__sweep {
+  animation: hello-sweep 1.9s cubic-bezier(0.45, 0.05, 0.25, 1) 0.15s forwards;
+}
+@keyframes hello-sweep {
+  to {
+    transform: translateX(760px);
+  }
+}
+.hello__pen {
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: hello-pen 1.9s cubic-bezier(0.45, 0.05, 0.25, 1) 0.15s forwards;
+}
+@keyframes hello-pen {
+  0% {
+    opacity: 0;
+    transform: translateX(80px);
+  }
+  12%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(600px);
+  }
 }
 @keyframes hello-out {
   to {
     opacity: 0;
-    filter: blur(6px);
-  }
-}
-@keyframes hello-write {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-@keyframes hello-fill {
-  to {
-    fill-opacity: 1;
-    stroke-width: 0.6;
+    filter: blur(8px);
+    transform: scale(1.04);
   }
 }
 
-/* the greetings that follow: a soft focus-in, then out */
+/* ---- the greetings that follow ---- */
 .hello__word {
   font-family: var(--font-sans, 'Archivo', system-ui, sans-serif);
   font-size: clamp(2.8rem, 1.6rem + 6vw, 6.5rem);
   font-weight: 300;
-  line-height: 1.2;
-  letter-spacing: 0.01em;
-  background: linear-gradient(110deg, #fff2c9, #f2cf80 45%, #c9973e);
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+  background: linear-gradient(110deg, #fff4d1, #f2cf80 45%, #c9973e);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   white-space: nowrap;
-  animation: hello-word 950ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  filter: drop-shadow(0 0 22px rgb(227 181 90 / 0.25));
+  animation: hello-word 1100ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .hello__word--script {
   font-family: 'Sacramento', 'Brush Script MT', cursive;
@@ -84,22 +140,59 @@
   letter-spacing: 0;
   padding: 0 0.15em; /* script swashes overhang their box */
 }
+/* letter by letter: each rises out of a soft blur, a few hundredths after the last */
+.hello__word:has(.hello__ch) {
+  background: none;
+  color: #f4d590;
+  animation: hello-word-out 1100ms ease-in both;
+}
+.hello__ch {
+  display: inline-block;
+  animation: hello-ch 620ms cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i) * 50ms) both;
+}
 @keyframes hello-word {
   0% {
     opacity: 0;
-    filter: blur(10px);
-    transform: translateY(8px) scale(0.98);
+    filter: blur(12px) drop-shadow(0 0 22px rgb(227 181 90 / 0));
+    transform: translateY(14px) scale(0.97);
+    letter-spacing: 0.12em;
   }
-  22%,
+  20%,
   72% {
+    opacity: 1;
+    filter: blur(0) drop-shadow(0 0 22px rgb(227 181 90 / 0.25));
+    transform: none;
+    letter-spacing: 0.02em;
+  }
+  100% {
+    opacity: 0;
+    filter: blur(8px) drop-shadow(0 0 22px rgb(227 181 90 / 0));
+    transform: translateY(-10px) scale(1.02);
+  }
+}
+@keyframes hello-ch {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(0.35em) rotate(-4deg);
+  }
+  to {
     opacity: 1;
     filter: blur(0);
     transform: none;
   }
+}
+@keyframes hello-word-out {
+  0%,
+  70% {
+    opacity: 1;
+    filter: drop-shadow(0 0 22px rgb(227 181 90 / 0.25));
+    transform: none;
+  }
   100% {
     opacity: 0;
-    filter: blur(6px);
-    transform: translateY(-6px) scale(1.01);
+    filter: blur(8px);
+    transform: translateY(-10px) scale(1.02);
   }
 }
 
@@ -117,22 +210,37 @@
 .hello__bar span {
   display: block;
   height: 100%;
-  background: #e3b55a;
+  background: linear-gradient(90deg, #a8792a, #f2cf80);
   transform-origin: left center;
   transition: transform 400ms ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hello__draw {
+  .hello,
+  .hello.is-leaving {
+    transform: none;
+    filter: none;
+  }
+  .hello__glow,
+  .hello__grain,
+  .hello__draw,
+  .hello__pen {
     animation: none;
   }
-  .hello__draw-text {
-    animation: none;
-    fill-opacity: 1;
-    stroke: none;
+  .hello__pen {
+    display: none;
   }
-  .hello__word {
-    animation: hello-fade 950ms linear both;
+  .hello__sweep {
+    animation: none;
+    transform: translateX(760px);
+  }
+  .hello__word,
+  .hello__word:has(.hello__ch),
+  .hello__ch {
+    animation: hello-fade 1100ms linear both;
+  }
+  .hello__ch {
+    animation: none;
   }
   @keyframes hello-fade {
     0%,

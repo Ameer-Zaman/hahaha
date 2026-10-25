@@ -43,49 +43,57 @@
   to { opacity: 1; transform: none; }
 }
 
-.gate__kicker,
-.gate__name {
-  margin: 0;
-  font-family: 'Cinzel', 'Times New Roman', serif;
-  font-weight: 500;
-  text-transform: uppercase;
-}
-
+/* "WELCOME TO" between hairlines · the name huge in gold · a slanted gold badge */
 .gate__kicker {
-  font-size: clamp(0.75rem, 0.6rem + 0.6vw, 1rem);
-  letter-spacing: 0.55em;
-  padding-left: 0.55em; /* balance the trailing tracking so it stays centred */
+  display: flex;
+  align-items: center;
+  gap: 1.1em;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: clamp(0.72rem, 0.6rem + 0.35vw, 1rem);
+  letter-spacing: 0.6em;
+  text-transform: uppercase;
   color: rgb(var(--rgb-ivory) / 0.72);
 }
+.gate__kicker i {
+  display: block;
+  width: min(60px, 8vw);
+  height: 1px;
+  background: rgb(var(--rgb-gold) / 0.7);
+}
+.gate__kicker i:last-child {
+  margin-left: -0.6em; /* the trailing letter-spacing */
+}
 
 .gate__name {
-  font-size: clamp(2.9rem, 0.8rem + 9.5vw, 8rem);
-  line-height: 1;
-  letter-spacing: 0.2em;
-  padding-left: 0.2em;
-  background: var(--gold-gradient);
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(4rem, 1rem + 15vw, 15rem);
+  line-height: 0.9;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  background: linear-gradient(100deg, #fff2c9 0%, #f2cf80 25%, #e3b55a 50%, #b5852f 75%, #efcb7a 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  filter: drop-shadow(0 0 30px rgb(var(--rgb-gold) / 0.2));
 }
 
-.gate__rule {
-  position: relative;
-  display: block;
-  width: min(26rem, 60vw);
-  height: 1px;
-  margin-top: var(--sp-2);
-  background: linear-gradient(90deg, transparent, rgb(var(--rgb-gold) / 0.8) 20%, rgb(var(--rgb-gold) / 0.8) 45%, transparent 45%, transparent 55%, rgb(var(--rgb-gold) / 0.8) 55%, rgb(var(--rgb-gold) / 0.8) 80%, transparent);
-}
-
-.gate__rule > span {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 6px;
-  height: 6px;
+.gate__badge {
+  margin: var(--sp-3) 0 0;
+  padding: 0.45em 1.2em;
   background: var(--c-gold);
-  transform: translate(-50%, -50%) rotate(45deg);
+  color: #0b0b0e;
+  font-family: var(--font-display);
+  font-size: clamp(0.9rem, 0.7rem + 0.5vw, 1.35rem);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transform: skewX(-12deg);
+}
+.gate__badge span {
+  display: inline-block;
+  transform: skewX(12deg);
 }
 
 /* ---- the water canvas ---- */
@@ -113,7 +121,7 @@
   justify-items: center;
   gap: var(--sp-3);
   translate: -50% 0;
-  font-family: 'Cinzel', 'Times New Roman', serif;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   letter-spacing: 0.4em;
   text-transform: uppercase;
@@ -157,7 +165,7 @@
   border-radius: var(--radius-pill);
   background: var(--c-ink);
   color: var(--c-gold-light);
-  font-family: 'Cinzel', 'Times New Roman', serif;
+  font-family: var(--font-mono);
   font-size: 0.8125rem;
   letter-spacing: 0.25em;
   text-transform: uppercase;

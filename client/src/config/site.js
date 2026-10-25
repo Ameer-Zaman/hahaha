@@ -12,6 +12,9 @@ export const site = {
   /** Short line under the name in the hero. Keep it factual: the server has not launched. */
   tagline: 'A serious roleplay city, in preparation.',
 
+  /** The welcome screen: small line above the name, and the gold badge below it ('' = no badge). */
+  welcome: { kicker: 'Welcome to', badge: 'Roleplay City' },
+
   /** Shown in the footer and meta description. */
   description:
     'A FiveM roleplay community preparing for launch. Read the rules, meet the staff and apply before the city opens.',

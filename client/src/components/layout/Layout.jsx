@@ -5,7 +5,7 @@ import SiteHeader from './SiteHeader'
 import SiteFooter from './SiteFooter'
 import ScrollProgress from './ScrollProgress'
 import { ScrollTrigger } from '../../lib/gsap'
-import { setIntroActive, shouldShowIntro } from '../../lib/intro'
+import { setIntroActive, shouldShowHello, shouldShowIntro } from '../../lib/intro'
 import WelcomeGate from '../intro/WelcomeGate'
 import HelloScreen from '../intro/HelloScreen'
 import MaintenanceScreen, { MaintenancePreviewNotice } from '../site/MaintenanceScreen'
@@ -31,7 +31,8 @@ export default function Layout() {
     return show
   })
   // the "hello" intro plays first (and downloads the homepage), then hands over to the gate
-  const [showHello, setShowHello] = useState(showGate)
+  // (first visit only; after that the welcome screen opens straight away)
+  const [showHello, setShowHello] = useState(() => showGate && shouldShowHello())
 
   // Landed on another page? Get the homepage's videos ready in the background, so going
   // there later is instant. (On the homepage the "hello" intro does this.)

@@ -53,3 +53,22 @@ export function markIntroSeen() {
     /* storage unavailable: the intro may show again next visit, which is harmless */
   }
 }
+
+const HELLO_KEY = 'shyastha:hello-seen'
+
+/** The "hello" intro greets each visitor once, on their very first visit. */
+export function shouldShowHello() {
+  try {
+    return window.localStorage.getItem(HELLO_KEY) !== '1'
+  } catch {
+    return false // storage blocked: don't risk showing it on every visit
+  }
+}
+
+export function markHelloSeen() {
+  try {
+    window.localStorage.setItem(HELLO_KEY, '1')
+  } catch {
+    /* fine */
+  }
+}
