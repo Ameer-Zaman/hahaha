@@ -18,7 +18,8 @@ const easeInOutSine = (t) => -(Math.cos(Math.PI * t) - 1) / 2
  *
  * Scrolling drives a water-drop wave that spreads from the centre and dissolves the screen
  * into the site. A little scroll moves the wave and lets it settle back; past a point it
- * glides through on its own. Click / tap, Enter, Space or the arrow keys enter as well.
+ * glides through on its own. Enter, Space or the arrow keys enter as well (keyboard users).
+ * A click / tap doesn't enter: it switches the sound on, which then follows the scroll.
  *
  * Without WebGL, or with reduced motion, the same text simply fades away.
  */
@@ -217,10 +218,10 @@ export default function WelcomeGate({ onDone }) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="gate-title"
-      onClick={() => {
-        primeIntroSound()
-        actions.current.commit()
-      }}
+      // A click / tap only switches sound on (browsers need one before any audio);
+      // scrolling is what carries the visitor in, with the sound following the scroll.
+      onPointerDown={() => primeIntroSound()}
+      onClick={() => primeIntroSound()}
     >
       {/* The real text: shown as-is without WebGL; under the water canvas otherwise */}
       <div className="gate__card">
