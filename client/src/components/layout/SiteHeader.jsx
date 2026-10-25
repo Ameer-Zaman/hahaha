@@ -7,6 +7,7 @@ import BrandMark from '../ui/BrandMark'
 import SocialIcon from '../ui/SocialIcon'
 import './header.css'
 import ApplyLink from '../ui/ApplyLink'
+import MusicButton from '../ui/MusicButton'
 
 const socials = communityLinks.filter((link) => link.url).slice(0, 3)
 const YEAR = new Date().getFullYear()
@@ -126,6 +127,8 @@ export default function SiteHeader({ tone = 'dark' }) {
           )}
           <ApplyLink className="btn btn--primary site-nav__cta">{applyLink.label}</ApplyLink>
         </nav>
+
+        <MusicButton className="site-header__music" />
 
         <button
           ref={toggleRef}

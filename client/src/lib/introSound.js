@@ -24,6 +24,11 @@ let loading = null
 let voice = null // { source, gain, filter } while the scroll-driven sound is playing
 let finished = false // played out in full (entered the site)
 
+/** The one AudioContext the site uses (shared with the background music). */
+export function getAudioContext() {
+  return getContext()
+}
+
 function getContext() {
   if (ctx) return ctx
   const AudioCtx = window.AudioContext || window.webkitAudioContext

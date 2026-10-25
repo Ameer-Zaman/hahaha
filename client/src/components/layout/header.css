@@ -324,3 +324,17 @@
     display: none !important;
   }
 }
+
+/* ---- Music button: sits at the right edge, next to the menu button on phones ---- */
+.site-header__brand {
+  margin-right: auto;
+}
+.site-header__music {
+  margin-left: calc(-1 * var(--sp-4));
+}
+@media (min-width: 60rem) {
+  .site-header__music {
+    margin-left: calc(-1 * var(--sp-3));
+    margin-right: calc(-1 * var(--sp-2));
+  }
+}

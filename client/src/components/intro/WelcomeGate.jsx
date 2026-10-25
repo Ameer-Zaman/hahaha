@@ -5,6 +5,7 @@ import '@fontsource/cinzel/latin-500.css'
 import { media, site } from '../../config/site'
 import { enterSite, markIntroSeen } from '../../lib/intro'
 import { loadIntroSound, playIntroSound, primeIntroSound, scrubIntroSound } from '../../lib/introSound'
+import { startMusicAfterIntro } from '../../lib/music'
 import { createRipple, paintWelcome } from './rippleRenderer'
 import './welcome-gate.css'
 
@@ -106,6 +107,7 @@ export default function WelcomeGate({ onDone }) {
         s.glideAt = performance.now()
         markIntroSeen()
         playIntroSound() // swells to full as the wave carries the visitor in
+        startMusicAfterIntro() // the music fades in under the intro's tail
         for (const el of [hintRef.current]) {
           if (!el) continue
           el.style.transition = 'opacity 250ms ease-out'

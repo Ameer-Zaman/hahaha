@@ -84,6 +84,8 @@ export const media = {
   gangsOpening: { image: '/media/gangs/opening.jpg' },
   /** Welcome screen sound, played along with the scroll. Swap in any MP3 (keep it short). */
   introSound: '/assets/audio/intro.mp3',
+  /** Background music after the welcome sound (loops). Swap in any MP3; empty = no music. */
+  music: '/assets/audio/music.mp3',
 }
 
 /**
