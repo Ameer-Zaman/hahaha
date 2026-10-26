@@ -1,0 +1,17 @@
+// Cloudflare Workers deployment of the website (client/).
+// Build command: npm ci --prefix client && npm run build --prefix client
+// Deploy command: npx wrangler deploy
+// Optional variable API_ORIGIN (Worker → Settings → Variables): the API's address,
+// default https://shyastha-api.onrender.com.
+{
+  "name": "hahaha",
+  "main": "client/worker/index.js",
+  "compatibility_date": "2026-06-01",
+  "assets": {
+    "directory": "client/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "observability": { "enabled": true }
+}

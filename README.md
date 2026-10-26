@@ -48,6 +48,17 @@ In a local test under Cloudflare's runtime, 9,060 requests from 500 simultaneous
 5. Open `https://<project>.pages.dev/api/health` → `{"ok":true}`, then `/panel` and sign in.
 6. Later, a domain: Pages project → **Custom domains**. Add it to `CLIENT_ORIGIN` too.
 
+### …or as a Cloudflare Worker (Cloudflare's newer "Create application" screen)
+
+If Cloudflare shows **Set up your application** with a *Deploy command* field, it is creating a Worker. That works too, using `wrangler.jsonc` at the repo root (`client/worker/index.js` runs the same `/api` proxy and cache):
+
+- **Project name:** `hahaha` (must match `name` in `wrangler.jsonc`)
+- **Build command:** `npm ci --prefix client && npm run build --prefix client`
+- **Deploy command:** `npx wrangler deploy`
+- **Advanced settings:** leave the root directory empty; add the variable `NODE_VERSION` = `22`
+
+The site is then at `https://hahaha.<your-subdomain>.workers.dev`. Use that address in `CLIENT_ORIGIN` (step 4 above). The edge cache works best on a custom domain (Worker → **Settings → Domains & Routes**); on `workers.dev`, each Cloudflare server still shares one request per refresh between its visitors.
+
 ### Homepage videos
 
 Put the two homepage videos in `client/public/assets/video/` as `home.mp4` and `welcome.mp4` and push: Cloudflare delivers them for free. Each file must be under **25 MB** (Cloudflare Pages' limit); aim for **5–8 MB** (720p–1080p, 10–15 s, see "Videos" below) so they start quickly on phones. Leave the panel's Homepage media video slots empty, so the videos aren't delivered from Cloudinary's monthly quota.
