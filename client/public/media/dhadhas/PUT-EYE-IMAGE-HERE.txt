@@ -1,6 +1,0 @@
-Dhadhas page — the image that opens like an eye at the top of the page.
-
-Name it  eye.jpg  (or upload one in Panel → Media → Site media → "Dhadhas eye image",
-which takes priority). Landscape, about 1920×1080, under ~400 KB (JPG or WebP).
-The most important part of the picture should be in the middle: that's what shows first
-as the eye opens. Until a file is added, the illustrated city skyline is shown instead.

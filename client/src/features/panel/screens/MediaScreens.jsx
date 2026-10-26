@@ -90,7 +90,6 @@ const SLOTS = [
   { group: '“More than a server” posters', slot: 'posterAdministration', kind: 'image', label: 'Administration poster', fallback: 'public/media/home/administration.jpg' },
   { group: '“More than a server” posters', slot: 'posterGangs', kind: 'image', label: 'Gangs poster', fallback: 'public/media/home/gangs.jpg' },
   { group: '“More than a server” posters', slot: 'posterWars', kind: 'image', label: 'Wars poster', fallback: 'public/media/home/wars.jpg' },
-  { group: 'Dhadhas', slot: 'dhadhasImage', kind: 'image', label: 'Dhadhas eye image (top of the page)', fallback: 'public/media/dhadhas/eye.jpg' },
   { group: '“More than a server” posters', slot: 'posterRules', kind: 'image', label: 'Rules poster', fallback: 'public/media/home/rules.jpg' },
 ]
 
