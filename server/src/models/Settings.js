@@ -9,6 +9,7 @@ export const MEDIA_SLOTS = [
   'posterWars',
   'posterRules',
   'joinImage',
+  'dhadhasImage',
 ]
 
 /** Website sections that can be switched off from the panel (Home is always on). */

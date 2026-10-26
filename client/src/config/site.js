@@ -85,6 +85,8 @@ export const media = {
   /** Background of the "Your story starts with an application" section. */
   join: { image: '/media/home/join.jpg' },
   gangsOpening: { image: '/media/gangs/opening.jpg' },
+  /** Dhadhas page: the picture that opens like an eye at the top. */
+  dhadhas: { eye: '/media/dhadhas/eye.jpg' },
   /** Welcome screen sound, played along with the scroll. Swap in any MP3 (keep it short). */
   introSound: '/assets/audio/intro.mp3',
   /** Background music after the welcome sound (loops). Swap in any MP3; empty = no music. */
