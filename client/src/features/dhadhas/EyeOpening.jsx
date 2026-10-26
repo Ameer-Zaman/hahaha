@@ -26,7 +26,7 @@ function eyePath(w, h, o) {
 /**
  * The opening of the Dhadhas page: a closed eye, a thin gold line. Scrolling opens it —
  * the lids part and the picture inside comes into focus — then the open eye scrolls away
- * with the page. With reduced motion the eye is simply shown open.
+ * with the page, blinking now and then. With reduced motion the eye is simply shown open.
  */
 export default function EyeOpening({ image }) {
   const root = useRef(null)
@@ -38,11 +38,11 @@ export default function EyeOpening({ image }) {
     () => {
       const mm = gsap.matchMedia()
       mm.add(MOTION_OK, () => {
-        const state = { o: 0 }
+        const state = { o: 0, blink: 0 } // blink: 0 = lids where the scroll put them, 1 = shut
         const draw = () => {
           const w = lid.current.clientWidth
           const h = lid.current.clientHeight
-          const d = eyePath(w, h, state.o)
+          const d = eyePath(w, h, state.o * (1 - state.blink))
           lid.current.style.clipPath = `path('${d}')`
           svg.current.setAttribute('viewBox', `0 0 ${w} ${h}`)
           outline.current.setAttribute('d', d)
@@ -68,10 +68,33 @@ export default function EyeOpening({ image }) {
           .fromTo('.dh-eye__plate', { scale: 1.3 }, { scale: 1.05 }, 0)
           .fromTo('.dh-eye__shade', { opacity: 1 }, { opacity: 0.35 }, 0)
 
+        // blinking: while the eye is open and on screen, a quick blink every few seconds
+        // (now and then a double blink); it pauses when the eye is scrolled out of view
+        let visible = true
+        let timer = null
+        const blink = () => {
+          const twice = Math.random() < 0.25
+          const tl = gsap.timeline({ onUpdate: draw, onComplete: schedule })
+          tl.to(state, { blink: 1, duration: 0.12, ease: 'power2.in' }).to(state, { blink: 0, duration: 0.22, ease: 'power2.out' }, '+=0.04')
+          if (twice) tl.to(state, { blink: 1, duration: 0.1, ease: 'power2.in' }, '+=0.14').to(state, { blink: 0, duration: 0.22, ease: 'power2.out' }, '+=0.03')
+        }
+        function schedule() {
+          timer = gsap.delayedCall(2.4 + Math.random() * 3, () => (visible && state.o > 0.3 ? blink() : schedule()))
+        }
+        schedule()
+        const seen = ScrollTrigger.create({
+          trigger: root.current,
+          start: 'top bottom',
+          end: 'bottom top',
+          onToggle: (self) => (visible = self.isActive),
+        })
+
         draw()
         const onRefresh = () => draw()
         ScrollTrigger.addEventListener('refresh', onRefresh)
         return () => {
+          timer?.kill()
+          seen.kill()
           ScrollTrigger.removeEventListener('refresh', onRefresh)
           if (lid.current) lid.current.style.clipPath = ''
         }
