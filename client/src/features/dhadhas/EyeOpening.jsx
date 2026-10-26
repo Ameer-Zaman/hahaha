@@ -24,9 +24,9 @@ function eyePath(w, h, o) {
 }
 
 /**
- * The opening of the Dhadhas page: a closed eye, a thin gold line. Scrolling opens it —
+ * The opening of the Dhadhas page: a sleepy eye that blinks until the visitor scrolls. Scrolling opens it —
  * the lids part and the picture inside comes into focus — then the open eye scrolls away
- * with the page, blinking now and then. With reduced motion the eye is simply shown open.
+ * with the page. On arrival, before any scrolling, it opens a little and blinks. With reduced motion the eye is simply shown open.
  */
 export default function EyeOpening({ image }) {
   const root = useRef(null)
@@ -38,7 +38,8 @@ export default function EyeOpening({ image }) {
     () => {
       const mm = gsap.matchMedia()
       mm.add(MOTION_OK, () => {
-        const state = { o: 0, blink: 0 } // blink: 0 = lids where the scroll put them, 1 = shut
+        const REST = 0.3 // how far the eye opens by itself on arrival, before any scrolling
+        const state = { o: 0, blink: 0 } // blink: 0 = lids where they should be, 1 = shut
         const draw = () => {
           const w = lid.current.clientWidth
           const h = lid.current.clientHeight
@@ -46,11 +47,40 @@ export default function EyeOpening({ image }) {
           lid.current.style.clipPath = `path('${d}')`
           svg.current.setAttribute('viewBox', `0 0 ${w} ${h}`)
           outline.current.setAttribute('d', d)
-          root.current.style.setProperty('--hint', String(1 - clamp01((state.o - 0.07) / 0.08))) // goes at the first scroll
+          root.current.style.setProperty('--hint', String(1 - clamp01((state.o - REST) / 0.08))) // goes at the first scroll
         }
 
-        // arrival: the eye flickers open a crack, inviting the scroll
-        const arrive = gsap.fromTo(state, { o: 0 }, { o: 0.07, duration: 1.1, delay: 0.4, ease: 'power2.inOut', onUpdate: draw })
+        // blinking: only at the start, while the visitor hasn't scrolled yet — a blink every
+        // few seconds (now and then a double). The first scroll stops it.
+        let atTop = true
+        let blinking = null
+        let timer = null
+        const stopBlinking = () => {
+          timer?.kill()
+          blinking?.kill()
+          blinking = null
+          if (state.blink) {
+            state.blink = 0
+            draw()
+          }
+        }
+        const blink = () => {
+          const twice = Math.random() < 0.25
+          blinking = gsap.timeline({ onUpdate: draw, onComplete: schedule })
+          blinking.to(state, { blink: 1, duration: 0.12, ease: 'power2.in' }).to(state, { blink: 0, duration: 0.22, ease: 'power2.out' }, '+=0.04')
+          if (twice) blinking.to(state, { blink: 1, duration: 0.1, ease: 'power2.in' }, '+=0.14').to(state, { blink: 0, duration: 0.22, ease: 'power2.out' }, '+=0.03')
+        }
+        function schedule(first = false) {
+          timer?.kill()
+          timer = gsap.delayedCall(first ? 0.6 : 2.2 + Math.random() * 2, () => atTop && blink())
+        }
+
+        // arrival: the eye opens a little by itself, then starts blinking
+        const arrive = gsap.fromTo(
+          state,
+          { o: 0 },
+          { o: REST, duration: 1.2, delay: 0.4, ease: 'power2.inOut', onUpdate: draw, onComplete: () => atTop && schedule(true) },
+        )
 
         const tl = gsap.timeline({
           defaults: { ease: 'none' },
@@ -60,41 +90,28 @@ export default function EyeOpening({ image }) {
             end: '+=110%',
             pin: '.dh-eye__stage',
             scrub: 0.8,
-            onEnter: () => arrive.progress(1).kill(),
             invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              const top = self.progress < 0.002
+              if (top === atTop) return
+              atTop = top
+              if (!top) {
+                // scrolling: no more blinking; the scroll opens the eye from here
+                arrive.progress(1).kill()
+                stopBlinking()
+              } else schedule() // back at the very top: the eye rests and blinks again
+            },
           },
         })
-        tl.fromTo(state, { o: 0.07 }, { o: 1, onUpdate: draw }, 0)
+        tl.fromTo(state, { o: REST }, { o: 1, onUpdate: draw, immediateRender: false }, 0)
           .fromTo('.dh-eye__plate', { scale: 1.3 }, { scale: 1.05 }, 0)
           .fromTo('.dh-eye__shade', { opacity: 1 }, { opacity: 0.35 }, 0)
-
-        // blinking: while the eye is open and on screen, a quick blink every few seconds
-        // (now and then a double blink); it pauses when the eye is scrolled out of view
-        let visible = true
-        let timer = null
-        const blink = () => {
-          const twice = Math.random() < 0.25
-          const tl = gsap.timeline({ onUpdate: draw, onComplete: schedule })
-          tl.to(state, { blink: 1, duration: 0.12, ease: 'power2.in' }).to(state, { blink: 0, duration: 0.22, ease: 'power2.out' }, '+=0.04')
-          if (twice) tl.to(state, { blink: 1, duration: 0.1, ease: 'power2.in' }, '+=0.14').to(state, { blink: 0, duration: 0.22, ease: 'power2.out' }, '+=0.03')
-        }
-        function schedule() {
-          timer = gsap.delayedCall(2.4 + Math.random() * 3, () => (visible && state.o > 0.3 ? blink() : schedule()))
-        }
-        schedule()
-        const seen = ScrollTrigger.create({
-          trigger: root.current,
-          start: 'top bottom',
-          end: 'bottom top',
-          onToggle: (self) => (visible = self.isActive),
-        })
 
         draw()
         const onRefresh = () => draw()
         ScrollTrigger.addEventListener('refresh', onRefresh)
         return () => {
-          timer?.kill()
-          seen.kill()
+          stopBlinking()
           ScrollTrigger.removeEventListener('refresh', onRefresh)
           if (lid.current) lid.current.style.clipPath = ''
         }
