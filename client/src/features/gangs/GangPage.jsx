@@ -6,12 +6,17 @@ import GangsLoading from './components/GangsLoading'
 import RollText from '../../components/ui/RollText'
 import Arrow from '../../components/ui/Arrow'
 import usePageTitle from '../../hooks/usePageTitle'
-import { gsap, MOTION_OK, useGSAP } from '../../lib/gsap'
+import { gsap, MOTION_OK, ScrollTrigger, useGSAP } from '../../lib/gsap'
 import { formatFileNumber, useGangFiles } from './gangsModel'
 import CardVideo from './components/CardVideo'
 import './gangs.css'
+import './gang-page.css'
 
-const OUTCOME_LABEL = { win: 'Won', loss: 'Lost', draw: 'Drawn' }
+const OUTCOME = {
+  win: { label: 'Won', short: 'W' },
+  loss: { label: 'Lost', short: 'L' },
+  draw: { label: 'Drawn', short: 'D' },
+}
 
 function formatDate(value) {
   if (!value) return '—'
@@ -20,10 +25,21 @@ function formatDate(value) {
   return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+const initials = (name = '') =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join('') || '?'
+
+const isLeaderRole = (role = '') => /leader|president|boss|head|founder|don/i.test(role)
+
 /**
- * A gang's own page, kept minimal: a banner with the name, three facts, then the war record
- * and the player list side by side. Everything comes from the confirmed data; anything not
- * supplied yet says so in one quiet line. Player names are plain text (no profile pages).
+ * A gang's own page — its file in the archive: a full-screen title scene, the numbers at a
+ * glance, the intel (leader, territory, founded), then the war record as a timeline and the
+ * roster as cards. Everything comes from the confirmed data; anything not supplied yet says
+ * so plainly. Player names are plain text (no profile pages).
  */
 export default function GangPage() {
   const { slug } = useParams()
@@ -40,13 +56,51 @@ export default function GangPage() {
   return <GangDetail key={file.slug} file={file} prev={prev} next={next} total={files.length} />
 }
 
+/* ---------------------------------------------------------------- icons */
+const Icon = {
+  crown: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z" />
+      <path d="M4 21h16" />
+    </svg>
+  ),
+  pin: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" />
+      <circle cx="12" cy="9.5" r="2.5" />
+    </svg>
+  ),
+  flag: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 21V4" />
+      <path d="M5 4h11l-2 4 2 4H5" />
+    </svg>
+  ),
+  swords: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 4l9 9M20 4l-9 9M7 17l-3 3M17 17l3 3M9 15l-2 2M15 15l2 2" />
+    </svg>
+  ),
+  users: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="9" cy="8" r="3.5" />
+      <path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5" />
+      <path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c2 .7 3.2 2.4 3.6 5.2" />
+    </svg>
+  ),
+}
+
 function GangDetail({ file, prev, next, total }) {
   const root = useRef(null)
   const [rolled, setRolled] = useState(false)
   const { record } = file
+  const played = record.wars.length
+  const winRate = played ? Math.round((record.wins / played) * 100) : 0
+  const form = record.wars.slice(0, 5).reverse() // oldest → newest, the last five
+  const accent = { gold: 'gold', blue: 'blue', crimson: 'crimson' }[file.scene.tint] ?? 'gold'
 
   useEffect(() => {
-    const id = window.setTimeout(() => setRolled(true), 200)
+    const id = window.setTimeout(() => setRolled(true), 250)
     return () => window.clearTimeout(id)
   }, [])
 
@@ -54,8 +108,47 @@ function GangDetail({ file, prev, next, total }) {
     () => {
       const mm = gsap.matchMedia()
       mm.add(MOTION_OK, () => {
-        gsap.from('.gp__banner', { y: 24, opacity: 0, duration: 0.9, ease: 'power3.out' })
-        gsap.from('.gp__facts > div, .gp__block', { y: 20, opacity: 0, duration: 0.7, stagger: 0.07, delay: 0.25, ease: 'power3.out' })
+        // the title scene
+        gsap.from('.gx-hero__plate', { scale: 1.12, duration: 2.2, ease: 'power2.out' })
+        gsap.from('.gx-hero__copy > *', { y: 28, opacity: 0, duration: 0.9, stagger: 0.08, delay: 0.15, ease: 'power3.out' })
+        gsap.from('.gx-hero__num', { xPercent: 12, opacity: 0, duration: 1.4, delay: 0.3, ease: 'power3.out' })
+        gsap.to('.gx-hero__plate', {
+          yPercent: 14,
+          ease: 'none',
+          scrollTrigger: { trigger: '.gx-hero', start: 'top top', end: 'bottom top', scrub: true },
+        })
+
+        // the numbers count up, the win-rate ring draws, as the band comes into view
+        ScrollTrigger.create({
+          trigger: '.gx-stats',
+          start: 'top 85%',
+          once: true,
+          onEnter: () => {
+            gsap.utils.toArray('[data-count]').forEach((el) => {
+              const to = Number(el.dataset.count)
+              const state = { v: 0 }
+              gsap.to(state, { v: to, duration: 1.4, ease: 'power3.out', onUpdate: () => (el.textContent = Math.round(state.v)) })
+            })
+            gsap.fromTo('.gx-ring__value', { strokeDashoffset: 100 }, { strokeDashoffset: 100 - winRate, duration: 1.6, ease: 'power3.out' })
+          },
+        })
+
+        // sections and cards rise in as they're reached
+        // (set hidden first, then animate *to* place, so a card can never be left half-way)
+        gsap.set('.gx-reveal', { y: 26, opacity: 0 })
+        ScrollTrigger.batch('.gx-reveal', {
+          start: 'top 92%',
+          once: true,
+          onEnter: (els) =>
+            gsap.to(els, { y: 0, opacity: 1, duration: 0.7, stagger: 0.07, ease: 'power3.out', clearProps: 'transform,opacity' }),
+        })
+
+        // the timeline's spine draws down as you read
+        gsap.from('.gx-timeline__spine', {
+          scaleY: 0,
+          ease: 'none',
+          scrollTrigger: { trigger: '.gx-timeline', start: 'top 75%', end: 'bottom 60%', scrub: 0.6 },
+        })
       })
       return () => mm.revert()
     },
@@ -63,113 +156,205 @@ function GangDetail({ file, prev, next, total }) {
   )
 
   return (
-    <div ref={root} className="gp">
-      <div className="container gp__inner">
-        <Link to="/gangs" state={{ focus: file.slug }} className="gp__back">
-          <span aria-hidden="true">«</span> All gangs
-        </Link>
+    <div ref={root} className={`gx gx--${accent}`}>
+      {/* ---------------- the title scene ---------------- */}
+      <header className="gx-hero">
+        <div className="gx-hero__media" aria-hidden="true">
+          <Plate className="gx-hero__plate" image={file.image} seed={file.scene.seed} horizon={file.scene.horizon} priority>
+            {file.video && <CardVideo src={file.video} playing delay={0} />}
+          </Plate>
+        </div>
+        <div className="gx-hero__shade" aria-hidden="true" />
+        <span className="gx-hero__num" aria-hidden="true">
+          {formatFileNumber(file.number)}
+        </span>
 
-        <header className="gp__head">
-          <div className={`gp__banner reel-card--${file.scene.tint}`}>
-            <div className="gp__media" aria-hidden="true">
-              <Plate image={file.image} seed={file.scene.seed} horizon={file.scene.horizon} priority>
-                {file.video && <CardVideo src={file.video} playing delay={0} />}
-              </Plate>
-            </div>
-            <div className="reel-card__tint" aria-hidden="true" />
-            <div className="gp__shade" aria-hidden="true" />
-            {file.demo && <span className="demo-tag">Demo data — not real</span>}
-            <div className="gp__title-wrap">
-              <p className="gp__label">
-                {file.type} · {formatFileNumber(file.number)} / {formatFileNumber(total)}
+        <div className="container gx-hero__inner">
+          <Link to="/gangs" state={{ focus: file.slug }} className="gx-back">
+            <span aria-hidden="true">«</span> All gangs
+          </Link>
+
+          <div className="gx-hero__copy">
+            {file.demo && <span className="gx-demo">Demo data — not real</span>}
+            <p className="gx-hero__label">
+              <span className="gx-dot" aria-hidden="true" />
+              {file.type}
+              <span className="gx-hero__sep" aria-hidden="true">
+                /
+              </span>
+              File {formatFileNumber(file.number)} of {formatFileNumber(total)}
+            </p>
+            <h1 className="gx-hero__title">
+              <RollText text={file.title} rolled={rolled} />
+            </h1>
+            {file.headline && <p className="gx-hero__line">“{file.headline}”</p>}
+          </div>
+        </div>
+      </header>
+
+      <div className="container gx-body">
+        {/* ---------------- numbers ---------------- */}
+        <section className="gx-stats gx-reveal" aria-label="At a glance">
+          <div className="gx-stat gx-stat--ring">
+            <svg className="gx-ring" viewBox="0 0 40 40" aria-hidden="true">
+              <circle className="gx-ring__track" cx="20" cy="20" r="15.9" pathLength="100" />
+              <circle className="gx-ring__value" cx="20" cy="20" r="15.9" pathLength="100" style={{ strokeDashoffset: 100 - winRate }} />
+            </svg>
+            <div>
+              <p className="gx-stat__value">
+                <span data-count={winRate}>{winRate}</span>%
               </p>
-              <h1 className="gp__title">
-                <RollText text={file.title} rolled={rolled} />
-              </h1>
+              <p className="gx-stat__label">Win rate</p>
             </div>
           </div>
+          <div className="gx-stat">
+            <p className="gx-stat__value">
+              <span data-count={played}>{played}</span>
+            </p>
+            <p className="gx-stat__label">Wars</p>
+          </div>
+          <div className="gx-stat gx-stat--win">
+            <p className="gx-stat__value">
+              <span data-count={record.wins}>{record.wins}</span>
+            </p>
+            <p className="gx-stat__label">Won</p>
+          </div>
+          <div className="gx-stat gx-stat--loss">
+            <p className="gx-stat__value">
+              <span data-count={record.losses}>{record.losses}</span>
+            </p>
+            <p className="gx-stat__label">Lost</p>
+          </div>
+          <div className="gx-stat">
+            <p className="gx-stat__value">
+              <span data-count={file.members.length}>{file.members.length}</span>
+            </p>
+            <p className="gx-stat__label">Players</p>
+          </div>
+        </section>
 
-          <dl className="gp__facts">
-            <div>
-              <dt>Leader</dt>
-              <dd>{file.leader}</dd>
+        {/* ---------------- intel ---------------- */}
+        <section className="gx-intel" aria-label="Gang details">
+          {[
+            ['Leader', file.leader, Icon.crown],
+            ['Territory', file.territory, Icon.pin],
+            ['Established', file.established, Icon.flag],
+          ].map(([label, value, icon]) => (
+            <div key={label} className="gx-intel__item gx-reveal">
+              <span className="gx-intel__icon">{icon}</span>
+              <div>
+                <p className="gx-intel__label">{label}</p>
+                <p className="gx-intel__value">{value}</p>
+              </div>
             </div>
-            <div>
-              <dt>Territory</dt>
-              <dd>{file.territory}</dd>
-            </div>
-            <div>
-              <dt>Established</dt>
-              <dd>{file.established}</dd>
-            </div>
-          </dl>
-          {!file.reserved && file.description && <p className="gp__about">{file.description}</p>}
-        </header>
+          ))}
+        </section>
 
-        <div className="gp__grid">
-          {/* War record */}
-          <section className="gp__block" aria-labelledby="gp-wars">
-            <div className="gp__block-head">
-              <h2 id="gp-wars" className="gp__h">
+        {!file.reserved && file.description && <p className="gx-about gx-reveal">{file.description}</p>}
+
+        {form.length > 0 && (
+          <div className="gx-form gx-reveal" aria-label={`Recent form: ${form.map((w) => OUTCOME[w.outcome].label).join(', ')}`}>
+            <span className="gx-form__label">Recent form</span>
+            <span className="gx-form__chips" aria-hidden="true">
+              {form.map((w) => (
+                <span key={w.id} className={`gx-chip gx-chip--${w.outcome}`}>
+                  {OUTCOME[w.outcome].short}
+                </span>
+              ))}
+            </span>
+          </div>
+        )}
+
+        {/* ---------------- record + roster ---------------- */}
+        <div className="gx-grid">
+          <section className="gx-panel" aria-labelledby="gx-wars">
+            <header className="gx-panel__head gx-reveal">
+              <span className="gx-panel__icon">{Icon.swords}</span>
+              <h2 id="gx-wars" className="gx-panel__title">
                 War record
               </h2>
-              {record.wars.length > 0 && (
-                <p className="gp__tally">
-                  <span>{record.wins}W</span>
-                  <span>{record.losses}L</span>
-                  <span>{record.draws}D</span>
+              {played > 0 && (
+                <p className="gx-panel__tally">
+                  <b className="is-win">{record.wins}W</b> <b className="is-loss">{record.losses}L</b> <b>{record.draws}D</b>
                 </p>
               )}
-            </div>
-            {record.wars.length === 0 ? (
-              <p className="gp__empty">No wars recorded yet.</p>
+            </header>
+            {played === 0 ? (
+              <p className="gx-empty gx-reveal">No wars on record yet. When this gang fights, the result is logged here.</p>
             ) : (
-              <ul role="list" className="gp__list">
+              <ol role="list" className="gx-timeline">
+                <span className="gx-timeline__spine" aria-hidden="true" />
                 {record.wars.map((war) => (
-                  <li key={war.id} className="gp__row gp__row--war">
-                    <span className="gp__date">{formatDate(war.date)}</span>
-                    <span className="gp__name">
-                      vs{' '}
-                      {war.opponentSlug ? <Link to={`/gangs/${war.opponentSlug}`}>{war.opponent}</Link> : war.opponent}
-                    </span>
-                    <span className={`gp__outcome gp__outcome--${war.outcome}`}>{OUTCOME_LABEL[war.outcome]}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          {/* Players */}
-          <section className="gp__block" aria-labelledby="gp-players">
-            <div className="gp__block-head">
-              <h2 id="gp-players" className="gp__h">
-                Players
-              </h2>
-              {file.members.length > 0 && <p className="gp__tally">{file.members.length}</p>}
-            </div>
-            {file.members.length === 0 ? (
-              <p className="gp__empty">Roster not published yet.</p>
-            ) : (
-              <ol role="list" className="gp__list">
-                {file.members.map((member, i) => (
-                  <li key={`${member.name}-${i}`} className="gp__row">
-                    <span className="gp__num">{formatFileNumber(i + 1)}</span>
-                    <span className="gp__name">{member.name}</span>
-                    <span className="gp__role">{member.role ?? 'Member'}</span>
+                  <li key={war.id} className={`gx-war gx-war--${war.outcome} gx-reveal`}>
+                    <span className="gx-war__node" aria-hidden="true" />
+                    <div className="gx-war__card">
+                      <p className="gx-war__date">{formatDate(war.date)}</p>
+                      <p className="gx-war__vs">
+                        <span className="gx-war__vs-word">vs</span>
+                        {war.opponentSlug ? <Link to={`/gangs/${war.opponentSlug}`}>{war.opponent}</Link> : war.opponent}
+                      </p>
+                      {war.result && <p className="gx-war__result">{war.result}</p>}
+                      <span className={`gx-badge gx-badge--${war.outcome}`}>{OUTCOME[war.outcome].label}</span>
+                    </div>
                   </li>
                 ))}
               </ol>
             )}
           </section>
+
+          <section className="gx-panel" aria-labelledby="gx-players">
+            <header className="gx-panel__head gx-reveal">
+              <span className="gx-panel__icon">{Icon.users}</span>
+              <h2 id="gx-players" className="gx-panel__title">
+                Roster
+              </h2>
+              {file.members.length > 0 && <p className="gx-panel__tally">{file.members.length} players</p>}
+            </header>
+            {file.members.length === 0 ? (
+              <p className="gx-empty gx-reveal">
+                {file.reserved ? 'This file is sealed until the administration confirms the gang.' : 'Roster not published yet.'}
+              </p>
+            ) : (
+              <ol role="list" className="gx-roster">
+                {file.members.map((member, i) => {
+                  const lead = i === 0 ? isLeaderRole(member.role) || member.name === file.leader : isLeaderRole(member.role)
+                  return (
+                    <li key={`${member.name}-${i}`} className={`gx-member gx-reveal ${lead ? 'is-lead' : ''}`}>
+                      <span className="gx-member__mono" aria-hidden="true">
+                        {initials(member.name)}
+                      </span>
+                      <span className="gx-member__text">
+                        <span className="gx-member__name">{member.name}</span>
+                        <span className="gx-member__role">
+                          {lead && <span className="gx-member__crown">{Icon.crown}</span>}
+                          {member.role ?? 'Member'}
+                        </span>
+                      </span>
+                      <span className="gx-member__num" aria-hidden="true">
+                        {formatFileNumber(i + 1)}
+                      </span>
+                    </li>
+                  )
+                })}
+              </ol>
+            )}
+          </section>
         </div>
 
+        {/* ---------------- other files ---------------- */}
         {total > 1 && (
-          <nav className="gp__pager" aria-label="Other gangs">
-            <Link to={`/gangs/${prev.slug}`}>
-              <span aria-hidden="true">«</span> {prev.title}
+          <nav className="gx-pager" aria-label="Other gangs">
+            <Link to={`/gangs/${prev.slug}`} className="gx-pager__link gx-reveal">
+              <span className="gx-pager__dir">
+                <span aria-hidden="true">«</span> Previous file · {formatFileNumber(prev.number)}
+              </span>
+              <span className="gx-pager__name">{prev.title}</span>
             </Link>
-            <Link to={`/gangs/${next.slug}`}>
-              {next.title} <span aria-hidden="true">»</span>
+            <Link to={`/gangs/${next.slug}`} className="gx-pager__link gx-pager__link--next gx-reveal">
+              <span className="gx-pager__dir">
+                Next file · {formatFileNumber(next.number)} <span aria-hidden="true">»</span>
+              </span>
+              <span className="gx-pager__name">{next.title}</span>
             </Link>
           </nav>
         )}
