@@ -6,7 +6,7 @@ import GangsLoading from './components/GangsLoading'
 import RollText from '../../components/ui/RollText'
 import Arrow from '../../components/ui/Arrow'
 import usePageTitle from '../../hooks/usePageTitle'
-import { gsap, MOTION_OK, useGSAP } from '../../lib/gsap'
+import { gsap, MOTION_OK, ScrollTrigger, useGSAP } from '../../lib/gsap'
 import { formatFileNumber, useGangFiles } from './gangsModel'
 import CardVideo from './components/CardVideo'
 import './gangs.css'
@@ -86,6 +86,7 @@ function GangDetail({ file, prev, next, total }) {
   const { record } = file
   const played = record.wars.length
   const winRate = played ? Math.round((record.wins / played) * 100) : 0
+  const form = record.wars.slice(0, 5).reverse() // the last five, oldest → newest
   const accent = { gold: 'gold', blue: 'blue', crimson: 'crimson' }[file.scene.tint] ?? 'gold'
 
   useEffect(() => {
@@ -100,6 +101,20 @@ function GangDetail({ file, prev, next, total }) {
         gsap.from('.gx-hero__plate', { scale: 1.1, duration: 2.2, ease: 'power2.out' })
         gsap.from('.gx-hero__copy > *', { y: 24, opacity: 0, duration: 0.9, stagger: 0.08, delay: 0.15, ease: 'power3.out' })
         gsap.from('.gx-summary > *', { y: 18, opacity: 0, duration: 0.7, stagger: 0.07, delay: 0.45, ease: 'power3.out', clearProps: 'transform,opacity' })
+        // the numbers count up and the win-rate ring draws as the stats come into view
+        ScrollTrigger.create({
+          trigger: '.gx-stats',
+          start: 'top 90%',
+          once: true,
+          onEnter: () => {
+            gsap.utils.toArray('[data-count]').forEach((el) => {
+              const to = Number(el.dataset.count)
+              const state = { v: 0 }
+              gsap.to(state, { v: to, duration: 1.4, ease: 'power3.out', onUpdate: () => (el.textContent = Math.round(state.v)) })
+            })
+            gsap.fromTo('.gx-ring__value', { strokeDashoffset: 100 }, { strokeDashoffset: 100 - winRate, duration: 1.6, ease: 'power3.out' })
+          },
+        })
         gsap.to('.gx-hero__plate', {
           yPercent: 12,
           ease: 'none',
@@ -153,22 +168,61 @@ function GangDetail({ file, prev, next, total }) {
             <dt>Established</dt>
             <dd>{file.established}</dd>
           </div>
-          <div>
-            <dt>Record</dt>
-            <dd>
-              {played ? (
-                <>
-                  <span className="is-win">{record.wins}W</span> <span className="is-loss">{record.losses}L</span> <span>{record.draws}D</span>
-                  <small> · {winRate}%</small>
-                </>
-              ) : (
-                '—'
-              )}
-            </dd>
-          </div>
         </dl>
 
         {!file.reserved && file.description && <p className="gx-about">{file.description}</p>}
+
+        <section className="gx-stats" aria-label="At a glance">
+          <div className="gx-stat gx-stat--ring">
+            <svg className="gx-ring" viewBox="0 0 40 40" aria-hidden="true">
+              <circle className="gx-ring__track" cx="20" cy="20" r="15.9" pathLength="100" />
+              <circle className="gx-ring__value" cx="20" cy="20" r="15.9" pathLength="100" style={{ strokeDashoffset: 100 - winRate }} />
+            </svg>
+            <div>
+              <p className="gx-stat__value">
+                <span data-count={winRate}>{winRate}</span>%
+              </p>
+              <p className="gx-stat__label">Win rate</p>
+            </div>
+          </div>
+          <div className="gx-stat">
+            <p className="gx-stat__value">
+              <span data-count={played}>{played}</span>
+            </p>
+            <p className="gx-stat__label">Wars</p>
+          </div>
+          <div className="gx-stat gx-stat--win">
+            <p className="gx-stat__value">
+              <span data-count={record.wins}>{record.wins}</span>
+            </p>
+            <p className="gx-stat__label">Won</p>
+          </div>
+          <div className="gx-stat gx-stat--loss">
+            <p className="gx-stat__value">
+              <span data-count={record.losses}>{record.losses}</span>
+            </p>
+            <p className="gx-stat__label">Lost</p>
+          </div>
+          <div className="gx-stat">
+            <p className="gx-stat__value">
+              <span data-count={file.members.length}>{file.members.length}</span>
+            </p>
+            <p className="gx-stat__label">Players</p>
+          </div>
+        </section>
+
+        {form.length > 0 && (
+          <div className="gx-form" aria-label={`Recent form: ${form.map((w) => OUTCOME[w.outcome].label).join(', ')}`}>
+            <span className="gx-form__label">Recent form</span>
+            <span className="gx-form__chips" aria-hidden="true">
+              {form.map((w) => (
+                <span key={w.id} className={`gx-chip gx-chip--${w.outcome}`}>
+                  {OUTCOME[w.outcome].short}
+                </span>
+              ))}
+            </span>
+          </div>
+        )}
 
         <div className="gx-actions">
           <button type="button" className="gx-open" onClick={() => setOpen('wars')}>
