@@ -22,6 +22,9 @@ export default function CardFace({ club, suit, number }) {
         )}
         <p className="club-face__type">{club?.type ?? suit.label}</p>
         <h3 className="club-face__name">{club?.name ?? `Club ${index}`}</h3>
+        {(club?.owner || club?.location) && (
+          <p className="club-face__meta">{[club.owner && `Owner · ${club.owner}`, club.location].filter(Boolean).join('  ·  ')}</p>
+        )}
         {!club && <p className="club-face__soon">To be announced</p>}
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { Router } from 'express'
 
 import { authenticate, requireRole } from '../../middleware/auth.js'
+import { Club } from '../../models/Club.js'
 import { Gang } from '../../models/Gang.js'
 import { Settings } from '../../models/Settings.js'
 import { RuleBook } from '../../models/RuleBook.js'
@@ -8,6 +9,7 @@ import { Staff } from '../../models/Staff.js'
 import { War } from '../../models/War.js'
 import { AuditLog } from '../../models/AuditLog.js'
 import auditRoutes from './audit.js'
+import clubs from './clubs.js'
 import gangs from './gangs.js'
 import media from './media.js'
 import rules from './rules.js'
@@ -34,8 +36,9 @@ const staffRoles = requireRole('admin', 'superadmin')
 const superOnly = requireRole('superadmin')
 
 router.get('/overview', staffRoles, async (req, res) => {
-  const [gangCount, warCount, staffCount, online, book, recent, site] = await Promise.all([
+  const [gangCount, clubCount, warCount, staffCount, online, book, recent, site] = await Promise.all([
     Gang.countDocuments(),
+    Club.countDocuments(),
     War.countDocuments(),
     Staff.countDocuments(),
     Staff.countDocuments({ online: true }),
@@ -47,6 +50,7 @@ router.get('/overview', staffRoles, async (req, res) => {
   const players = rosters.reduce((n, g) => n + (g.members?.length ?? 0), 0)
   res.json({
     gangs: gangCount,
+    clubs: clubCount,
     players,
     wars: warCount,
     staff: staffCount,
@@ -59,6 +63,7 @@ router.get('/overview', staffRoles, async (req, res) => {
 })
 
 router.use('/gangs', staffRoles, gangs)
+router.use('/clubs', staffRoles, clubs)
 router.use('/wars', staffRoles, wars)
 router.use('/staff', staffRoles, staff)
 router.use('/tdm', staffRoles, tdm)

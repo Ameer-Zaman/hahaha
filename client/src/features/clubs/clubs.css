@@ -180,6 +180,16 @@
   color: rgb(17 17 17 / 0.55);
 }
 
+.club-face__meta {
+  margin: 0;
+  max-width: 90%;
+  font-family: var(--font-mono);
+  font-size: calc(var(--card-w) * 0.04);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(17 17 17 / 0.6);
+}
+
 /* ---- under the table ---- */
 .clubs-deck__foot {
   display: grid;

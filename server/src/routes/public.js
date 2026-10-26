@@ -1,5 +1,6 @@
 import { Router } from 'express'
 
+import { Club } from '../models/Club.js'
 import { Gang } from '../models/Gang.js'
 import { RuleBook } from '../models/RuleBook.js'
 import { MEDIA_SLOTS, readSections, Settings } from '../models/Settings.js'
@@ -50,6 +51,22 @@ router.get('/gangs', async (req, res) => {
         winner: w.winner ? (slugById.get(String(w.winner)) ?? null) : null,
         result: w.result,
       })),
+  })
+})
+
+router.get('/clubs', async (req, res) => {
+  const clubs = await Club.find().sort({ order: 1, createdAt: 1 }).lean()
+  const mediaUrl = await resolveMediaUrls(clubs.map((c) => c.emblem))
+  res.json({
+    clubs: clubs.map((c) => ({
+      id: c.slug,
+      name: c.name,
+      type: c.type || 'Club',
+      owner: c.owner || '',
+      location: c.location || '',
+      description: c.description || '',
+      emblem: mediaUrl(c.emblem),
+    })),
   })
 })
 

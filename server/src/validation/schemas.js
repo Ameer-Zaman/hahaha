@@ -60,6 +60,17 @@ export const gangSchema = z.object({
   members: z.array(memberSchema).max(200).optional().default([]),
 })
 
+export const clubSchema = z.object({
+  slug,
+  name: text(60).min(1),
+  type: text(40).optional().default('Club'),
+  owner: text(60).optional().default(''),
+  location: text(60).optional().default(''),
+  description: text(600).optional().default(''),
+  emblem: mediaId,
+  order: z.number().int().min(0).max(9999).optional().default(0),
+})
+
 /**
  * Bulk player import: { mode, gangs: { "<gang-slug>": [{ name, role, since }, …] } }.
  * 'replace' swaps each listed gang's players for the imported ones; 'append' adds the new

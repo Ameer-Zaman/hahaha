@@ -9,6 +9,7 @@ The website works on its own. Every public page reads from the API when it answe
 
 The **admin panel** lives at **`/panel`** on the website. From there the team manages:
 
+- **Clubs**: add, edit or delete the clubs on the Clubs page (name, type, owner, location, logo, order). Each club becomes a playing card in the deck; with none added, the page shows face-down “to be announced” cards.
 - **Sections & maintenance**: switch Story, Staffs, Gangs, Clubs, Leaderboard or Rules off (they leave the menu, footer and homepage, and their page says "Closed for now"), and turn on **maintenance mode** with a message, so visitors see a "We'll be right back" screen. Signed-in panel accounts still see the site while it's closed. Every switch is in the audit log.
 - **Gangs & players**: name, territory, leader, card image or **short looping video**, emblem and player list. Players can be **imported from JSON**, for one gang or many at once.
 - **Wars**: date, the two gangs, winner or draw, and the result. Wars show on both gangs' pages.

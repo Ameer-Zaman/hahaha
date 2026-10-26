@@ -2,20 +2,23 @@ import { useRef, useState } from 'react'
 
 import ApplyLink from '../../components/ui/ApplyLink'
 import Arrow from '../../components/ui/Arrow'
-import { clubs, suits } from '../../content/clubs'
+import { PageLoader } from '../../components/ui/Skeleton'
+import { clubs as staticClubs, suits } from '../../content/clubs'
 import usePageTitle from '../../hooks/usePageTitle'
 import { gsap, MOTION_OK, ScrollTrigger, useGSAP } from '../../lib/gsap'
+import { usePublic } from '../../lib/publicData'
 import CardBack from './CardBack'
 import CardFace from './CardFace'
 import './clubs.css'
 
 /** The cards on the table: the confirmed clubs, or one "to be announced" card per suit. */
-const deck = (clubs.length ? clubs : suits.map(() => null)).map((club, i) => ({
-  key: club?.id ?? `tba-${i}`,
-  club,
-  suit: suits[i % suits.length],
-  number: i + 1,
-}))
+const dealDeck = (clubs) =>
+  (clubs.length ? clubs : suits.map(() => null)).map((club, i) => ({
+    key: club?.id ?? `tba-${i}`,
+    club,
+    suit: suits[i % suits.length],
+    number: i + 1,
+  }))
 
 /** Where card `i` of `n` sits in the fan: spread sideways along a gentle arc, tilted outwards. */
 function fanPose(i, n, width) {
@@ -37,6 +40,15 @@ function fanPose(i, n, width) {
  */
 export default function ClubsPage() {
   usePageTitle('Clubs')
+  // clubs added in the admin panel; the built-in list (content/clubs.js) when there are none
+  const entry = usePublic('/clubs')
+  if (entry.status === 'loading') return <PageLoader label="Loading clubs" />
+  const clubs = entry.status === 'ok' && entry.data?.clubs?.length ? entry.data.clubs : staticClubs
+  return <ClubsDeck key={clubs.map((c) => c.id).join('|')} clubs={clubs} />
+}
+
+function ClubsDeck({ clubs }) {
+  const deck = dealDeck(clubs)
   const root = useRef(null)
   const [motion] = useState(() => window.matchMedia(MOTION_OK).matches)
 

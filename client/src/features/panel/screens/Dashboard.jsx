@@ -32,6 +32,7 @@ export default function Dashboard() {
             <Stat to="/panel/gangs" label="Gangs" value={data.gangs} />
             <Stat to="/panel/gangs" label="Players listed" value={data.players} />
             <Stat to="/panel/wars" label="War records" value={data.wars} />
+            <Stat to="/panel/clubs" label="Clubs" value={data.clubs ?? 0} />
             <Stat to="/panel/staff" label="Staff online" value={`${data.staffOnline} / ${data.staff}`} hint="Online out of all staff cards" />
           </ul>
 

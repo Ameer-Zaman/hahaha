@@ -8,6 +8,7 @@ import { useAuth } from './authContext'
 import { Account, Accounts, AuditLog } from './screens/Accounts'
 import Dashboard from './screens/Dashboard'
 import { GangEditor, GangList } from './screens/Gangs'
+import { ClubEditor, ClubList } from './screens/Clubs'
 import Login from './screens/Login'
 import { MediaLibrary, SiteMedia } from './screens/MediaScreens'
 import Rules from './screens/Rules'
@@ -26,6 +27,7 @@ const NAV = [
     items: [
       { to: '/panel/gangs', label: 'Gangs & players' },
       { to: '/panel/wars', label: 'Wars' },
+      { to: '/panel/clubs', label: 'Clubs' },
       { to: '/panel/tdm', label: 'TDM leaderboard' },
       { to: '/panel/staff', label: 'Staff' },
       { to: '/panel/rules', label: 'Rules' },
@@ -190,6 +192,8 @@ function Shell() {
           <Route path="gangs" element={<GangList />} />
           <Route path="gangs/:id" element={<GangEditor />} />
           <Route path="wars" element={<Wars />} />
+          <Route path="clubs" element={<ClubList />} />
+          <Route path="clubs/:id" element={<ClubEditor />} />
           <Route path="tdm" element={<Tdm />} />
           <Route path="staff" element={<Staff />} />
           <Route path="rules" element={<Rules />} />
