@@ -33,6 +33,7 @@ export default function Layout() {
   })
   // the loading screen shows first while the homepage downloads, then hands over to the gate
   const [showLoader, setShowLoader] = useState(showGate)
+  const [loaderLeaving, setLoaderLeaving] = useState(false)
 
   // Landed on another page? Get the homepage's videos ready in the background, so going
   // there later is instant. (On the homepage the loading screen does this.)
@@ -76,8 +77,8 @@ export default function Layout() {
         </div>
       </main>
       {!NO_FOOTER.includes(pathname) && <SiteFooter />}
-      {showGate && <WelcomeGate paused={showLoader} onDone={() => setShowGate(false)} />}
-      {showLoader && <LoadingScreen onDone={() => setShowLoader(false)} />}
+      {showGate && <WelcomeGate paused={showLoader && !loaderLeaving} onDone={() => setShowGate(false)} />}
+      {showLoader && <LoadingScreen onLeave={() => setLoaderLeaving(true)} onDone={() => setShowLoader(false)} />}
     </>
   )
 }

@@ -31,11 +31,17 @@
   gap: var(--sp-4);
   padding-inline: var(--gutter);
   text-align: center;
-  animation: gate-card-in 1.3s var(--ease-out) both;
+  animation: gate-card-in 0.7s var(--ease-out) both;
 }
 
 .gate--ripple .gate__card {
   visibility: hidden; /* the canvas paints the same card */
+}
+
+/* while the loading screen is on top, the entrance waits (it plays as the loader fades) */
+.gate.is-waiting .gate__card,
+.gate.is-waiting .gate__hint {
+  animation-play-state: paused;
 }
 
 @keyframes gate-card-in {
@@ -123,7 +129,7 @@
   white-space: nowrap;
   color: rgb(var(--rgb-ivory) / 0.55);
   pointer-events: none;
-  animation: gate-card-in 1.2s var(--ease-out) 1.4s both;
+  animation: gate-card-in 0.7s var(--ease-out) 0.35s both;
 }
 
 .gate__hint-line {

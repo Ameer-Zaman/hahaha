@@ -135,21 +135,21 @@ export function createRipple(canvas, paint) {
     wake()
   }
 
-  const start = performance.now()
+  let start = null // set by reveal(): the text stays hidden until then
   let progress = 0
   let raf = 0
 
   const frame = (now) => {
     raf = 0
-    const t = (now - start) / 1000
+    const t = start === null ? 0 : (now - start) / 1000
     gl.uniform1f(u.time, t)
-    gl.uniform1f(u.fade, Math.min(1, Math.max(0, (t - 0.15) / 1.3)))
+    gl.uniform1f(u.fade, start === null ? 0 : Math.min(1, Math.max(0, t / 0.7)))
     gl.uniform1f(u.prog, progress)
     gl.clearColor(0, 0, 0, 0)
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.drawArrays(gl.TRIANGLES, 0, 6)
     // keep animating while the arrival drop is still moving or a wave is under way
-    if (t < 5 || progress > 0) raf = requestAnimationFrame(frame)
+    if (start !== null && (t < 5 || progress > 0)) raf = requestAnimationFrame(frame)
   }
 
   function wake() {
@@ -160,6 +160,12 @@ export function createRipple(canvas, paint) {
   resize()
 
   return {
+    /** Starts the entrance: the text fades in and the arrival drop plays. */
+    reveal() {
+      if (start !== null) return
+      start = performance.now()
+      wake()
+    },
     setProgress(value) {
       progress = value
       wake()

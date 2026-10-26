@@ -198,7 +198,7 @@ export function preloadHomeAssets({ audio = true } = {}) {
 
   // the files chosen in the panel replace the built-in ones; give the API a moment to say
   const site = loadPublic('/site').then((entry) => (entry.status === 'ok' ? (entry.data?.media ?? {}) : {}))
-  const timeout = new Promise((resolve) => setTimeout(() => resolve({}), 1500))
+  const timeout = new Promise((resolve) => setTimeout(() => resolve({}), 800))
 
   Promise.race([site, timeout]).then((picked) => {
     // only the hero video: the welcome-banner video further down loads when a visitor scrolls near it
@@ -237,8 +237,8 @@ export function preloadHomeAssets({ audio = true } = {}) {
     emit()
     imageUrls.forEach((url) => track(loadImage(url)))
     if (audio) {
-      track(loadIntroSound(media.introSound))
-      track(preloadMusic())
+      track(loadIntroSound(media.introSound)) // small, and needed at the first scroll
+      preloadMusic() // plays only after the visitor enters: loads alongside, nobody waits for it
     }
     track(document.fonts?.ready)
 

@@ -16,19 +16,21 @@ const MIN_MS = 900
 const MAX_MS = 12000
 const EXIT_MS = 600
 
-export default function LoadingScreen({ onDone }) {
+export default function LoadingScreen({ onLeave, onDone }) {
   const { progress, done } = usePreloadProgress()
   const [shown, setShown] = useState(0) // the number on screen, easing towards `progress`
   const [leaving, setLeaving] = useState(false)
   const target = useRef(progress)
   const onDoneRef = useRef(onDone)
+  const onLeaveRef = useRef(onLeave)
 
   useEffect(() => {
     target.current = done ? 1 : progress
   }, [progress, done])
   useEffect(() => {
     onDoneRef.current = onDone
-  }, [onDone])
+    onLeaveRef.current = onLeave
+  }, [onDone, onLeave])
 
   useEffect(() => {
     preloadHomeAssets()
@@ -64,6 +66,7 @@ export default function LoadingScreen({ onDone }) {
   useEffect(() => {
     if (!leaving) return undefined
     releasePreload() // anything still downloading streams normally from here
+    onLeaveRef.current?.() // the welcome screen starts its entrance underneath, as this fades
     const timer = setTimeout(() => onDoneRef.current?.(), EXIT_MS)
     return () => clearTimeout(timer)
   }, [leaving])

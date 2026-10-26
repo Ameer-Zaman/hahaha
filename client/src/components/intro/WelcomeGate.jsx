@@ -38,6 +38,7 @@ export default function WelcomeGate({ onDone, paused = false }) {
   const pausedRef = useRef(paused) // true while the loading screen is still on top
   useEffect(() => {
     pausedRef.current = paused
+    if (!paused) rippleRef.current?.reveal() // the loading screen is leaving: show the welcome
   }, [paused])
   const state = useRef({ target: 0, current: 0, committed: false, lastInput: 0, done: false, glideFrom: 0, glideAt: 0 })
   const [mode, setMode] = useState(initialMode) // pending → ripple | fade
@@ -84,6 +85,7 @@ export default function WelcomeGate({ onDone, paused = false }) {
         return
       }
       rippleRef.current = ripple
+      if (!pausedRef.current) ripple.reveal()
       switchMode('ripple')
     })
     return () => {
@@ -223,7 +225,7 @@ export default function WelcomeGate({ onDone, paused = false }) {
   return createPortal(
     <div
       ref={rootRef}
-      className={`gate gate--${mode} ${fading ? 'is-fading' : ''}`}
+      className={`gate gate--${mode} ${paused ? 'is-waiting' : ''} ${fading ? 'is-fading' : ''}`}
       role="dialog"
       aria-modal="true"
       aria-labelledby="gate-title"
