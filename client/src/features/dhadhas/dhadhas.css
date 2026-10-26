@@ -201,19 +201,9 @@
 .dh-eye__shade {
   position: absolute;
   inset: 0;
-  background: radial-gradient(60% 60% at 50% 50%, transparent 30%, #000 100%);
+  background: radial-gradient(50% 50% at 50% 50%, transparent 35%, #000 100%);
   pointer-events: none;
 }
-/* the picture hands over to the page below */
-.dh-eye__lid::after {
-  content: '';
-  position: absolute;
-  inset: auto 0 0;
-  height: 30%;
-  background: linear-gradient(to bottom, transparent, var(--c-ink));
-  pointer-events: none;
-}
-
 /* the gold rim of the eyelids */
 .dh-eye__edge {
   position: absolute;
@@ -222,7 +212,6 @@
   height: 100%;
   overflow: visible;
   pointer-events: none;
-  opacity: var(--edge, 0);
 }
 .dh-eye__edge path {
   fill: none;
@@ -266,10 +255,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dh-eye__stage {
-    height: 70svh;
-  }
-  .dh-eye__shade,
   .dh-eye__hint {
     display: none;
   }
