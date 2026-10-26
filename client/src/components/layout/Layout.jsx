@@ -5,6 +5,7 @@ import SiteHeader from './SiteHeader'
 import SiteFooter from './SiteFooter'
 import ScrollProgress from './ScrollProgress'
 import TopProgress from '../ui/TopProgress'
+import FluidCursor from '../cursor/FluidCursor'
 import { ScrollTrigger } from '../../lib/gsap'
 import { setIntroActive, shouldShowIntro } from '../../lib/intro'
 import WelcomeGate from '../intro/WelcomeGate'
@@ -77,6 +78,7 @@ export default function Layout() {
         </div>
       </main>
       {!NO_FOOTER.includes(pathname) && <SiteFooter />}
+      <FluidCursor />
       {showGate && <WelcomeGate paused={showLoader && !loaderLeaving} onDone={() => setShowGate(false)} />}
       {showLoader && <LoadingScreen onLeave={() => setLoaderLeaving(true)} onDone={() => setShowLoader(false)} />}
     </>

@@ -1,0 +1,10 @@
+/* the gold smoke trail: over the page (and the header), under the welcome screen; never blocks clicks */
+.fluid-cursor {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  mix-blend-mode: screen; /* light on the dark pages, never darkens anything */
+}
