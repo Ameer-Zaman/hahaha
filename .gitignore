@@ -33,3 +33,6 @@ server/.env.*
 
 # local database created by `npm run dev`
 server/.local-db/
+
+# Cloudflare local runtime (wrangler) files
+.wrangler/

@@ -201,7 +201,8 @@ export function preloadHomeAssets({ audio = true } = {}) {
   const timeout = new Promise((resolve) => setTimeout(() => resolve({}), 1500))
 
   Promise.race([site, timeout]).then((picked) => {
-    const videoUrls = [...new Set([picked.heroVideo ?? media.hero.video, picked.welcomeVideo ?? media.trailer.video].filter(Boolean))].filter(
+    // only the hero video: the welcome-banner video further down loads when a visitor scrolls near it
+    const videoUrls = [picked.heroVideo ?? media.hero.video].filter(Boolean).filter(
       (url) => !claimed.has(url),
     )
     const imageUrls = [

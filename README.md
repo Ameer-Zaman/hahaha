@@ -22,6 +22,38 @@ The **admin panel** lives at **`/panel`** on the website. From there the team ma
 
 ---
 
+## Recommended hosting (free, built for thousands of visitors at once)
+
+| Part | Where | Why |
+|---|---|---|
+| Website + homepage videos | **Cloudflare Pages** (free) | Unlimited bandwidth, served from data centres near every visitor |
+| `/api` | a **Cloudflare Pages Function** in front of Render (`client/functions/api/[[path]].js`) | Caches public data at the edge: Render answers a few times a minute, however many visitors |
+| API + admin backend | **Render** web service | Small JSON traffic only |
+| Photos | **Cloudinary** (free) | Automatic format and quality per device |
+| Database | **MongoDB Atlas** (free) | |
+
+In a local test under Cloudflare's runtime, 9,060 requests from 500 simultaneous visitors reached the backend **7 times**, with no errors. While a fresh copy is fetched visitors get the previous one, and if the backend is asleep or down the last good copy keeps being served (up to a day). Changes from the panel reach visitors within about 10–30 seconds.
+
+### Put the website on Cloudflare Pages
+
+1. **dash.cloudflare.com** → sign up (free) → **Workers & Pages → Create → Pages → Connect to Git**, pick this repository. (The owner of the GitHub repository has to approve Cloudflare's access once.)
+2. Build settings:
+   - **Framework preset:** None
+   - **Root directory:** `client`
+   - **Build command:** `npm ci && npm run build`
+   - **Build output directory:** `dist`
+   - **Environment variables:** `NODE_VERSION` = `22` (and `API_ORIGIN` = your API's address if it isn't `https://shyastha-api.onrender.com`)
+3. **Save and Deploy.** Your site is live at `https://<project>.pages.dev`; every push to GitHub redeploys it.
+4. Render → API service → **Environment** → `CLIENT_ORIGIN`: add the new address, comma-separated, e.g. `https://hahaha-1-oqpe.onrender.com,https://shyastha.pages.dev` → Save.
+5. Open `https://<project>.pages.dev/api/health` → `{"ok":true}`, then `/panel` and sign in.
+6. Later, a domain: Pages project → **Custom domains**. Add it to `CLIENT_ORIGIN` too.
+
+### Homepage videos
+
+Put the two homepage videos in `client/public/assets/video/` as `home.mp4` and `welcome.mp4` and push: Cloudflare delivers them for free. Each file must be under **25 MB** (Cloudflare Pages' limit); aim for **5–8 MB** (720p–1080p, 10–15 s, see "Videos" below) so they start quickly on phones. Leave the panel's Homepage media video slots empty, so the videos aren't delivered from Cloudinary's monthly quota.
+
+Only the hero video is downloaded during the intro; the welcome-banner video starts when a visitor scrolls to it.
+
 ## 1 · Run it on your computer
 
 Needs **Node 22**. Nothing else: no database to install, no accounts to create.

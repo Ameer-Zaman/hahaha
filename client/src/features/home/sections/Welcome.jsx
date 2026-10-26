@@ -35,7 +35,7 @@ export default function Welcome() {
   return (
     <section ref={root} id="welcome" className="welcome theme-black" aria-labelledby="welcome-title">
       <Plate className="welcome__plate" image={media.trailer.image} seed={42} horizon={0.78} parallax />
-      {video && <BackgroundVideo key={video} src={video} label="City footage" controls={false} />}
+      {video && <BackgroundVideo key={video} src={video} label="City footage" controls={false} lazy />}
       <div className="welcome__shade" aria-hidden="true" />
       <div className="container welcome__inner">
         <div className="welcome__text">

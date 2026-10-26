@@ -17,6 +17,7 @@ export default function BackgroundVideo({
   poster = null,
   label = "Background video",
   controls = true,
+  lazy = false, // true: don't download until its section starts coming into view
 }) {
   // While the intro is preloading this file, wait for it (then play it from memory).
   const source = useVideoSource(src);
@@ -25,6 +26,24 @@ export default function BackgroundVideo({
     if (source && source === src) claimVideo(src);
   }, [source, src]);
   const videoRef = useRef(null);
+  const wrapRef = useRef(null);
+  const [near, setNear] = useState(!lazy);
+  useEffect(() => {
+    if (near) return undefined;
+    const el = wrapRef.current;
+    if (!el) return undefined;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setNear(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.05 }, // starts once the section is actually coming into view
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [near]);
   const userPaused = useRef(false);
   const wantSound = useRef(false); // "Enter with sound" chosen before the video had mounted
   const [autoplay] = useState(() => shouldAutoplay());
@@ -51,7 +70,7 @@ export default function BackgroundVideo({
     });
     observer.observe(video);
     return () => observer.disconnect();
-  }, [started, source]);
+  }, [started, source, near]);
 
   // "Enter with sound" on the welcome screen: unmute inside that click, which browsers
   // accept as the gesture needed for audio.
@@ -102,10 +121,11 @@ export default function BackgroundVideo({
   return (
     <>
       <div
+        ref={wrapRef}
         className={`yt-bg ${playing ? "is-playing" : ""}`}
         aria-hidden="true"
       >
-        {started && source && (
+        {started && source && near && (
           <video
             ref={videoRef}
             className="bg-video__media"

@@ -1,0 +1,15 @@
+# Cloudflare Pages: how long browsers and Cloudflare keep each kind of file.
+# Built code has a fingerprint in its name, so it can be kept forever.
+/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Videos, audio and images: a day, then re-checked in the background (replace a file and
+# visitors get the new one within a day; the site's own preloader re-checks on every visit).
+/assets/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/media/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
