@@ -374,51 +374,6 @@
 }
 
 /* =========================================================
-   Ticker — two rows of words sliding on scroll
-   ========================================================= */
-.ticker {
-  display: grid;
-  gap: var(--sp-2);
-  padding-block: clamp(var(--sp-7), 6vw, var(--sp-9));
-  overflow: hidden;
-  border-block: var(--hairline) solid var(--rule);
-}
-
-.ticker__row {
-  display: flex;
-  width: max-content;
-  font-family: var(--font-display);
-  font-size: clamp(3.5rem, 1.5rem + 7vw, 9rem);
-  line-height: 1;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--fg);
-}
-
-.ticker__row--outline {
-  color: transparent;
-  -webkit-text-stroke: 1px var(--c-gold);
-}
-
-.ticker__item {
-  display: inline-flex;
-  align-items: center;
-}
-
-.ticker__diamond {
-  width: 0.16em;
-  height: 0.16em;
-  margin-inline: 0.45em;
-  background: var(--c-gold);
-  rotate: 45deg;
-}
-
-.ticker__row--outline .ticker__diamond {
-  background: none;
-  border: var(--hairline) solid var(--c-gold);
-}
-
-/* =========================================================
    Features
    ========================================================= */
 .features__head {
@@ -1031,8 +986,4 @@
     radial-gradient(55% 35% at 0% 0%, rgb(var(--rgb-gold) / 0.08), transparent 70%),
     radial-gradient(45% 30% at 100% 55%, rgb(var(--rgb-gold) / 0.05), transparent 70%),
     var(--bg);
-}
-
-.ticker {
-  background: linear-gradient(180deg, var(--c-black), var(--c-charcoal));
 }
