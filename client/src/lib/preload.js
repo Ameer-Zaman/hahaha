@@ -8,7 +8,7 @@ import { loadPublic } from './publicData'
 /**
  * Keeps the homepage's videos ready to play instantly, every time.
  *
- * - On the homepage, the "hello" intro waits while they download.
+ * - On the homepage, the loading screen waits while they download.
  * - On any other page, they download quietly in the background once the page has settled,
  *   so arriving at the homepage later is instant too.
  * - Each video is also saved in the browser (Cache Storage), so a returning visitor plays

@@ -1,0 +1,83 @@
+/* The loading screen: name, gold progress bar and percentage while the homepage downloads */
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 210; /* above the welcome screen, which waits underneath */
+  display: grid;
+  place-items: center;
+  background: var(--c-ink, #06070a);
+  color: var(--c-gold-light, #f6e3b0);
+  transition:
+    opacity 600ms cubic-bezier(0.65, 0, 0.35, 1),
+    visibility 0s linear 600ms;
+}
+.loader.is-leaving {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.loader__inner {
+  width: min(78vw, 22rem);
+  animation: loader-in 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.loader.is-leaving .loader__inner {
+  transform: translateY(-8px);
+  transition: transform 600ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+@keyframes loader-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.loader__name {
+  margin: 0 0 1.1rem;
+  font-family: var(--font-display, 'Anton', sans-serif);
+  font-size: clamp(2.2rem, 7vw, 3.2rem);
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  background: var(--gold-gradient, #e3b55a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.loader__bar {
+  position: relative;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgb(var(--rgb-gold, 227 181 90) / 0.16);
+}
+.loader__bar > span {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  background: var(--gold-gradient, #e3b55a);
+  box-shadow: 0 0 12px rgb(var(--rgb-gold, 227 181 90) / 0.6);
+  will-change: transform;
+}
+
+.loader__meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  font-family: var(--font-mono, 'Space Mono', monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(var(--rgb-gold, 227 181 90) / 0.7);
+}
+.loader__pct {
+  font-variant-numeric: tabular-nums;
+  color: var(--c-gold-light, #f6e3b0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader__inner {
+    animation: none;
+  }
+}

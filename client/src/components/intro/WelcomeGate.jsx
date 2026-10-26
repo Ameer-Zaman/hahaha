@@ -35,7 +35,7 @@ export default function WelcomeGate({ onDone, paused = false }) {
   )
   const modeRef = useRef(initialMode)
   const onDoneRef = useRef(onDone)
-  const pausedRef = useRef(paused) // true while the "hello" intro is still on top
+  const pausedRef = useRef(paused) // true while the loading screen is still on top
   useEffect(() => {
     pausedRef.current = paused
   }, [paused])

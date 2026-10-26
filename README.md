@@ -221,14 +221,14 @@ ffmpeg -i in.mp4 -vf scale=-2:1080 -c:v libx264 -preset veryfast -crf 26 -movfla
 
 Videos are streamed with byte ranges, so they start quickly and can seek.
 
-## Opening "hello" and preloading
+## Loading screen and preloading
 
-A visitor's **first** visit opens with a short "hello" in several languages (after that, the welcome screen opens straight away). While it plays, the site downloads the homepage's videos, poster images, welcome sound and music, so the page is instant once the visitor enters. The greetings keep going until everything is downloaded (at least ~4 seconds, at most 14), and a fine gold line at the bottom shows the progress.
+Opening the homepage shows a loading screen (the name, a gold progress bar and a percentage) while the site downloads the hero video, poster images, welcome sound and music, so the page is instant once the visitor enters. It closes as soon as everything is downloaded (at least ~1 second, at most 12), then the welcome screen opens. Return visits load from the browser's saved copies, so it's brief.
 
-- Videos up to 80 MB are downloaded whole and played from memory, so moving between pages and back to the homepage never waits. Bigger ones, or any still downloading when the intro ends, stream as usual and are saved in the background for next time.
+- Videos up to 80 MB are downloaded whole and played from memory, so moving between pages and back to the homepage never waits. Bigger ones, or any still downloading when the loading screen ends, stream as usual and are saved in the background for next time.
 - Visitors who land on another page first get the homepage videos downloaded quietly in the background (unless they've asked their browser to save data).
 - The videos are also saved in the visitor's browser, so return visits play them straight from disk. A tiny check asks the server whether a file was replaced; if so, the new one is downloaded instead. Replacing a video (same name or in the panel) is picked up automatically.
-- The greetings and timings are at the top of `client/src/components/intro/HelloScreen.jsx`; the preloader is `client/src/lib/preload.js`.
+- The loading screen's timings are at the top of `client/src/components/intro/LoadingScreen.jsx`; the preloader is `client/src/lib/preload.js`.
 - The welcome screen's handwritten line and the small line below the name are `site.welcome` in `client/src/config/site.js` (an empty tagline hides it).
 
 ## Story page videos

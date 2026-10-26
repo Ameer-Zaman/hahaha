@@ -6,9 +6,9 @@ import SiteFooter from './SiteFooter'
 import ScrollProgress from './ScrollProgress'
 import TopProgress from '../ui/TopProgress'
 import { ScrollTrigger } from '../../lib/gsap'
-import { setIntroActive, shouldShowHello, shouldShowIntro } from '../../lib/intro'
+import { setIntroActive, shouldShowIntro } from '../../lib/intro'
 import WelcomeGate from '../intro/WelcomeGate'
-import HelloScreen from '../intro/HelloScreen'
+import LoadingScreen from '../intro/LoadingScreen'
 import MaintenanceScreen, { MaintenancePreviewNotice } from '../site/MaintenanceScreen'
 import { useSiteSettings, useStaffPreview } from '../../lib/siteSettings'
 import { preloadHomeAssets, preloadHomeInBackground } from '../../lib/preload'
@@ -31,14 +31,13 @@ export default function Layout() {
     if (show) preloadHomeAssets()
     return show
   })
-  // the "hello" intro plays first (and downloads the homepage), then hands over to the gate
-  // (first visit only; after that the welcome screen opens straight away)
-  const [showHello, setShowHello] = useState(() => showGate && shouldShowHello())
+  // the loading screen shows first while the homepage downloads, then hands over to the gate
+  const [showLoader, setShowLoader] = useState(showGate)
 
   // Landed on another page? Get the homepage's videos ready in the background, so going
-  // there later is instant. (On the homepage the "hello" intro does this.)
+  // there later is instant. (On the homepage the loading screen does this.)
   useEffect(() => {
-    if (!showHello) preloadHomeInBackground()
+    if (!showLoader) preloadHomeInBackground()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -77,8 +76,8 @@ export default function Layout() {
         </div>
       </main>
       {!NO_FOOTER.includes(pathname) && <SiteFooter />}
-      {showGate && <WelcomeGate paused={showHello} onDone={() => setShowGate(false)} />}
-      {showHello && <HelloScreen onDone={() => setShowHello(false)} />}
+      {showGate && <WelcomeGate paused={showLoader} onDone={() => setShowGate(false)} />}
+      {showLoader && <LoadingScreen onDone={() => setShowLoader(false)} />}
     </>
   )
 }
