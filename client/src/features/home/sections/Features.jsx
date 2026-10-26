@@ -145,14 +145,6 @@ export default function Features() {
             )
           })}
         </ol>
-
-        <ul role="list" className="tags features__tags" aria-label="What the community stands for">
-          {features.tags.map((tag) => (
-            <li key={tag} className="tag">
-              {tag}
-            </li>
-          ))}
-        </ul>
       </div>
     </section>
   )

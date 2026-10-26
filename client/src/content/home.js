@@ -49,14 +49,12 @@ export const features = {
       to: '/rules',
     },
   ],
-  tags: ['Serious roleplay', 'Visible administration', 'Gang archive', 'War records', 'Published rules'],
 }
 
 export const join = {
   eyebrow: 'How to join',
   /** Last part is set on a gold plate. */
   title: ['Your story starts', 'with', 'an application.'],
-  body: 'You don’t need the server to be online to apply.',
   /** A genuine sequence — kept generic until the team confirms the process. */
   steps: [
     { title: 'Apply', detail: 'Join our Discord and fill in the application there: who you are and the character you want to bring.' },

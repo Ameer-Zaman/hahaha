@@ -647,10 +647,6 @@
   }
 }
 
-.features__tags {
-  margin-top: clamp(var(--sp-8), 7vw, var(--sp-9));
-}
-
 /* =========================================================
    Join — a mission briefing: street map, gold plate headline,
    objectives joined by a GPS route
@@ -946,17 +942,6 @@
   display: grid;
   justify-items: center;
   gap: var(--sp-5);
-}
-
-.join__note {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-family: var(--font-mono);
-  font-size: var(--fs-2xs);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgb(var(--rgb-ivory) / 0.7);
 }
 
 @media (prefers-reduced-motion: no-preference) {

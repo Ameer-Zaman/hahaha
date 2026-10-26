@@ -99,10 +99,6 @@ export default function Join() {
           <ApplyLink className="btn btn--primary btn--large">
             {join.cta} <Arrow />
           </ApplyLink>
-          <p className="join__note">
-            <span className="join__tag-dot" aria-hidden="true" />
-            {join.body}
-          </p>
         </div>
       </div>
     </section>
