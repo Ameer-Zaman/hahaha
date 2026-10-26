@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { whenEntered } from "../../lib/intro";
-import { useVideoSource } from "../../lib/preload";
+import { claimVideo, useVideoSource } from "../../lib/preload";
 import "./youtube-background.css";
 
 /**
@@ -20,6 +20,10 @@ export default function BackgroundVideo({
 }) {
   // While the intro is preloading this file, wait for it (then play it from memory).
   const source = useVideoSource(src);
+  // streaming straight from the network (not preloaded): tell the preloader to leave it alone
+  useEffect(() => {
+    if (source && source === src) claimVideo(src);
+  }, [source, src]);
   const videoRef = useRef(null);
   const userPaused = useRef(false);
   const wantSound = useRef(false); // "Enter with sound" chosen before the video had mounted

@@ -71,7 +71,7 @@ router.put('/media', validateBody(settingsMediaSchema), async (req, res) => {
     if (id) {
       const file = await findFile(id)
       if (!file) throw new HttpError(400, `${slot}: file not found.`)
-      const kind = file.metadata?.kind
+      const kind = file.kind
       if (VIDEO_SLOTS.has(slot) ? kind !== 'video' : kind !== 'image') {
         throw new HttpError(400, `${slot} needs ${VIDEO_SLOTS.has(slot) ? 'a video' : 'an image'}.`)
       }

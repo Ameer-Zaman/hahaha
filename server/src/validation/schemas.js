@@ -180,6 +180,16 @@ export const settingsSiteSchema = z
   .strict()
   .refine((v) => v.sections || v.maintenance, 'Nothing to change.')
 
+export const uploadTicketSchema = z.object({ kind: z.enum(['image', 'video']) })
+
+export const cloudUploadSchema = z.object({
+  publicId: z.string().trim().min(1).max(300),
+  version: z.coerce.number().int().positive(),
+  signature: z.string().regex(/^[a-f0-9]{40}$/),
+  resourceType: z.enum(['image', 'video']),
+  name: z.string().trim().max(200).optional().default(''),
+})
+
 export const settingsMediaSchema = z.object({
   media: z.record(z.string(), z.string().regex(/^[a-f0-9]{24}$/).nullable()),
 })

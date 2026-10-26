@@ -10,6 +10,35 @@ function required(name) {
   return value
 }
 
+/**
+ * Cloudinary (optional): CLOUDINARY_URL=cloudinary://<api_key>:<api_secret>@<cloud_name>,
+ * or the three CLOUDINARY_* variables. When set, uploads go to Cloudinary; otherwise they
+ * are stored in the database (GridFS) as before.
+ */
+function cloudinaryConfig() {
+  let cloudName = process.env.CLOUDINARY_CLOUD_NAME ?? ''
+  let apiKey = process.env.CLOUDINARY_API_KEY ?? ''
+  let apiSecret = process.env.CLOUDINARY_API_SECRET ?? ''
+  const url = process.env.CLOUDINARY_URL
+  if (url) {
+    const m = /^cloudinary:\/\/([^:]+):([^@]+)@(.+)$/.exec(url.trim())
+    if (!m) throw new Error('CLOUDINARY_URL must look like cloudinary://<api_key>:<api_secret>@<cloud_name>')
+    ;[, apiKey, apiSecret, cloudName] = m
+  }
+  const enabled = Boolean(cloudName && apiKey && apiSecret)
+  return {
+    enabled,
+    cloudName,
+    apiKey,
+    apiSecret,
+    folder: (process.env.CLOUDINARY_FOLDER ?? 'shyastha').replace(/^\/+|\/+$/g, ''),
+    // overridable for tests only
+    apiBase: (process.env.CLOUDINARY_API_BASE ?? 'https://api.cloudinary.com').replace(/\/$/, ''),
+    deliveryBase: (process.env.CLOUDINARY_DELIVERY_BASE ?? 'https://res.cloudinary.com').replace(/\/$/, ''),
+  }
+}
+const cloudinary = cloudinaryConfig()
+
 const jwtSecret = required('JWT_SECRET')
 if (jwtSecret.length < 32) throw new Error('JWT_SECRET must be at least 32 characters long')
 
@@ -33,8 +62,10 @@ export const env = {
     password: process.env.SUPERADMIN_PASSWORD ?? '',
     name: process.env.SUPERADMIN_NAME ?? 'Super Admin',
   },
+  cloudinary,
   uploads: {
-    imageMaxBytes: Number(process.env.IMAGE_MAX_MB ?? 5) * 1024 * 1024,
-    videoMaxBytes: Number(process.env.VIDEO_MAX_MB ?? 60) * 1024 * 1024,
+    // Cloudinary's free plan allows 10 MB images and 100 MB videos; the database is smaller
+    imageMaxBytes: Number(process.env.IMAGE_MAX_MB ?? (cloudinary.enabled ? 10 : 5)) * 1024 * 1024,
+    videoMaxBytes: Number(process.env.VIDEO_MAX_MB ?? (cloudinary.enabled ? 100 : 60)) * 1024 * 1024,
   },
 }

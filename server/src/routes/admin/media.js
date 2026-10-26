@@ -8,7 +8,10 @@ import { Settings } from '../../models/Settings.js'
 import { Staff } from '../../models/Staff.js'
 import { issueUploadToken } from '../../middleware/uploadToken.js'
 import { audit } from '../../services/audit.js'
-import { deleteFile, listFiles, storeUpload } from '../../services/media.js'
+import { uploadTicket } from '../../services/cloudinary.js'
+import { deleteFile, listFiles, registerCloudUpload, storeUpload } from '../../services/media.js'
+import { validateBody } from '../../middleware/validate.js'
+import { cloudUploadSchema, uploadTicketSchema } from '../../validation/schemas.js'
 
 const router = Router()
 
@@ -41,6 +44,27 @@ router.get('/', async (req, res) => {
 })
 
 router.post('/', upload.single('file'), handleUpload)
+
+/** Where uploads go, and the size limits, so the panel can check files before sending them. */
+router.get('/storage', (req, res) => {
+  res.json({
+    provider: env.cloudinary.enabled ? 'cloudinary' : 'database',
+    limits: { image: env.uploads.imageMaxBytes, video: env.uploads.videoMaxBytes },
+  })
+})
+
+/** A signed, short-lived permission to upload one file straight to Cloudinary. */
+router.post('/cloudinary-ticket', validateBody(uploadTicketSchema), (req, res) => {
+  if (!env.cloudinary.enabled) throw new HttpError(409, 'Cloudinary is not configured on the server.')
+  res.json(uploadTicket(req.body.kind))
+})
+
+/** After the browser uploaded to Cloudinary: verify it, then add it to the media library. */
+router.post('/cloudinary', validateBody(cloudUploadSchema), async (req, res) => {
+  const file = await registerCloudUpload(req.body, req.user)
+  await audit(req, 'media.upload', file.id, `${file.name} · ${Math.round(file.size / 1024)} KB · Cloudinary`)
+  res.status(201).json({ file })
+})
 
 /** A short-lived token for sending a large file straight to the API server. */
 router.post('/upload-token', (req, res) => {

@@ -152,6 +152,22 @@ On a gang's page in the panel, **Card media → Card video** takes a 5–10 seco
 - The image shows while the clip loads, and for visitors with reduced motion or data saver on.
 - Keep clips under ~8 MB. The panel warns if a clip is longer than 15 seconds.
 
+## Photos and videos on Cloudinary (recommended)
+
+With Cloudinary connected, everything uploaded in the panel is stored on Cloudinary and delivered from its worldwide network: photos automatically in the best format (AVIF/WebP) and quality for each visitor, videos straight from the CDN. The free plan has 25 credits a month (plenty for a community site), 10 MB photos and 100 MB videos.
+
+1. Sign up at **cloudinary.com** (free).
+2. **Settings → API Keys**, copy the **API environment variable**. It looks like `cloudinary://123456789012345:AbCdEf…@your-cloud-name`. Keep it secret.
+3. Render → your **API** service → **Environment** → add `CLOUDINARY_URL` with that value → Save (the API restarts).
+   For local development, put the same line in `server/.env`.
+4. Open **Panel → Media library**: it now says "Stored on Cloudinary". Upload as usual.
+
+How it works:
+- The panel uploads **straight to Cloudinary** with a short-lived permission signed by the API, so big videos never pass through Render or the website.
+- The API then checks Cloudinary's signature on the upload, reads the file's real type and size from Cloudinary, and adds it to the library (in the `shyastha` folder on Cloudinary; change with `CLOUDINARY_FOLDER`).
+- Deleting a file in the panel deletes it on Cloudinary too. Files uploaded before Cloudinary was connected keep working from the database.
+- Without `CLOUDINARY_URL`, uploads are stored in the database as before.
+
 ## Videos
 
 Keep each video under ~10–20 MB (H.264, 1080p or less, with `faststart`):

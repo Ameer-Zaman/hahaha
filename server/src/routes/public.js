@@ -6,7 +6,7 @@ import { MEDIA_SLOTS, readSections, Settings } from '../models/Settings.js'
 import { Staff } from '../models/Staff.js'
 import { TdmBoard } from '../models/TdmBoard.js'
 import { War } from '../models/War.js'
-import { mediaUrl } from '../services/media.js'
+import { resolveMediaUrls } from '../services/media.js'
 
 /**
  * Read-only data for the public website. Responses are small and briefly cacheable.
@@ -24,6 +24,7 @@ router.get('/gangs', async (req, res) => {
     War.find().sort({ date: -1 }).lean(),
   ])
   const slugById = new Map(gangs.map((g) => [String(g._id), g.slug]))
+  const mediaUrl = await resolveMediaUrls(gangs.flatMap((g) => [g.image, g.emblem, g.video]))
   res.json({
     gangs: gangs.map((g) => ({
       id: g.slug,
@@ -55,6 +56,7 @@ router.get('/gangs', async (req, res) => {
 router.get('/staff', async (req, res) => {
   res.set('Cache-Control', 'public, max-age=15')
   const staff = await Staff.find().sort({ order: 1, createdAt: 1 }).lean()
+  const mediaUrl = await resolveMediaUrls(staff.map((s) => s.portrait))
   const updatedAt = staff.reduce((max, s) => (s.statusUpdatedAt && s.statusUpdatedAt > max ? s.statusUpdatedAt : max), new Date(0))
   res.json({
     updatedAt: updatedAt.getTime() ? updatedAt.toISOString() : null,
@@ -89,6 +91,7 @@ router.get('/rules', async (req, res) => {
 router.get('/site', async (req, res) => {
   res.set('Cache-Control', 'public, max-age=10') // maintenance and sections should land quickly
   const settings = await Settings.findOne({ key: 'main' }).lean()
+  const mediaUrl = await resolveMediaUrls(Object.values(settings?.media ?? {}))
   const media = Object.fromEntries(MEDIA_SLOTS.map((slot) => [slot, mediaUrl(settings?.media?.[slot] ?? null)]))
   res.json({
     media,

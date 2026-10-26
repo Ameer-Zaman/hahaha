@@ -24,6 +24,7 @@ const CACHE_NAME = 'shyastha-media-v1'
 
 const state = { started: false, listed: false, progress: 0, done: false }
 const videos = new Map() // url → { status: 'loading' | 'ready' | 'stream', blobUrl?, controller? }
+const claimed = new Set() // videos already streaming on screen: left alone, never fetched twice
 const listeners = new Set()
 const emit = () => listeners.forEach((fn) => fn())
 const subscribe = (fn) => {
@@ -35,11 +36,16 @@ const subscribe = (fn) => {
 export function getVideoSource(url) {
   // the preloader is still finding out which videos the homepage uses: wait a moment
   // rather than start a second, parallel download
-  if (url && state.started && !state.listed) return null
+  if (url && state.started && !state.listed && !claimed.has(url)) return null
   const entry = url ? videos.get(url) : null
   if (!entry) return url
   if (entry.status === 'loading') return null
   return entry.status === 'ready' ? entry.blobUrl : url
+}
+
+/** A <video> started streaming `url` before the preloader got to it: let it be. */
+export function claimVideo(url) {
+  if (url && !videos.has(url)) claimed.add(url)
 }
 
 export function useVideoSource(url) {
@@ -195,7 +201,9 @@ export function preloadHomeAssets({ audio = true } = {}) {
   const timeout = new Promise((resolve) => setTimeout(() => resolve({}), 1500))
 
   Promise.race([site, timeout]).then((picked) => {
-    const videoUrls = [...new Set([picked.heroVideo ?? media.hero.video, picked.welcomeVideo ?? media.trailer.video].filter(Boolean))]
+    const videoUrls = [...new Set([picked.heroVideo ?? media.hero.video, picked.welcomeVideo ?? media.trailer.video].filter(Boolean))].filter(
+      (url) => !claimed.has(url),
+    )
     const imageUrls = [
       media.hero.image,
       media.hero.videoPoster,

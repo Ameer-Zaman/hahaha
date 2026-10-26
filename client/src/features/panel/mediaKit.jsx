@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { ACCEPT, adminApi, checkUpload, formatBytes, uploadMedia } from './panelApi'
+import { ACCEPT, adminApi, checkUpload, formatBytes, getStorage, uploadMedia } from './panelApi'
 import { useAuth } from './authContext'
 import { mediaUrl } from './format'
 import { useToast } from './hooks'
@@ -32,6 +32,10 @@ export function UploadButton({ onUploaded, kind, label = 'Upload', className = '
   const toast = useToast()
   const { handleError } = useAuth()
   const [progress, setProgress] = useState(null)
+  // learn the real size limits early, so files are checked against them before sending
+  useEffect(() => {
+    getStorage().catch(() => {})
+  }, [])
 
   const accept = kind ? ACCEPT.split(',').filter((t) => t.startsWith(kind)).join(',') : ACCEPT
 

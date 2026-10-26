@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { MediaField, Thumb, UploadButton } from '../mediaKit'
-import { adminApi, formatBytes } from '../panelApi'
+import { adminApi, formatBytes, getStorage } from '../panelApi'
 import { formatWhen } from '../format'
 import { useAction, useResource } from '../hooks'
 import { ConfirmButton, Empty, ErrorNote, Loading, PageHead, Panel } from '../ui'
@@ -12,6 +12,16 @@ export function MediaLibrary() {
   const { data, error, loading, reload, setData } = useResource(() => adminApi.get('/media'))
   const [filter, setFilter] = useState('all')
   const [run] = useAction()
+  const [storage, setStorage] = useState(null)
+  useEffect(() => {
+    let alive = true
+    getStorage()
+      .then((info) => alive && setStorage(info))
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
+  }, [])
 
   if (error) return <ErrorNote message={error} onRetry={reload} />
   if (loading && !data) return <Loading />
@@ -26,7 +36,11 @@ export function MediaLibrary() {
     <>
       <PageHead
         title="Media library"
-        sub="Photos (JPG, PNG, WebP, GIF · up to 5 MB) and videos (MP4, WebM · up to 60 MB). Pick them from here for gangs, staff and the homepage."
+        sub={
+          storage?.provider === 'cloudinary'
+            ? `Stored on Cloudinary and delivered from its network. Photos (JPG, PNG, WebP, GIF · up to ${formatBytes(storage.limits.image)}) and videos (MP4, WebM, MOV · up to ${formatBytes(storage.limits.video)}). Pick them from here for gangs, staff and the homepage.`
+            : `Photos (JPG, PNG, WebP, GIF · up to ${formatBytes(storage?.limits.image ?? 5 * 1024 * 1024)}) and videos (MP4, WebM · up to ${formatBytes(storage?.limits.video ?? 60 * 1024 * 1024)}). Stored in the database; connect Cloudinary on the server for bigger files and faster delivery.`
+        }
       >
         <UploadButton label="Upload files" onUploaded={(file) => setData((d) => ({ files: [file, ...d.files] }))} />
       </PageHead>
@@ -54,6 +68,7 @@ export function MediaLibrary() {
               </p>
               <p className="p-library__meta">
                 {formatBytes(file.size)} · {formatWhen(file.uploadedAt)}
+                {file.provider === 'cloudinary' ? ' · Cloudinary' : ''}
               </p>
               <ConfirmButton className="pbtn pbtn--quiet pbtn--sm" confirmLabel="Confirm delete" onConfirm={() => remove(file)}>
                 Delete

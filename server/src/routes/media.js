@@ -1,7 +1,8 @@
 import { Router } from 'express'
 
 import { mediaBucket } from '../db.js'
-import { findFile } from '../services/media.js'
+import { deliveryUrl } from '../services/cloudinary.js'
+import { findCloudFile, findGridFile } from '../services/media.js'
 
 /**
  * Serves uploaded images and videos. Supports byte ranges, so videos can stream and seek.
@@ -10,7 +11,13 @@ import { findFile } from '../services/media.js'
 const router = Router()
 
 router.get('/:id', async (req, res) => {
-  const file = await findFile(req.params.id)
+  // Cloudinary files: send the browser to Cloudinary (ids never change, so cache the answer)
+  const cloud = await findCloudFile(req.params.id)
+  if (cloud) {
+    res.set('Cache-Control', 'public, max-age=86400')
+    return res.redirect(301, deliveryUrl(cloud))
+  }
+  const file = await findGridFile(req.params.id)
   if (!file) return res.status(404).json({ message: 'Not found.' })
 
   const size = file.length

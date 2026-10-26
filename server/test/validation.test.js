@@ -71,3 +71,12 @@ test('TDM board: whole numbers only, each player once', async () => {
   assert.equal(tdmBoardSchema.safeParse({ players: [{ name: 'Mara', kills: -1 }] }).success, false)
   assert.equal(tdmBoardSchema.safeParse({ players: [{ name: 'Mara', kills: 1.5 }] }).success, false)
 })
+
+test('Cloudinary request signing matches the example in Cloudinary\'s documentation', async () => {
+  const { signParams } = await import('../src/services/cloudinary.js')
+  const signature = signParams(
+    { eager: 'w_400,h_300,c_pad|w_260,h_200,c_crop', public_id: 'sample_image', timestamp: 1315060510 },
+    'abcd',
+  )
+  assert.equal(signature, 'bfd09f95f331f558cbd1320e67aa8d488770583e')
+})

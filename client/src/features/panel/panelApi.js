@@ -46,8 +46,26 @@ export const UPLOAD_TYPES = {
   'image/gif': 'image',
   'video/mp4': 'video',
   'video/webm': 'video',
+  'video/quicktime': 'video', // .mov — accepted when uploads go to Cloudinary
 }
+/** Updated from the server (`/admin/media/storage`) once known. */
 export const UPLOAD_LIMITS = { image: 5 * 1024 * 1024, video: 60 * 1024 * 1024 }
+
+let storagePromise = null
+/** Where uploads go ('cloudinary' or 'database') and the size limits. Asked once. */
+export function getStorage() {
+  storagePromise ??= adminApi
+    .get('/media/storage')
+    .then((info) => {
+      Object.assign(UPLOAD_LIMITS, info.limits ?? {})
+      return info
+    })
+    .catch((err) => {
+      storagePromise = null
+      throw err
+    })
+  return storagePromise
+}
 export const ACCEPT = Object.keys(UPLOAD_TYPES).join(',')
 
 export const formatBytes = (n) =>
@@ -67,8 +85,11 @@ const DIRECT_ABOVE = 4 * 1024 * 1024
 
 /** Uploads one file to the media library. Resolves with the stored file's description. */
 export async function uploadMedia(file, onProgress) {
+  const storage = await getStorage().catch(() => ({ provider: 'database' }))
   const problem = checkUpload(file)
   if (problem) throw new ApiError(400, problem)
+  if (storage.provider === 'cloudinary') return uploadToCloudinary(file, onProgress)
+  if (file.type === 'video/quicktime') throw new ApiError(400, 'MOV videos need Cloudinary storage. Convert it to MP4 first.')
 
   let url = '/api/admin/media'
   const headers = {}
@@ -104,4 +125,45 @@ export async function uploadMedia(file, onProgress) {
     }
     xhr.send(form)
   })
+}
+
+/** Sends a file straight to Cloudinary (signed by our server), then records it in the library. */
+async function uploadToCloudinary(file, onProgress) {
+  const kind = UPLOAD_TYPES[file.type]
+  const ticket = await adminApi.post('/media/cloudinary-ticket', { kind })
+  const form = new FormData()
+  form.append('file', file, file.name)
+  form.append('api_key', ticket.apiKey)
+  form.append('timestamp', String(ticket.timestamp))
+  form.append('folder', ticket.folder)
+  form.append('allowed_formats', ticket.allowed_formats)
+  form.append('signature', ticket.signature)
+
+  const uploaded = await new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', ticket.uploadUrl)
+    xhr.upload.onprogress = (e) => e.lengthComputable && onProgress?.((e.loaded / e.total) * 0.97)
+    xhr.onerror = () => reject(new ApiError(0, 'The upload could not reach Cloudinary.'))
+    xhr.onload = () => {
+      let data = null
+      try {
+        data = JSON.parse(xhr.responseText)
+      } catch {
+        /* not JSON */
+      }
+      if (xhr.status >= 200 && xhr.status < 300 && data?.public_id) resolve(data)
+      else reject(new ApiError(xhr.status, data?.error?.message ? `Cloudinary: ${data.error.message}` : `Upload to Cloudinary failed (${xhr.status}).`))
+    }
+    xhr.send(form)
+  })
+
+  const { file: stored } = await adminApi.post('/media/cloudinary', {
+    publicId: uploaded.public_id,
+    version: uploaded.version,
+    signature: uploaded.signature,
+    resourceType: uploaded.resource_type,
+    name: file.name,
+  })
+  onProgress?.(1)
+  return stored
 }

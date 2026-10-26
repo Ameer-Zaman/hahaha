@@ -28,6 +28,10 @@ services:
       # Website proxy (static site rewrite) → Render proxy → app.
       - key: TRUST_PROXY
         value: "2"
+      # Cloudinary (optional): cloudinary://<api_key>:<api_secret>@<cloud_name>. Uploads then go
+      # to Cloudinary and are delivered from its CDN; leave it out to store them in the database.
+      - key: CLOUDINARY_URL
+        sync: false
       # First Super Admin. Only used while the database has no accounts; delete afterwards.
       - key: SUPERADMIN_EMAIL
         sync: false
