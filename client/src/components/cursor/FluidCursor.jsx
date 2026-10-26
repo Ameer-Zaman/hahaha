@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import './fluid-cursor.css'
 
 /**
- * The gold smoke that follows the mouse, on every page. Only with a mouse (not touch),
+ * The glossy gold oil that follows the mouse, on every page. Only with a mouse (not touch),
  * only when the visitor allows motion, and loaded after the page is ready so it never
  * slows the first paint. If the browser can't run it, nothing is shown.
  */

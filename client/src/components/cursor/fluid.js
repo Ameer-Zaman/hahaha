@@ -1,6 +1,6 @@
 /**
  * A small WebGL fluid simulation (stable fluids: advection, vorticity, pressure projection)
- * that turns mouse movement into a flowing gold smoke trail. Runs only while there's
+ * that turns mouse movement into a flowing trail of glossy, iridescent gold oil. Runs only while there's
  * something to show: it starts on movement and sleeps once the smoke has faded.
  *
  * createFluid(canvas) → { dispose } or null when the browser can't run it.
@@ -9,13 +9,13 @@ const SIM_RES = 128 // velocity / pressure grid (the flow)
 const DYE_RES = 512 // the smoke's own resolution
 const PRESSURE_ITERATIONS = 18
 const PRESSURE = 0.8
-const CURL = 18 // swirl
-const VELOCITY_DISSIPATION = 0.35
-const DENSITY_DISSIPATION = 2.2 // how quickly the smoke fades
-const SPLAT_RADIUS = 0.09 // percent of the screen
-const SPLAT_FORCE = 3400
+const CURL = 6 // swirl: low, so it flows like thick oil rather than smoke
+const VELOCITY_DISSIPATION = 1.4 // viscous: the flow slows quickly
+const DENSITY_DISSIPATION = 0.9 // how quickly the oil fades
+const SPLAT_RADIUS = 0.16 // percent of the screen
+const SPLAT_FORCE = 2600
 const MAX_STEP = 0.04 // limits a single jump of the mouse, so a flick doesn't flood the screen
-const SLEEP_AFTER_MS = 3500
+const SLEEP_AFTER_MS = 5500
 
 // gold tones, picked in turn so the trail shimmers between them (kept dim: it adds up)
 const PALETTE = [
@@ -24,7 +24,7 @@ const PALETTE = [
   [0.71, 0.52, 0.18],
   [1.0, 0.9, 0.66],
 ]
-const INTENSITY = 0.07
+const INTENSITY = 0.22
 
 const VERT = `
 precision highp float;
@@ -95,12 +95,29 @@ const FRAG = {
       vec2 v = texture2D(uVelocity, vUv).xy - vec2(R - L, T - B);
       gl_FragColor = vec4(v, 0.0, 1.0);
     }`,
-  display: `precision highp float; varying vec2 vUv; uniform sampler2D uTexture;
+  // oil: a glossy liquid with crisp edges, a specular highlight and a thin-film rainbow sheen over gold
+  display: `precision highp float; varying vec2 vUv, vL, vR, vT, vB; uniform sampler2D uTexture;
     void main () {
-      // soft highlights: dense smoke glows warm gold instead of burning to white
-      vec3 c = 1.0 - exp(-texture2D(uTexture, vUv).rgb * 1.6);
-      c *= 0.75;
-      gl_FragColor = vec4(c, max(c.r, max(c.g, c.b)));
+      float d = texture2D(uTexture, vUv).r;
+      float dl = texture2D(uTexture, vL).r; float dr = texture2D(uTexture, vR).r;
+      float dt = texture2D(uTexture, vT).r; float db = texture2D(uTexture, vB).r;
+      float body = smoothstep(0.03, 0.16, d);
+      if (body <= 0.0) { gl_FragColor = vec4(0.0); return; }
+      vec3 n = normalize(vec3((dl - dr) * 9.0, (db - dt) * 9.0, 1.0));
+      vec3 lightDir = normalize(vec3(-0.45, 0.6, 1.0));
+      float diffuse = clamp(dot(n, lightDir), 0.0, 1.0);
+      float spec = pow(max(dot(reflect(-lightDir, n), vec3(0.0, 0.0, 1.0)), 0.0), 36.0);
+      // thin-film colours: the hue shifts with the oil's thickness and its slope
+      float film = d * 3.2 + (n.x - n.y) * 0.9;
+      vec3 rainbow = 0.5 + 0.5 * cos(6.2832 * (film + vec3(0.0, 0.33, 0.67)));
+      vec3 gold = vec3(0.89, 0.68, 0.3);
+      vec3 col = mix(gold, rainbow, 0.42) * (0.35 + 0.65 * diffuse);
+      col += vec3(1.0, 0.95, 0.85) * spec * 0.9;
+      float rim = smoothstep(0.03, 0.08, d) - smoothstep(0.08, 0.2, d); // a darker edge, like a drop's meniscus
+      col *= 1.0 - rim * 0.35;
+      // see-through like a film of oil: the page shows through, the highlights stay bright
+      float a = clamp(body * (0.42 + 0.25 * (1.0 - diffuse)) + spec * 0.5, 0.0, 0.9);
+      gl_FragColor = vec4(col * a, a);
     }`,
 }
 
@@ -334,7 +351,7 @@ export function createFluid(canvas) {
   }
 
   const render = () => {
-    const u = program('display')
+    const u = program('display', dye.read)
     gl.uniform1i(u.uTexture, dye.read.attach(0))
     blit(null)
   }
