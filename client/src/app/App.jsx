@@ -15,6 +15,7 @@ const GangsPage = lazy(() => import('../features/gangs/GangsPage'))
 const GangPage = lazy(() => import('../features/gangs/GangPage'))
 const RulesPage = lazy(() => import('../features/rules/RulesPage'))
 const ClubsPage = lazy(() => import('../features/clubs/ClubsPage'))
+const DhadhasPage = lazy(() => import('../features/dhadhas/DhadhasPage'))
 const StoryPage = lazy(() => import('../features/story/StoryPage'))
 const LeaderboardPage = lazy(() => import('../features/leaderboard/LeaderboardPage'))
 const NotFoundPage = lazy(() => import('../features/notfound/NotFoundPage'))
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="gangs" element={<Section to="/gangs"><GangsPage /></Section>} />
         <Route path="gangs/:slug" element={<Section to="/gangs"><GangPage /></Section>} />
         <Route path="clubs" element={<Section to="/clubs"><ClubsPage /></Section>} />
+        <Route path="dhadhas" element={<Section to="/dhadhas"><DhadhasPage /></Section>} />
         <Route path="story" element={<Section to="/story"><StoryPage /></Section>} />
         <Route path="leaderboard" element={<Section to="/leaderboard"><LeaderboardPage /></Section>} />
         <Route path="rules" element={<Section to="/rules"><RulesPage /></Section>} />

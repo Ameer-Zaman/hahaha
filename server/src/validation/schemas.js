@@ -169,7 +169,7 @@ export const ruleBookSchema = z.object({
 
 export const settingsSiteSchema = z
   .object({
-    sections: z.partialRecord(z.enum(['story', 'staff', 'gangs', 'clubs', 'leaderboard', 'rules']), z.boolean()).optional(),
+    sections: z.partialRecord(z.enum(['story', 'staff', 'gangs', 'clubs', 'dhadhas', 'leaderboard', 'rules']), z.boolean()).optional(),
     maintenance: z
       .object({
         on: z.boolean(),

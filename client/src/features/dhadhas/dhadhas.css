@@ -1,0 +1,166 @@
+/* Dhadhas — a faction announced, not yet revealed */
+.dhadhas {
+  position: relative;
+  display: grid;
+  align-items: center;
+  min-height: 100svh;
+  padding-block: calc(var(--sp-10) + 1rem) var(--sp-9);
+  overflow: hidden;
+  background:
+    radial-gradient(60% 50% at 50% 45%, rgb(var(--rgb-gold) / 0.12), transparent 70%),
+    var(--c-ink);
+  isolation: isolate;
+}
+
+/* ---- the name drifting past in the background ---- */
+.dhadhas__drift {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: grid;
+  align-content: center;
+  gap: clamp(1rem, 4vw, 3rem);
+  pointer-events: none;
+  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+}
+.dhadhas__row {
+  display: flex;
+  width: max-content;
+  font-family: var(--font-display);
+  font-size: clamp(5rem, 16vw, 15rem);
+  line-height: 1;
+  white-space: nowrap;
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(var(--rgb-gold) / 0.12);
+  animation: dhadhas-drift 60s linear infinite;
+  will-change: transform;
+}
+.dhadhas__row > span {
+  padding-right: 0.3em;
+}
+.dhadhas__row--1 {
+  animation-direction: reverse;
+  animation-duration: 75s;
+}
+@keyframes dhadhas-drift {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ---- the foreground ---- */
+.dhadhas__inner {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.dhadhas__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin: 0 0 var(--sp-5);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgb(var(--rgb-gold) / 0.8);
+}
+.dhadhas__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c-gold);
+  box-shadow: 0 0 10px rgb(var(--rgb-gold) / 0.8);
+}
+
+.dhadhas__lockup {
+  position: relative;
+}
+.dhadhas__title {
+  display: flex;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 1rem + 15vw, 14rem);
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: 0.01em;
+}
+.dhadhas__mask {
+  display: inline-block;
+  overflow: hidden;
+  padding-bottom: 0.04em;
+}
+.dhadhas__letter {
+  display: inline-block;
+  background: linear-gradient(100deg, #fff2c9 0%, #f2cf80 25%, #e3b55a 45%, #fff2c9 52%, #b5852f 70%, #efcb7a 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: dhadhas-shine 6s ease-in-out infinite;
+}
+@keyframes dhadhas-shine {
+  0%,
+  100% {
+    background-position: 100% 0;
+  }
+  50% {
+    background-position: 0 0;
+  }
+}
+
+/* the "coming soon" stamp across the name's corner */
+.dhadhas__stamp {
+  position: absolute;
+  right: -0.5rem;
+  bottom: -0.4rem;
+  padding: 0.45em 0.9em 0.4em;
+  border: 2px solid var(--c-gold);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: clamp(0.7rem, 0.5rem + 0.8vw, 1rem);
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--c-gold-light);
+  background: rgb(6 7 10 / 0.75);
+  box-shadow: 0 0 0 4px rgb(6 7 10 / 0.75), 0 0 24px rgb(var(--rgb-gold) / 0.25);
+  transform: rotate(-8deg);
+}
+
+.dhadhas__copy {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-6);
+  margin-top: var(--sp-8);
+}
+.dhadhas__lede {
+  max-width: 34rem;
+  margin: 0;
+  font-size: clamp(1rem, 0.9rem + 0.4vw, 1.2rem);
+  line-height: 1.6;
+  color: rgb(var(--rgb-ivory) / 0.75);
+}
+.dhadhas__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-3);
+}
+
+@media (max-width: 600px) {
+  .dhadhas__stamp {
+    right: 50%;
+    bottom: -1.6rem;
+    transform: translateX(50%) rotate(-6deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dhadhas__row,
+  .dhadhas__letter {
+    animation: none;
+  }
+}

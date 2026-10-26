@@ -11,6 +11,7 @@ const SECTIONS = [
   { key: 'staff', label: 'Staffs', path: '/staff' },
   { key: 'gangs', label: 'Gangs', path: '/gangs', note: 'In the Factions menu' },
   { key: 'clubs', label: 'Clubs', path: '/clubs', note: 'In the Factions menu' },
+  { key: 'dhadhas', label: 'Dhadhas', path: '/dhadhas', note: 'In the Factions menu' },
   { key: 'leaderboard', label: 'Leaderboard', path: '/leaderboard' },
   { key: 'rules', label: 'Rules', path: '/rules' },
 ]
