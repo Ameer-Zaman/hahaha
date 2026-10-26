@@ -10,10 +10,10 @@ const DYE_RES = 512 // the smoke's own resolution
 const PRESSURE_ITERATIONS = 18
 const PRESSURE = 0.8
 const CURL = 6 // swirl: low, so it flows like thick oil rather than smoke
-const VELOCITY_DISSIPATION = 1.4 // viscous: the flow slows quickly
-const DENSITY_DISSIPATION = 0.9 // how quickly the oil fades
-const SPLAT_RADIUS = 0.16 // percent of the screen
-const SPLAT_FORCE = 2600
+const VELOCITY_DISSIPATION = 2.2 // viscous: the ribbon stays where it's drawn instead of spreading
+const DENSITY_DISSIPATION = 1.5 // how quickly the oil fades
+const SPLAT_RADIUS = 0.035 // percent of the screen: a thin ribbon
+const SPLAT_FORCE = 2200
 const MAX_STEP = 0.04 // limits a single jump of the mouse, so a flick doesn't flood the screen
 const SLEEP_AFTER_MS = 5500
 
@@ -24,7 +24,7 @@ const PALETTE = [
   [0.71, 0.52, 0.18],
   [1.0, 0.9, 0.66],
 ]
-const INTENSITY = 0.22
+const INTENSITY = 0.3
 
 const VERT = `
 precision highp float;
