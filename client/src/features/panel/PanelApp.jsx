@@ -26,7 +26,7 @@ const NAV = [
     group: 'Website',
     items: [
       { to: '/panel/site', label: 'Sections & maintenance' },
-      { to: '/panel/chat', label: 'Website chat' },
+      { to: '/panel/chat', label: 'Rules help chat' },
     ],
   },
   {

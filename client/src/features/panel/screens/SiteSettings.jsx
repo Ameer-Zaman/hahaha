@@ -14,7 +14,7 @@ const SECTIONS = [
   { key: 'dhadhas', label: 'Dhadhas', path: '/dhadhas', note: 'In the Factions menu' },
   { key: 'leaderboard', label: 'Leaderboard', path: '/leaderboard' },
   { key: 'rules', label: 'Rules', path: '/rules' },
-  { key: 'chat', label: 'Website chat', path: '', note: 'The chat button on every page' },
+  { key: 'chat', label: 'Rules help chat', path: '', note: 'The chat button on every page' },
 ]
 
 /**

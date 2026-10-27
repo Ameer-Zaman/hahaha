@@ -427,3 +427,98 @@
     animation: none;
   }
 }
+
+/* ---- rules answers ---- */
+.chatw__msg.has-rules {
+  max-width: 100%;
+}
+.chatw__chips--inline {
+  padding: 0.2rem 0 0;
+}
+.chatw__chip--q {
+  border-style: dashed;
+}
+.chatw__rules {
+  display: grid;
+  gap: 0.5rem;
+}
+.chatw__rule {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgb(227 181 90 / 0.3);
+  border-left: 3px solid var(--cw-gold);
+  border-radius: 10px;
+  background: rgb(227 181 90 / 0.05);
+}
+.chatw__rule-cat {
+  font: 700 0.62rem/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cw-gold);
+}
+.chatw__rule-title {
+  font: 400 1.05rem/1.15 var(--font-display);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.chatw__rule-text {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgb(244 239 230 / 0.85);
+}
+.chatw__rule-link,
+.chatw__rule--compact {
+  justify-self: start;
+  color: #f6e3b0;
+  font-size: 0.82rem;
+  text-decoration: underline;
+  text-decoration-color: rgb(227 181 90 / 0.5);
+  text-underline-offset: 3px;
+}
+.chatw__rule--compact {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--cw-line);
+  border-radius: 10px;
+  background: #141416;
+  color: #f4efe6;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.chatw__rule--compact:hover {
+  border-color: rgb(227 181 90 / 0.5);
+}
+.chatw__rule--compact span {
+  color: var(--cw-gold);
+}
+a.chatw__staff {
+  display: inline-grid;
+  place-items: center;
+  text-decoration: none;
+}
+
+/* ---- ask staff form ---- */
+.chatw__ask {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.85rem;
+  border-top: 1px solid var(--cw-line);
+  background: #0e0e10;
+}
+.chatw__ask-title {
+  margin: 0 0 0.2rem;
+  font: 400 1.05rem/1 var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.chatw__ask-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.chatw__ask-row .chatw__primary {
+  padding: 0 1.1rem;
+}

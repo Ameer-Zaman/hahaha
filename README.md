@@ -165,23 +165,20 @@ Netlify forwards `/api/*` to Render behind the scenes, so the API lives on the w
 - **Audit log** of sign-ins, failed sign-ins and every change.
 - **Secrets** live only in environment variables. `server/.env` is git-ignored.
 
-## Website chat (AI assistant + Discord)
+## Rules help chat (free) + Discord
 
-A gold chat button sits in the corner of every page. The **AI assistant** answers first, from your published rules, the gang and club names, and the notes you write in **Panel → Website chat**. When it can't help, or the visitor taps **Talk to staff**, the bot opens a **thread in your Discord** with the conversation so far; staff reply in that thread and the reply appears in the visitor's chat window. In a thread, `!close` ends the chat and `!block` stops that visitor. Switch the chat off in **Panel → Sections & maintenance**.
+A gold chat button sits in the corner of every page. Visitors ask about the rules ("can I RDM?", "what is NLR?") and get the matching rules straight from the rule book, with a link to each one on the Rules page. It runs in the visitor's browser — free, instant, no AI and no API key — and it only ever quotes the real rules (the published rule book, or the draft while nothing is published). Common slang is understood (RDM, VDM, NLR, meta, cops, mod menu, banned …).
 
-**AI (Anthropic)**
-1. console.anthropic.com → sign up → **Billing**: add a few dollars of credit → **API keys** → **Create key**.
-2. Render → `shyastha-api` → **Environment** → `ANTHROPIC_API_KEY` = the key. Never paste it anywhere else.
-3. It uses Claude Haiku (cheap: a reply costs a tiny fraction of a cent). `CHAT_AI_DAILY_LIMIT` (default 600 replies a day) caps the cost.
+When no rule fits, **Ask staff** sends the question to a **thread in your Discord**; staff reply in that thread and the reply appears in the visitor's chat window. In a thread, `!close` ends the chat and `!block` stops that visitor. Without the Discord bot, visitors get a link to your Discord instead. Switch the chat off in **Panel → Sections & maintenance**.
 
-**Discord bot**
+**Discord bot (free)**
 1. discord.com/developers/applications → **New Application** → **Bot**: **Reset Token** and copy it; turn on **Message Content Intent**.
 2. **OAuth2 → URL Generator**: scope `bot`; permissions *View Channels, Send Messages, Create Public Threads, Send Messages in Threads, Read Message History, Add Reactions* → open the link and add the bot to your server.
-3. Create a private channel, e.g. `#website-chat`, visible to staff and the bot. Discord → Settings → Advanced → **Developer Mode** on, then right-click the channel → **Copy Channel ID**.
-4. Render → Environment: `DISCORD_BOT_TOKEN` = the token, `DISCORD_CHAT_CHANNEL_ID` = the channel id, optionally `DISCORD_STAFF_ROLE_ID` (right-click your staff role → Copy Role ID) to ping staff on each new chat. Save; the server restarts.
-5. Panel → Website chat should show both as **Connected**.
+3. Create a private channel, e.g. `#website-questions`, visible to staff and the bot. Discord → Settings → Advanced → **Developer Mode** on, then right-click the channel → **Copy Channel ID**.
+4. Render → `shyastha-api` → **Environment**: `DISCORD_BOT_TOKEN` = the token, `DISCORD_CHAT_CHANNEL_ID` = the channel id, optionally `DISCORD_STAFF_ROLE_ID` (right-click your staff role → Copy Role ID) to ping staff on each question. Save; the server restarts.
+5. Panel → Rules help chat should show Discord as **Connected**.
 
-The bot runs inside the API server, so the server has to stay awake: use Render's paid **Starter** plan. Visitors can't send links, messages are rate-limited, and chats are deleted 30 days after the last message.
+The bot lives in the API server, so it's only online while the server is awake. On Render's free plan the server sleeps after 15 minutes without visitors; the repo's "keep API awake" GitHub workflow pings it every 10 minutes to prevent that. Visitors can't send links, messages are rate-limited, and chats are deleted 30 days after the last message.
 
 ## Importing players from JSON
 

@@ -206,6 +206,5 @@ export const settingsMediaSchema = z.object({
 })
 
 /* ---- website chat ---- */
-export const chatStartSchema = z.object({ name: text(30).min(1, 'Enter a name') })
+export const chatStartSchema = z.object({ name: text(30).min(1, 'Enter a name'), text: text(600).min(1, 'Write your question') })
 export const chatMessageSchema = z.object({ text: text(600).min(1, 'Write a message') })
-export const chatKnowledgeSchema = z.object({ knowledge: z.string().max(8000) })

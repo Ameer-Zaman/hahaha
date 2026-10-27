@@ -8,14 +8,14 @@ import { HttpError } from '../middleware/errors.js'
 import { validateBody } from '../middleware/validate.js'
 import { ChatSession } from '../models/ChatSession.js'
 import { Settings } from '../models/Settings.js'
-import { aiReply, aiStatus } from '../services/chatAi.js'
 import { discordReady, fakeDiscordLog, fakeStaffReply, isFakeDiscord, noteInThread, onStaffMessage, openThread, sendToThread } from '../services/discordBridge.js'
 import { chatMessageSchema, chatStartSchema } from '../validation/schemas.js'
 
 /**
- * Website chat for visitors. A chat starts with a nickname; the visitor gets a secret token
- * (kept in their browser) that is needed to read or write it. The AI answers first; "Talk to
- * staff" (or the AI itself) moves the chat to a Discord thread, and staff replies come back here.
+ * Website chat → staff. The rules questions are answered in the browser (no server, no AI);
+ * when a visitor can't find their answer, "Ask staff" starts a chat here: the question goes to
+ * a Discord thread and staff replies come back. The visitor gets a secret token (kept in their
+ * browser) that is needed to read or write their chat.
  */
 const router = Router()
 router.use((req, res, next) => {
@@ -38,7 +38,6 @@ const view = (session, after = 0) => ({
   id: session.publicId,
   status: session.status,
   blocked: session.blocked,
-  staffAvailable: discordReady(),
   total: session.messages.length,
   messages: session.messages.slice(after).map((m) => ({ from: m.from, name: m.from === 'staff' ? m.name : '', text: m.text, at: m.at })),
 })
@@ -59,21 +58,10 @@ const push = (session, from, text, name = '') => {
   session.lastAt = new Date()
 }
 
-async function handOff(session) {
-  if (session.status === 'staff') return
-  if (!discordReady()) {
-    push(session, 'bot', `Staff chat is offline right now. You can reach the team on our Discord: ${env.chat.discordInvite}`)
-    return
-  }
-  try {
-    session.threadId = await openThread(session)
-    session.status = 'staff'
-    push(session, 'system', 'A staff member has been asked to join. Replies appear here — you can keep this window open or come back later.')
-  } catch (err) {
-    console.error('Chat hand-off failed:', err.message)
-    push(session, 'bot', `I couldn’t reach the staff just now. Please try again in a minute, or message us on Discord: ${env.chat.discordInvite}`)
-  }
-}
+/** Whether "Ask staff" can be offered right now (the rules search itself runs in the browser). */
+router.get('/status', async (req, res) => {
+  res.json({ on: await chatOn(), staffAvailable: discordReady(), discordInvite: env.chat.discordInvite })
+})
 
 // local testing only (DISCORD_BOT_TOKEN=fake): play the staff side, and see what reached "Discord"
 if (isFakeDiscord()) {
@@ -84,23 +72,24 @@ if (isFakeDiscord()) {
   })
 }
 
+/** "Ask staff": opens a Discord thread with the visitor's question. */
 router.post('/start', startLimiter, validateBody(chatStartSchema), async (req, res) => {
   if (!(await chatOn())) throw new HttpError(403, 'The chat is switched off right now.')
+  if (!discordReady()) throw new HttpError(503, `Staff chat is offline right now. You can ask on our Discord: ${env.chat.discordInvite}`)
   const token = randomBytes(24).toString('base64url')
-  const nickname = req.body.name.replace(/[\r\n<>]/g, ' ').trim()
   const session = new ChatSession({
     publicId: randomBytes(9).toString('base64url'),
     tokenHash: hash(token).toString('hex'),
-    nickname,
-    messages: [
-      {
-        from: 'bot',
-        text: aiStatus().enabled
-          ? `Hi ${nickname}! I’m the ${env.chat.siteName} assistant. Ask me anything about the city, the rules or how to join — or tap “Talk to staff” to reach a person.`
-          : `Hi ${nickname}! Write your question and tap “Talk to staff” — the team will answer here.`,
-      },
-    ],
+    nickname: req.body.name.replace(/[\r\n<>]/g, ' ').trim(),
   })
+  push(session, 'visitor', req.body.text.replace(LINK, '[link removed]'))
+  try {
+    session.threadId = await openThread(session)
+  } catch (err) {
+    console.error('Chat: could not open a Discord thread:', err.message)
+    throw new HttpError(503, `Couldn’t reach the staff just now. Try again in a minute, or ask on our Discord: ${env.chat.discordInvite}`)
+  }
+  push(session, 'system', 'Sent to the staff team. Their reply will appear here — you can keep this open or come back later.')
   await session.save()
   res.status(201).json({ token, ...view(session) })
 })
@@ -116,38 +105,13 @@ router.post('/:id/messages', messageLimiter, validateBody(chatMessageSchema), as
   if (session.blocked) throw new HttpError(403, 'This chat has been closed by the staff.')
   const after = session.messages.length
   const text = req.body.text.replace(LINK, '[link removed]')
-  if (session.status === 'closed') session.status = session.threadId ? 'staff' : 'bot'
+  session.status = 'staff'
   push(session, 'visitor', text)
-
-  if (session.status === 'staff') {
-    try {
-      await sendToThread(session.threadId, session.nickname, text)
-    } catch {
-      push(session, 'system', 'Your message is saved, but the staff chat is offline right now.')
-    }
-  } else if (session.aiReplies >= 25) {
-    push(session, 'bot', 'I’ve answered a lot in this chat — tap “Talk to staff” for anything else.')
-  } else {
-    try {
-      const reply = await aiReply(session.messages)
-      session.aiReplies += 1
-      if (reply.text) push(session, 'bot', reply.text)
-      if (reply.handoff) await handOff(session)
-    } catch (err) {
-      if (err.message !== 'ai-off') console.error('Chat AI:', err.message)
-      if (err.message === 'ai-off') push(session, 'bot', 'Tap “Talk to staff” and the team will answer here.')
-      else push(session, 'bot', 'I can’t answer right now. Tap “Talk to staff” to reach the team.')
-    }
+  try {
+    await sendToThread(session.threadId, session.nickname, text)
+  } catch {
+    push(session, 'system', 'Your message is saved, but the staff chat is offline right now.')
   }
-  await session.save()
-  res.json(view(session, after))
-})
-
-router.post('/:id/staff', messageLimiter, async (req, res) => {
-  const session = await loadSession(req)
-  if (session.blocked) throw new HttpError(403, 'This chat has been closed by the staff.')
-  const after = session.messages.length
-  await handOff(session)
   await session.save()
   res.json(view(session, after))
 })

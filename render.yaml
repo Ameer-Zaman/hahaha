@@ -33,9 +33,7 @@ services:
       # to Cloudinary and are delivered from its CDN; leave it out to store them in the database.
       - key: CLOUDINARY_URL
         sync: false
-      # Website chat (optional): AI assistant + Discord hand-off. See README "Website chat".
-      - key: ANTHROPIC_API_KEY
-        sync: false
+      # Rules help chat → Discord (optional). See README "Rules help chat".
       - key: DISCORD_BOT_TOKEN
         sync: false
       - key: DISCORD_CHAT_CHANNEL_ID

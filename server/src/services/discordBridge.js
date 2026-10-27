@@ -95,10 +95,10 @@ export async function openThread(session) {
   const lines = session.messages
     .filter((m) => m.from !== 'system')
     .slice(-15)
-    .map((m) => `**${m.from === 'visitor' ? session.nickname : m.from === 'bot' ? 'Assistant' : m.name}:** ${m.text}`)
+    .map((m) => `**${m.from === 'visitor' ? session.nickname : m.name || 'Website'}:** ${m.text}`)
   const ping = env.chat.discordStaffRoleId ? `<@&${env.chat.discordStaffRoleId}> ` : ''
   await thread.send({
-    content: clean(`${lines.join('\n')}`) + `\n\n${ping}**${clean(session.nickname)}** wants to talk to staff from the website. Reply in this thread — your messages appear in their chat. \`!close\` ends it, \`!block\` blocks them.`,
+    content: clean(`${lines.join('\n')}`) + `\n\n${ping}**${clean(session.nickname)}** has a question from the website (not answered by the rules). Reply in this thread — your messages appear in their chat. \`!close\` ends it, \`!block\` blocks them.`,
     allowedMentions: { roles: env.chat.discordStaffRoleId ? [env.chat.discordStaffRoleId] : [] },
   })
   return thread.id

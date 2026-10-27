@@ -32,8 +32,6 @@ const settingsSchema = new mongoose.Schema(
     },
     /** Which sections show in the menu and can be opened (missing key = on). */
     sections: { type: Object, default: defaultSections },
-    /** Website chat: extra facts and answers for the AI assistant, written by the team. */
-    chatKnowledge: { type: String, default: '', maxlength: 8000 },
     /** Maintenance mode: visitors see a "be right back" screen; the panel keeps working. */
     maintenance: {
       on: { type: Boolean, default: false },

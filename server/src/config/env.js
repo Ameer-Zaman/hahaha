@@ -64,18 +64,11 @@ export const env = {
   },
   cloudinary,
   /**
-   * Website chat (optional). AI answers with ANTHROPIC_API_KEY; "Talk to staff" opens a thread
-   * in a Discord channel with DISCORD_BOT_TOKEN + DISCORD_CHAT_CHANNEL_ID. Without them the chat
-   * still works, it just says that part isn't available.
+   * Website chat → Discord (optional): when a visitor can't find a rule, "Ask staff" opens a
+   * thread in a Discord channel. Needs DISCORD_BOT_TOKEN + DISCORD_CHAT_CHANNEL_ID.
    */
   chat: {
-    siteName: process.env.SITE_NAME ?? 'Rameirah Empire',
     discordInvite: process.env.PUBLIC_DISCORD_INVITE ?? 'https://discord.gg/Dtd3DSej6',
-    aiKey: process.env.ANTHROPIC_API_KEY ?? '',
-    aiModel: process.env.CHAT_AI_MODEL ?? 'claude-haiku-5-5',
-    aiDailyLimit: Number(process.env.CHAT_AI_DAILY_LIMIT ?? 600),
-    // overridable for tests only
-    aiBase: (process.env.CHAT_AI_BASE ?? 'https://api.anthropic.com').replace(/\/$/, ''),
     discordToken: process.env.DISCORD_BOT_TOKEN ?? '',
     discordChannelId: process.env.DISCORD_CHAT_CHANNEL_ID ?? '',
     discordStaffRoleId: process.env.DISCORD_STAFF_ROLE_ID ?? '',
