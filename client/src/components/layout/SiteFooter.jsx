@@ -2,73 +2,51 @@ import { Link } from 'react-router-dom'
 
 import { applyLink, communityLinks, site } from '../../config/site'
 import { useNavigation } from '../../lib/siteSettings'
-import Arrow from '../ui/Arrow'
+import ApplyLink from '../ui/ApplyLink'
 import BrandMark from '../ui/BrandMark'
 import './footer.css'
-import ApplyLink from '../ui/ApplyLink'
 
 const YEAR = new Date().getFullYear()
 
+/** A compact footer: the name, the page links in one row, community links + Apply, and the small print. */
 export default function SiteFooter() {
   const links = communityLinks.filter((link) => link.url)
   const { links: navigation } = useNavigation()
 
   return (
     <footer className="site-footer theme-black">
-      <div className="container site-footer__grid">
-        <div className="site-footer__brand">
-          <p className="site-footer__name">
-            <BrandMark className="site-footer__mark" />
-            {site.name}
-          </p>
-          <p className="site-footer__desc">{site.description}</p>
-          <ApplyLink className="btn btn--primary">
-            {applyLink.label} <Arrow />
-          </ApplyLink>
-        </div>
+      <div className="container site-footer__row">
+        <Link to="/" className="site-footer__name">
+          <BrandMark className="site-footer__mark" />
+          {site.name}
+        </Link>
 
-        <nav className="site-footer__col" aria-label="Footer">
-          <h2 className="site-footer__heading">Explore</h2>
+        <nav className="site-footer__nav" aria-label="Footer">
           <ul role="list">
             {navigation.map((item) => (
               <li key={item.to}>
                 <Link to={item.to}>{item.label}</Link>
               </li>
             ))}
-            <li>
-              <ApplyLink>{applyLink.label}</ApplyLink>
-            </li>
           </ul>
         </nav>
 
-        <div className="site-footer__col">
-          <h2 className="site-footer__heading">Community</h2>
-          {links.length > 0 ? (
-            <ul role="list">
-              {links.map((link) => (
-                <li key={link.id}>
-                  <a href={link.url} target="_blank" rel="noopener noreferrer">
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="site-footer__muted">Official links will be published here.</p>
-          )}
+        <div className="site-footer__end">
+          {links.map((link) => (
+            <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer" className="site-footer__community">
+              {link.label}
+            </a>
+          ))}
+          <ApplyLink className="btn btn--primary btn--small site-footer__apply">{applyLink.label}</ApplyLink>
         </div>
       </div>
 
       <div className="container site-footer__base">
         <p>
-          © {YEAR} {site.name}. All rights reserved.
+          © {YEAR} {site.name}
         </p>
-        <p className="site-footer__legal">
-          Not affiliated with Rockstar Games, Take-Two Interactive or Cfx.re.
-        </p>
-        <p className="site-footer__status">
-          {site.launch.isLive ? 'The city is open' : 'Launching soon — apply now'}
-        </p>
+        <p>Not affiliated with Rockstar Games, Take-Two Interactive or Cfx.re.</p>
+        <p className="site-footer__status">{site.launch.isLive ? 'The city is open' : 'Launching soon'}</p>
       </div>
     </footer>
   )
