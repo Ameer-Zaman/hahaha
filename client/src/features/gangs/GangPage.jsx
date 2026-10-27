@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import Plate from '../../components/media/Plate'
 import GangsLoading from './components/GangsLoading'
@@ -94,6 +94,19 @@ function GangDetail({ file, prev, next, total }) {
     return () => window.clearTimeout(id)
   }, [])
 
+  // ← / → on the keyboard go to the previous / next gang (not while typing or in a pop-up)
+  const navigate = useNavigate()
+  useEffect(() => {
+    if (total < 2) return undefined
+    const onKey = (e) => {
+      if (open || e.altKey || e.ctrlKey || e.metaKey || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable) return
+      if (e.key === 'ArrowLeft') navigate(`/gangs/${prev.slug}`)
+      if (e.key === 'ArrowRight') navigate(`/gangs/${next.slug}`)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open, prev.slug, next.slug, total, navigate])
+
   useGSAP(
     () => {
       const mm = gsap.matchMedia()
@@ -135,6 +148,12 @@ function GangDetail({ file, prev, next, total }) {
           </Plate>
         </div>
         <div className="gx-hero__shade" aria-hidden="true" />
+        {total > 1 && (
+          <>
+            <GangArrow file={prev} dir="prev" />
+            <GangArrow file={next} dir="next" />
+          </>
+        )}
 
         <div className="container gx-hero__inner">
           <Link to="/gangs" state={{ focus: file.slug }} className="gx-back">
@@ -249,12 +268,8 @@ function GangDetail({ file, prev, next, total }) {
 
         {total > 1 && (
           <nav className="gx-pager" aria-label="Other gangs">
-            <Link to={`/gangs/${prev.slug}`}>
-              <span aria-hidden="true">«</span> {prev.title}
-            </Link>
-            <Link to={`/gangs/${next.slug}`}>
-              {next.title} <span aria-hidden="true">»</span>
-            </Link>
+            <GangLink file={prev} dir="prev" />
+            <GangLink file={next} dir="next" />
           </nav>
         )}
       </div>
@@ -314,6 +329,53 @@ function GangDetail({ file, prev, next, total }) {
         )}
       </Popup>
     </div>
+  )
+}
+
+/** A gang's small picture: its emblem, else its card image, else its skyline. */
+function GangThumb({ file }) {
+  return (
+    <span className="gx-thumb" aria-hidden="true">
+      <Plate image={file.emblem ?? file.image} seed={file.scene.seed} horizon={file.scene.horizon} />
+    </span>
+  )
+}
+
+const DIR = { prev: { word: 'Previous gang', glyph: '‹' }, next: { word: 'Next gang', glyph: '›' } }
+
+/** Big arrow at the side of the title scene; opens out to show the neighbouring gang. */
+function GangArrow({ file, dir }) {
+  return (
+    <Link to={`/gangs/${file.slug}`} className={`gx-arrow gx-arrow--${dir}`} aria-label={`${DIR[dir].word}: ${file.title}`}>
+      <span className="gx-arrow__glyph" aria-hidden="true">
+        {DIR[dir].glyph}
+      </span>
+      <span className="gx-arrow__peek" aria-hidden="true">
+        <GangThumb file={file} />
+        <span className="gx-arrow__text">
+          <span className="gx-arrow__dir">{DIR[dir].word}</span>
+          <span className="gx-arrow__name">{file.title}</span>
+        </span>
+      </span>
+    </Link>
+  )
+}
+
+/** The previous / next gang at the bottom of the page, with its picture. */
+function GangLink({ file, dir }) {
+  return (
+    <Link to={`/gangs/${file.slug}`} className={`gx-next gx-next--${dir}`}>
+      <span className="gx-next__glyph" aria-hidden="true">
+        {DIR[dir].glyph}
+      </span>
+      <GangThumb file={file} />
+      <span className="gx-next__text">
+        <span className="gx-next__dir">
+          {DIR[dir].word} · {formatFileNumber(file.number)}
+        </span>
+        <span className="gx-next__name">{file.title}</span>
+      </span>
+    </Link>
   )
 }
 
