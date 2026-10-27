@@ -14,6 +14,7 @@ const SECTIONS = [
   { key: 'dhadhas', label: 'Dhadhas', path: '/dhadhas', note: 'In the Factions menu' },
   { key: 'leaderboard', label: 'Leaderboard', path: '/leaderboard' },
   { key: 'rules', label: 'Rules', path: '/rules' },
+  { key: 'chat', label: 'Website chat', path: '', note: 'The chat button on every page' },
 ]
 
 /**
@@ -123,7 +124,7 @@ function SettingsForm({ data, setData }) {
             return (
               <li key={s.key} className={`p-sections__row ${on ? '' : 'is-off'}`}>
                 <span className="p-sections__name">
-                  {s.label} <code>{s.path}</code>
+                  {s.label} {s.path && <code>{s.path}</code>}
                 </span>
                 <span className="p-sections__note">{s.note ?? ''}</span>
                 <Switch checked={on} onChange={(v) => setSections((cur) => ({ ...cur, [s.key]: v }))} label={on ? 'On' : 'Off'} />

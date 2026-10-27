@@ -9,6 +9,7 @@ import { Account, Accounts, AuditLog } from './screens/Accounts'
 import Dashboard from './screens/Dashboard'
 import { GangEditor, GangList } from './screens/Gangs'
 import { ClubEditor, ClubList } from './screens/Clubs'
+import Chat from './screens/Chat'
 import Login from './screens/Login'
 import { MediaLibrary, SiteMedia } from './screens/MediaScreens'
 import Rules from './screens/Rules'
@@ -21,7 +22,13 @@ import './panel.css'
 
 const NAV = [
   { group: null, items: [{ to: '/panel', label: 'Overview', end: true }] },
-  { group: 'Website', items: [{ to: '/panel/site', label: 'Sections & maintenance' }] },
+  {
+    group: 'Website',
+    items: [
+      { to: '/panel/site', label: 'Sections & maintenance' },
+      { to: '/panel/chat', label: 'Website chat' },
+    ],
+  },
   {
     group: 'Content',
     items: [
@@ -200,6 +207,7 @@ function Shell() {
           <Route path="media" element={<MediaLibrary />} />
           <Route path="site-media" element={<SiteMedia />} />
           <Route path="site" element={<SiteSettings />} />
+          <Route path="chat" element={<Chat />} />
           <Route path="account" element={<Account />} />
           {isSuper && <Route path="accounts" element={<Accounts />} />}
           {isSuper && <Route path="audit" element={<AuditLog />} />}

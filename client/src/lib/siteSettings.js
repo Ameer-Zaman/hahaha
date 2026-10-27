@@ -14,7 +14,7 @@ import { usePublic } from './publicData'
  * itself out because the server is asleep).
  */
 const STORAGE_KEY = 'shy-site-settings'
-const ALL_ON = { story: true, staff: true, gangs: true, clubs: true, dhadhas: true, leaderboard: true, rules: true }
+const ALL_ON = { story: true, staff: true, gangs: true, clubs: true, dhadhas: true, leaderboard: true, rules: true, chat: true }
 const DEFAULTS = { sections: ALL_ON, maintenance: { on: false, message: '' } }
 
 /** The section a path belongs to, or null for pages that are always on. */

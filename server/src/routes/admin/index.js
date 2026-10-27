@@ -9,6 +9,7 @@ import { Staff } from '../../models/Staff.js'
 import { War } from '../../models/War.js'
 import { AuditLog } from '../../models/AuditLog.js'
 import auditRoutes from './audit.js'
+import chat from './chat.js'
 import clubs from './clubs.js'
 import gangs from './gangs.js'
 import media from './media.js'
@@ -64,6 +65,7 @@ router.get('/overview', staffRoles, async (req, res) => {
 
 router.use('/gangs', staffRoles, gangs)
 router.use('/clubs', staffRoles, clubs)
+router.use('/chat', staffRoles, chat)
 router.use('/wars', staffRoles, wars)
 router.use('/staff', staffRoles, staff)
 router.use('/tdm', staffRoles, tdm)

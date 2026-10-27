@@ -180,7 +180,7 @@ export const ruleBookSchema = z.object({
 
 export const settingsSiteSchema = z
   .object({
-    sections: z.partialRecord(z.enum(['story', 'staff', 'gangs', 'clubs', 'dhadhas', 'leaderboard', 'rules']), z.boolean()).optional(),
+    sections: z.partialRecord(z.enum(['story', 'staff', 'gangs', 'clubs', 'dhadhas', 'leaderboard', 'rules', 'chat']), z.boolean()).optional(),
     maintenance: z
       .object({
         on: z.boolean(),
@@ -204,3 +204,8 @@ export const cloudUploadSchema = z.object({
 export const settingsMediaSchema = z.object({
   media: z.record(z.string(), z.string().regex(/^[a-f0-9]{24}$/).nullable()),
 })
+
+/* ---- website chat ---- */
+export const chatStartSchema = z.object({ name: text(30).min(1, 'Enter a name') })
+export const chatMessageSchema = z.object({ text: text(600).min(1, 'Write a message') })
+export const chatKnowledgeSchema = z.object({ knowledge: z.string().max(8000) })

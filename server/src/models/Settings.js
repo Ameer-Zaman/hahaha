@@ -12,7 +12,7 @@ export const MEDIA_SLOTS = [
 ]
 
 /** Website sections that can be switched off from the panel (Home is always on). */
-export const SECTION_KEYS = ['story', 'staff', 'gangs', 'clubs', 'dhadhas', 'leaderboard', 'rules']
+export const SECTION_KEYS = ['story', 'staff', 'gangs', 'clubs', 'dhadhas', 'leaderboard', 'rules', 'chat']
 
 export const defaultSections = () => Object.fromEntries(SECTION_KEYS.map((key) => [key, true]))
 
@@ -32,6 +32,8 @@ const settingsSchema = new mongoose.Schema(
     },
     /** Which sections show in the menu and can be opened (missing key = on). */
     sections: { type: Object, default: defaultSections },
+    /** Website chat: extra facts and answers for the AI assistant, written by the team. */
+    chatKnowledge: { type: String, default: '', maxlength: 8000 },
     /** Maintenance mode: visitors see a "be right back" screen; the panel keeps working. */
     maintenance: {
       on: { type: Boolean, default: false },

@@ -2,10 +2,12 @@ import { env } from './config/env.js'
 import { createApp } from './app.js'
 import { connectDb, disconnectDb } from './db.js'
 import { bootstrapSuperAdmin } from './services/bootstrap.js'
+import { startDiscord } from './services/discordBridge.js'
 
 async function main() {
   await connectDb()
   await bootstrapSuperAdmin()
+  startDiscord() // website chat → Discord (optional; logs and carries on if it can't connect)
   const server = createApp().listen(env.port, () => {
     console.log(`Rameirah Empire API listening on port ${env.port}`)
   })

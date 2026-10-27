@@ -10,6 +10,7 @@ import { authenticateUpload } from './middleware/uploadToken.js'
 import adminRoutes from './routes/admin/index.js'
 import { handleUpload, upload } from './routes/admin/media.js'
 import authRoutes from './routes/auth.js'
+import chatRoutes from './routes/chat.js'
 import mediaRoutes from './routes/media.js'
 import publicRoutes from './routes/public.js'
 
@@ -29,6 +30,7 @@ export function createApp() {
 
   app.use('/api/public', publicRoutes)
   app.use('/api/media', mediaRoutes)
+  app.use('/api/chat', checkOrigin, chatRoutes)
   app.use('/api/auth', checkOrigin, authRoutes)
   app.use('/api/admin', checkOrigin, adminRoutes)
   // Direct upload (bypasses the website proxy for big videos). Token-authenticated, no cookies.

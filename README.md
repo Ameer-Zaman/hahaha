@@ -165,6 +165,24 @@ Netlify forwards `/api/*` to Render behind the scenes, so the API lives on the w
 - **Audit log** of sign-ins, failed sign-ins and every change.
 - **Secrets** live only in environment variables. `server/.env` is git-ignored.
 
+## Website chat (AI assistant + Discord)
+
+A gold chat button sits in the corner of every page. The **AI assistant** answers first, from your published rules, the gang and club names, and the notes you write in **Panel → Website chat**. When it can't help, or the visitor taps **Talk to staff**, the bot opens a **thread in your Discord** with the conversation so far; staff reply in that thread and the reply appears in the visitor's chat window. In a thread, `!close` ends the chat and `!block` stops that visitor. Switch the chat off in **Panel → Sections & maintenance**.
+
+**AI (Anthropic)**
+1. console.anthropic.com → sign up → **Billing**: add a few dollars of credit → **API keys** → **Create key**.
+2. Render → `shyastha-api` → **Environment** → `ANTHROPIC_API_KEY` = the key. Never paste it anywhere else.
+3. It uses Claude Haiku (cheap: a reply costs a tiny fraction of a cent). `CHAT_AI_DAILY_LIMIT` (default 600 replies a day) caps the cost.
+
+**Discord bot**
+1. discord.com/developers/applications → **New Application** → **Bot**: **Reset Token** and copy it; turn on **Message Content Intent**.
+2. **OAuth2 → URL Generator**: scope `bot`; permissions *View Channels, Send Messages, Create Public Threads, Send Messages in Threads, Read Message History, Add Reactions* → open the link and add the bot to your server.
+3. Create a private channel, e.g. `#website-chat`, visible to staff and the bot. Discord → Settings → Advanced → **Developer Mode** on, then right-click the channel → **Copy Channel ID**.
+4. Render → Environment: `DISCORD_BOT_TOKEN` = the token, `DISCORD_CHAT_CHANNEL_ID` = the channel id, optionally `DISCORD_STAFF_ROLE_ID` (right-click your staff role → Copy Role ID) to ping staff on each new chat. Save; the server restarts.
+5. Panel → Website chat should show both as **Connected**.
+
+The bot runs inside the API server, so the server has to stay awake: use Render's paid **Starter** plan. Visitors can't send links, messages are rate-limited, and chats are deleted 30 days after the last message.
+
 ## Importing players from JSON
 
 **Gangs → Import players (JSON)** fills several gangs at once. **Import JSON** on a gang's own page fills just that gang; press Save afterwards. Paste the JSON or choose a `.json` file, check the preview, then pick one:
