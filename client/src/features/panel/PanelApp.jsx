@@ -111,7 +111,7 @@ function NotConnected({ reason }) {
         </p>
         <h1 className="p-login__title">Server not connected</h1>
         <p className="p-login__sub">
-          The admin panel signs in through the Shyastha API server, and this website isn't connected to one
+          The admin panel signs in through the website's API server, and this website isn't connected to one
           {reason === 'off' ? ' (it was built with VITE_USE_API=false).' : ' yet.'}
         </p>
         <ol className="p-steps">

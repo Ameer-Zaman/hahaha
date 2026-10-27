@@ -17,7 +17,7 @@
 }
 
 .loader__inner {
-  width: min(78vw, 22rem);
+  width: min(86vw, 30rem);
   animation: loader-in 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .loader.is-leaving .loader__inner {
@@ -34,8 +34,9 @@
 .loader__name {
   margin: 0 0 1.1rem;
   font-family: var(--font-display, 'Anton', sans-serif);
-  font-size: clamp(2.2rem, 7vw, 3.2rem);
+  font-size: clamp(1.9rem, 8.4vw, 3.2rem);
   line-height: 1;
+  white-space: nowrap;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   text-align: center;

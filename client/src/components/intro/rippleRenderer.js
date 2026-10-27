@@ -182,7 +182,7 @@ export function createRipple(canvas, paint) {
   }
 }
 
-/** Paints the royal, minimal welcome card: "Welcome to" · SHYASTHA · a gold hairline. */
+/** Paints the royal, minimal welcome card: "Welcome to" · the name · a gold hairline. */
 /**
  * The welcome card, painted for the water canvas — the same design as the DOM card:
  * the name huge in ivory, a gold handwritten "Welcome to" across its top, a small line below.

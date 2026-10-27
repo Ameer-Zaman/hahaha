@@ -1,4 +1,4 @@
-# Shyastha — FiveM community website + admin panel
+# Rameirah Empire — FiveM community website + admin panel
 
 ```
 client/   the website (React + Vite) — hosted on Netlify

@@ -21,7 +21,7 @@ export const chapters = [
     scene: { seed: 311, horizon: 0.74, tint: 'gold' },
     lead: 'Nobody arrives here by accident.',
     body: [
-      'Shyastha is a serious roleplay city: a place where every character has a past, every deal has a price, and every choice leaves a mark on the streets.',
+      'Rameirah Empire is a serious roleplay city: a place where every character has a past, every deal has a price, and every choice leaves a mark on the streets.',
       'It never sleeps and it never forgets. What happens next is up to the people who walk it.',
     ],
     cards: [

@@ -7,7 +7,7 @@ async function main() {
   await connectDb()
   await bootstrapSuperAdmin()
   const server = createApp().listen(env.port, () => {
-    console.log(`Shyastha API listening on port ${env.port}`)
+    console.log(`Rameirah Empire API listening on port ${env.port}`)
   })
 
   const shutdown = async (signal) => {

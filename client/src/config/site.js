@@ -7,7 +7,7 @@
 
 export const site = {
   /** The community's name. Used in the header, hero, footer and <title>. */
-  name: 'Shyastha',
+  name: 'Rameirah Empire',
 
   /** Short line under the name in the hero. Keep it factual: the server has not launched. */
   tagline: 'A serious roleplay city, in preparation.',

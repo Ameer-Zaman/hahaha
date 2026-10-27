@@ -67,7 +67,7 @@ export default function DhadhasPage() {
         </div>
 
         <div className="dhadhas__copy">
-          <p className="dhadhas__lede">A new faction is on its way to Shyastha. Who they are and how to join will be announced on our Discord.</p>
+          <p className="dhadhas__lede">A new faction is on its way to Rameirah Empire. Who they are and how to join will be announced on our Discord.</p>
           <div className="dhadhas__actions">
             <ApplyLink className="btn btn--primary btn--large">Get updates on Discord</ApplyLink>
             <Link to="/gangs" className="btn btn--ghost btn--large">

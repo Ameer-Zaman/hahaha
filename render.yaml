@@ -1,4 +1,4 @@
-# Render Blueprint: the Shyastha API + admin backend (server/).
+# Render Blueprint: the Rameirah Empire API + admin backend (server/).
 # On Render: New → Blueprint → pick this repo. Render asks for the values marked sync: false.
 # The website is a separate static site (Render or Netlify): see README step 4 to forward /api to this service.
 services:

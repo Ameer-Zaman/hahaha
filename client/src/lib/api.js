@@ -1,5 +1,5 @@
 /**
- * Tiny client for the Shyastha API. The website always calls its own /api path: Vite forwards
+ * Tiny client for the website API. The website always calls its own /api path: Vite forwards
  * it to the local server in development and Netlify forwards it to Render in production, so
  * the admin session cookie is first-party and no API address is baked into the build.
  */

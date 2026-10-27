@@ -256,7 +256,7 @@ function render(c) {
   })
 }
 
-/* ------------------------------------------------- the Shyastha sound logo */
+/* ------------------------------------------------- the sound logo */
 
 /** Shared output: master compression + a big hall. Returns { bus, reverb }. */
 function chain(c, { level = 0.62, wetLevel = 0.5, hallSeconds = 4.5 } = {}) {

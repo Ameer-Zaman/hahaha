@@ -63,7 +63,7 @@ export default function Hero() {
         priority
       />
       {heroVideo && (
-        <BackgroundVideo key={heroVideo} src={heroVideo} poster={media.hero.videoPoster} label="Shyastha city footage" controls={false} />
+        <BackgroundVideo key={heroVideo} src={heroVideo} poster={media.hero.videoPoster} label="Rameirah Empire city footage" controls={false} />
       )}
       <div className="hero__shade" aria-hidden="true" />
 
