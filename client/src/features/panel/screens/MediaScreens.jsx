@@ -93,32 +93,78 @@ const SLOTS = [
   { group: '“More than a server” posters', slot: 'posterRules', kind: 'image', label: 'Rules poster', fallback: 'public/media/home/rules.jpg' },
 ]
 
+/* Story page: each place has a video and an image (the video plays; the image shows while it loads, or alone) */
+const STORY_CHAPTERS = [
+  { key: 'City', name: 'Chapter one · The City', file: 'city', quote: true },
+  { key: 'Streets', name: 'Chapter two · The Streets', file: 'streets', quote: true },
+  { key: 'Night', name: 'Chapter three · After Dark', file: 'night', quote: false },
+]
+const STORY_PLACES = [
+  { key: 'Scene', label: 'Big scene (moves with the scroll)', file: (f) => f },
+  { key: 'CardA', label: 'Small card 1', file: (f) => `${f}-a` },
+  { key: 'CardB', label: 'Small card 2', file: (f) => `${f}-b` },
+  { key: 'Quote', label: 'Quote scene (after the chapter)', file: (f) => `quote-${f === 'city' ? 1 : 2}` },
+]
+const STORY_SLOTS = STORY_CHAPTERS.flatMap((ch) =>
+  STORY_PLACES.filter((p) => p.key !== 'Quote' || ch.quote).flatMap((p) => [
+    {
+      group: ch.name,
+      slot: `story${ch.key}${p.key}Video`,
+      kind: 'video',
+      label: `${p.label} — video`,
+      fallback: `public/assets/video/story/${p.file(ch.file)}.mp4`,
+    },
+    {
+      group: ch.name,
+      slot: `story${ch.key}${p.key}Image`,
+      kind: 'image',
+      label: `${p.label} — image`,
+      fallback: 'the video above',
+    },
+  ]),
+)
+
 export function SiteMedia() {
+  return <MediaSlotsScreen slots={SLOTS} title="Homepage media" sub="Swap the homepage videos and pictures without a new deploy. Empty slots keep the file shipped with the website." />
+}
+
+export function StoryMedia() {
+  return (
+    <MediaSlotsScreen
+      slots={STORY_SLOTS}
+      title="Story media"
+      sub="Videos and pictures for each chapter of the Story page. Each place takes a video, an image, or both (the image shows while the video loads). Big scenes move with the scroll: export those videos with frequent keyframes (see README → Story page videos)."
+    />
+  )
+}
+
+function MediaSlotsScreen({ slots, title, sub }) {
   const { data, error, loading, reload } = useResource(() => adminApi.get('/settings'))
   if (error) return <ErrorNote message={error} onRetry={reload} />
   if (loading || !data) return <Loading />
-  return <SiteMediaForm initial={data.media ?? {}} />
+  return <SiteMediaForm initial={data.media ?? {}} slots={slots} title={title} sub={sub} />
 }
 
-function SiteMediaForm({ initial }) {
+function SiteMediaForm({ initial, slots: SLOTS, title, sub }) {
   const [media, setMedia] = useState(initial)
-  const [savedJson, setSavedJson] = useState(() => JSON.stringify(initial))
+  const pick = (all) => JSON.stringify(SLOTS.map(({ slot }) => all[slot] ?? null))
+  const [savedJson, setSavedJson] = useState(() => pick(initial))
   const [run, busy] = useAction()
-  const dirty = JSON.stringify(media) !== savedJson
+  const dirty = pick(media) !== savedJson
 
   async function save() {
     const body = Object.fromEntries(SLOTS.map(({ slot }) => [slot, media[slot] ?? null]))
-    const result = await run(() => adminApi.put('/settings/media', { media: body }), 'Homepage media saved')
+    const result = await run(() => adminApi.put('/settings/media', { media: body }), `${title} saved`)
     if (result) {
       setMedia(result.media)
-      setSavedJson(JSON.stringify(result.media))
+      setSavedJson(pick(result.media))
     }
   }
 
   const groups = [...new Set(SLOTS.map((s) => s.group))]
   return (
     <>
-      <PageHead title="Homepage media" sub="Swap the homepage videos and pictures without a new deploy. Empty slots keep the file shipped with the website.">
+      <PageHead title={title} sub={sub}>
         <button type="button" className="pbtn pbtn--gold" onClick={save} disabled={busy || !dirty}>
           {busy ? 'Saving…' : 'Save'}
         </button>
@@ -133,7 +179,7 @@ function SiteMediaForm({ initial }) {
                 kind={s.kind}
                 value={media[s.slot] ?? null}
                 onChange={(id) => setMedia((m) => ({ ...m, [s.slot]: id }))}
-                fallback={`Empty: uses ${s.fallback} (or the illustrated skyline).`}
+                fallback={s.fallback === 'the video above' ? 'Optional: shown while the video loads, or on its own without a video.' : `Empty: uses ${s.fallback} (or the illustrated skyline).`}
               />
             ))}
           </div>

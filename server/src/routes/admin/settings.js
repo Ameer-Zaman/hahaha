@@ -9,7 +9,7 @@ import { settingsMediaSchema, settingsSiteSchema } from '../../validation/schema
 
 const router = Router()
 
-const VIDEO_SLOTS = new Set(['heroVideo', 'welcomeVideo'])
+const VIDEO_SLOTS = new Set(MEDIA_SLOTS.filter((slot) => slot.endsWith('Video')))
 
 const getSettings = async () =>
   (await Settings.findOne({ key: 'main' })) ?? (await Settings.create({ key: 'main' }))

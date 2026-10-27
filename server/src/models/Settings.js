@@ -11,6 +11,22 @@ export const MEDIA_SLOTS = [
   'joinImage',
 ]
 
+/**
+ * Story page media, set in Panel → Story media. Each place in a chapter (the big scene, the two
+ * small cards, the quote) has a video and an image slot: the video plays (the image shows while
+ * it loads), or the image alone. Names: story<Chapter><Place><Video|Image>, e.g. storyCitySceneVideo.
+ * The chapters match client/src/content/story.js.
+ */
+const STORY_PLACES = {
+  City: ['Scene', 'CardA', 'CardB', 'Quote'],
+  Streets: ['Scene', 'CardA', 'CardB', 'Quote'],
+  Night: ['Scene', 'CardA', 'CardB'],
+}
+export const STORY_SLOTS = Object.entries(STORY_PLACES).flatMap(([chapter, places]) =>
+  places.flatMap((place) => [`story${chapter}${place}Video`, `story${chapter}${place}Image`]),
+)
+MEDIA_SLOTS.push(...STORY_SLOTS)
+
 /** Website sections that can be switched off from the panel (Home is always on). */
 export const SECTION_KEYS = ['story', 'staff', 'gangs', 'clubs', 'dhadhas', 'leaderboard', 'rules', 'chat']
 

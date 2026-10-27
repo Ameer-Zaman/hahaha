@@ -8,6 +8,7 @@ import { site } from '../../config/site'
 import { chapters, storyIntro, storyOutro } from '../../content/story'
 import usePageTitle from '../../hooks/usePageTitle'
 import { gsap, MOTION_OK, ScrollTrigger, useGSAP } from '../../lib/gsap'
+import { useSiteMedia } from '../../lib/publicData'
 import { useSectionOn } from '../../lib/siteSettings'
 import LoopMedia from './LoopMedia'
 import ScrubMedia from './ScrubMedia'
@@ -228,13 +229,36 @@ function StoryOutro() {
  * scenes scrub with the scroll, dim into a backdrop under the story text and parallax cards,
  * with full-screen quote moments between them.
  */
+/**
+ * Videos and images picked in Panel → Story media replace the files named in content/story.js.
+ * Each place has a video and an image: a video plays (the image shows while it loads); an image
+ * on its own is shown still.
+ */
+const cap = (id) => id.charAt(0).toUpperCase() + id.slice(1)
+function withPanelMedia(ch, picked) {
+  const place = (name, base) => {
+    if (!base) return base
+    const video = picked[`story${cap(ch.id)}${name}Video`] ?? null
+    const image = picked[`story${cap(ch.id)}${name}Image`] ?? null
+    if (!video && !image) return base
+    return { ...base, video: video ?? (image ? null : base.video), image: image ?? base.image }
+  }
+  return {
+    ...place('Scene', ch),
+    cards: ch.cards.map((card, i) => place(`Card${'AB'[i] ?? ''}`, card)),
+    quote: place('Quote', ch.quote),
+  }
+}
+
 export default function StoryPage() {
   usePageTitle('Story')
+  const picked = useSiteMedia()
+  const story = chapters.map((ch) => withPanelMedia(ch, picked))
   return (
     <div className="story">
       <StoryIntro />
-      {chapters.map((ch) => (
-        <div key={ch.id}>
+      {story.map((ch) => (
+        <div key={`${ch.id}|${ch.video}|${ch.image}|${ch.quote?.video}|${ch.quote?.image}`}>
           <Chapter ch={ch} />
           {ch.quote && <QuoteScene quote={ch.quote} id={ch.id} />}
         </div>

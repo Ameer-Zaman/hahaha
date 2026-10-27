@@ -134,11 +134,6 @@ function ClubsDeck({ clubs }) {
         </ul>
 
         <div className="clubs-deck__foot">
-          <p className="clubs-deck__note">
-            {clubs.length
-              ? 'The clubs of the city. Membership is handled in character.'
-              : 'The clubs of the city are being set up. The cards will be dealt soon.'}
-          </p>
           <ApplyLink className="btn btn--primary btn--large">
             Apply now <Arrow />
           </ApplyLink>

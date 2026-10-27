@@ -11,7 +11,7 @@ import { GangEditor, GangList } from './screens/Gangs'
 import { ClubEditor, ClubList } from './screens/Clubs'
 import Chat from './screens/Chat'
 import Login from './screens/Login'
-import { MediaLibrary, SiteMedia } from './screens/MediaScreens'
+import { MediaLibrary, SiteMedia, StoryMedia } from './screens/MediaScreens'
 import Rules from './screens/Rules'
 import SiteSettings from './screens/SiteSettings'
 import Staff from './screens/Staff'
@@ -45,6 +45,7 @@ const NAV = [
     items: [
       { to: '/panel/media', label: 'Media library' },
       { to: '/panel/site-media', label: 'Homepage media' },
+      { to: '/panel/story-media', label: 'Story media' },
     ],
   },
   {
@@ -206,6 +207,7 @@ function Shell() {
           <Route path="rules" element={<Rules />} />
           <Route path="media" element={<MediaLibrary />} />
           <Route path="site-media" element={<SiteMedia />} />
+          <Route path="story-media" element={<StoryMedia />} />
           <Route path="site" element={<SiteSettings />} />
           <Route path="chat" element={<Chat />} />
           <Route path="account" element={<Account />} />

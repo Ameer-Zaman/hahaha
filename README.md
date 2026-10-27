@@ -249,7 +249,7 @@ Opening the homepage shows a loading screen (the name, a gold progress bar and a
 
 ## Story page videos
 
-The Story page (`/story`) is a long cinematic scroll in the style of the GTA VI site. Its full-screen **scene videos scrub with the scroll**: scrolling moves the video forward and back. Smooth scrubbing needs a keyframe in every few frames, so encode scene videos like this (1080p, no audio):
+The Story page (`/story`) is a long cinematic scroll in the style of the GTA VI site. Its videos and pictures can be set in **Panel → Story media** (each chapter's big scene, its two small cards and its quote scene — a video, an image, or both); empty places use the files below. Its full-screen **scene videos scrub with the scroll**: scrolling moves the video forward and back. Smooth scrubbing needs a keyframe in every few frames, so encode scene videos like this (1080p, no audio):
 
 ```bash
 ffmpeg -i in.mp4 -vf scale=1920:-2 -c:v libx264 -preset veryfast -crf 24 -g 6 -keyint_min 6 -pix_fmt yuv420p -movflags +faststart -an city.mp4
