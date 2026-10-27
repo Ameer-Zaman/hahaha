@@ -72,21 +72,19 @@
 .site-footer__social {
   display: grid;
   place-items: center;
-  width: 2.9rem;
-  height: 2.9rem;
-  border: 1px solid rgb(255 255 255 / 0.14);
-  border-radius: 50%;
-  background: rgb(255 255 255 / 0.03);
-  color: var(--fg);
+  width: 2.75rem; /* tap target; only the logo shows */
+  height: 2.75rem;
   text-decoration: none;
-  transition: border-color var(--dur-base) var(--ease-out), background var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+  transition: transform var(--dur-base) var(--ease-out), filter var(--dur-base) var(--ease-out);
+}
+.site-footer__social svg {
+  width: 1.6rem;
+  height: 1.6rem;
 }
 .site-footer__social:hover,
 .site-footer__social:focus-visible {
-  border-color: var(--brand, var(--c-gold));
-  background: color-mix(in srgb, var(--brand, var(--c-gold)) 14%, transparent);
-  box-shadow: 0 0 18px -4px var(--brand, var(--c-gold));
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.08);
+  filter: drop-shadow(0 0 10px var(--brand, var(--c-gold)));
 }
 
 .site-footer__base {

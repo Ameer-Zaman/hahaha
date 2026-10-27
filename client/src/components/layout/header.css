@@ -118,15 +118,15 @@
 .site-nav__social a {
   display: grid;
   place-items: center;
-  width: 2rem;
-  height: 2rem;
-  opacity: 0.75;
-  transition: opacity var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out);
+  width: 2.25rem;
+  height: 2.25rem;
+  transition: transform var(--dur-base) var(--ease-out), filter var(--dur-base) var(--ease-out);
 }
 
-.site-nav__social a:hover {
-  opacity: 1;
-  color: var(--c-gold-light);
+.site-nav__social a:hover,
+.site-nav__social a:focus-visible {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 8px rgb(88 101 242 / 0.8));
 }
 
 .site-nav__cta {
@@ -291,8 +291,8 @@
 }
 
 .mobile-menu__socials svg {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1.4rem;
+  height: 1.4rem;
 }
 
 .mobile-menu__small {
