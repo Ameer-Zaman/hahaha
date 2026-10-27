@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 
 import SiteHeader from './SiteHeader'
@@ -22,7 +22,7 @@ const LIGHT_TOP = []
 const NO_FOOTER = ['/gangs']
 
 export default function Layout() {
-  const { pathname, hash } = useLocation()
+  const { pathname, hash, key } = useLocation()
   const tone = LIGHT_TOP.includes(pathname) ? 'light' : 'dark'
 
   // Decided once, on first load: the welcome screen only greets visitors landing on the homepage.
@@ -44,16 +44,28 @@ export default function Layout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // New page: start at the top (or at the anchor), and let ScrollTrigger re-measure.
-  useEffect(() => {
-    if (hash) {
-      document.getElementById(hash.slice(1))?.scrollIntoView()
-    } else {
-      window.scrollTo(0, 0)
+  // New page (or a link to the page you're on): jump straight to the top — or to the anchor
+  // once it exists (pages load in on demand) — and let ScrollTrigger re-measure.
+  useLayoutEffect(() => {
+    const top = () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    let frame = 0
+    let tries = 0
+    const toAnchor = () => {
+      const el = hash && document.getElementById(decodeURIComponent(hash.slice(1)))
+      if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' })
+      else if (hash && tries++ < 60) frame = requestAnimationFrame(toAnchor)
     }
-    const id = requestAnimationFrame(() => ScrollTrigger.refresh())
-    return () => cancelAnimationFrame(id)
-  }, [pathname, hash])
+    if (hash) toAnchor()
+    else top()
+    const settle = requestAnimationFrame(() => {
+      ScrollTrigger.refresh()
+      if (!hash) top() // pinned sections can shift the page while re-measuring
+    })
+    return () => {
+      cancelAnimationFrame(frame)
+      cancelAnimationFrame(settle)
+    }
+  }, [pathname, hash, key])
 
   // Maintenance mode (Panel → Site settings): visitors get the "be right back" screen;
   // signed-in panel accounts still see the site, with a notice.
