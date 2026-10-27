@@ -8,6 +8,8 @@
 export const site = {
   /** The community's name. Used in the header, hero, footer and <title>. */
   name: 'Rameirah Empire',
+  /** The glowing neon sign on the homepage (shorter than the full name). */
+  neonName: 'Rameirah',
 
   /** Short line under the name in the hero. Keep it factual: the server has not launched. */
   tagline: 'A serious roleplay city, in preparation.',

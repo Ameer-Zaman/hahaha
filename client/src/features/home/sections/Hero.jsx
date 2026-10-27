@@ -18,7 +18,7 @@ import ApplyLink from '../../../components/ui/ApplyLink'
  */
 export default function Hero() {
   const root = useRef(null)
-  const words = site.name.split(/\s+/)
+  const words = (site.neonName || site.name).split(/\s+/)
   const hasTrailer = Boolean(media.trailer.youtubeUrl)
   const picked = useSiteMedia()
   const heroVideo = picked.heroVideo ?? media.hero.video
@@ -70,7 +70,7 @@ export default function Hero() {
       <div className="hero__content container">
         {/* Neon sign: the name in glowing gold script with a white tube underneath
             (an original 80s-Miami neon treatment, not any game's logo). */}
-        <h1 id="hero-title" className="hero__title hero__title--neon">
+        <h1 id="hero-title" className="hero__title hero__title--neon" aria-label={site.name}>
           {words.map((word) => (
             <span key={word} className="hero__word">
               <span className="hero__neon">{word}</span>
