@@ -42,7 +42,12 @@ export default function ClubsPage() {
   usePageTitle('Clubs')
   // clubs added in the admin panel; the built-in list (content/clubs.js) when there are none
   const entry = usePublic('/clubs')
-  if (entry.status === 'loading') return <PageLoader label="Loading clubs" />
+  if (entry.status === 'loading')
+    return (
+      <div className="route-loading">
+        <PageLoader label="Loading clubs" />
+      </div>
+    )
   const clubs = entry.status === 'ok' && entry.data?.clubs?.length ? entry.data.clubs : staticClubs
   return <ClubsDeck key={clubs.map((c) => c.id).join('|')} clubs={clubs} />
 }

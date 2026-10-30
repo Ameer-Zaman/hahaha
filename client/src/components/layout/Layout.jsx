@@ -7,7 +7,6 @@ import ScrollProgress from './ScrollProgress'
 import TopProgress from '../ui/TopProgress'
 import FluidCursor from '../cursor/FluidCursor'
 import ChatWidget from '../chat/ChatWidget'
-import { ScrollTrigger } from '../../lib/gsap'
 import { setIntroActive, shouldShowIntro } from '../../lib/intro'
 import WelcomeGate from '../intro/WelcomeGate'
 import LoadingScreen from '../intro/LoadingScreen'
@@ -57,11 +56,17 @@ export default function Layout() {
     }
     if (hash) toAnchor()
     else top()
+    let live = true
     const settle = requestAnimationFrame(() => {
-      ScrollTrigger.refresh()
-      if (!hash) top() // pinned sections can shift the page while re-measuring
+      // loaded on demand: pages that animate pull GSAP in themselves, the rest never need it
+      import('../../lib/gsap').then(({ ScrollTrigger }) => {
+        if (!live) return
+        ScrollTrigger.refresh()
+        if (!hash) top() // pinned sections can shift the page while re-measuring
+      })
     })
     return () => {
+      live = false
       cancelAnimationFrame(frame)
       cancelAnimationFrame(settle)
     }

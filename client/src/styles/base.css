@@ -168,8 +168,12 @@ ol[role='list'] {
 
 /* Placeholder while a page's code loads: holds the layout so the footer never jumps up */
 .route-loading {
+  display: grid;
   min-height: 100svh;
   background: var(--c-ink);
+}
+.route-loading .page-loader {
+  min-height: 0;
 }
 
 /* Each page fades in on arrival (instant when motion is reduced) */
