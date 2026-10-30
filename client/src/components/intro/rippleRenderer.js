@@ -2,11 +2,12 @@
  * Water-drop transition for the welcome screen — a single fragment shader, no libraries.
  *
  * The welcome screen is painted into a texture. The shader then:
- *  1. on arrival, fades the text in over the background — no rings;
+ *  1. on arrival, drops a single "drop" at the centre: soft rings spread through the text;
  *  2. follows the cursor: moving the pointer drops water where it goes, so the text ripples
- *     under the hand. This is the only water on the screen;
- *  3. as the visitor scrolls, clears the screen from the centre outwards — a plain soft-edged
- *     opening, no wave crest — revealing the site underneath.
+ *     under the hand — the same rings as the arrival drop, smaller and quicker;
+ *  3. as the visitor scrolls, sends a wave front outwards from the centre. Ahead of the
+ *     front the screen refracts (with a faint gold crest and colour split); behind it the
+ *     screen turns transparent, revealing the site underneath.
  *
  * createRipple(canvas, paint) → { setProgress(0..1), resize(), dispose() } or null without WebGL.
  * `paint(ctx, width, height)` draws the welcome screen into a 2D canvas (device pixels).
@@ -39,11 +40,16 @@ void main() {
   vec2 aspect = vec2(uRes.x / uRes.y, 1.0);
   vec2 dv = (vUv - 0.5) * aspect;
   float d = length(dv);
+  vec2 dir = d > 0.0001 ? dv / d : vec2(0.0);
 
+  // 1) The arrival drop: rings spreading from the centre, fading as they travel.
   float t = uTime;
-  vec2 offset = vec2(0.0);
+  float spread = t * 0.42;
+  float inside = smoothstep(spread + 0.04, spread - 0.22, d);
+  float drop = sin(d * 46.0 - t * 8.5) * exp(-d * 2.4) * exp(-t * 0.85) * inside;
+  vec2 offset = dir * drop * 0.0055;
 
-  // The cursor's wake: a small drop wherever the hand has just been.
+  // 1b) The cursor's wake: a small drop wherever the hand has just been.
   float lift = 0.0;
   for (int i = 0; i < DROPS; i++) {
     float born = uDrops[i].z;
@@ -62,20 +68,30 @@ void main() {
     lift += abs(w);
   }
 
-  // The transition: an opening that grows from the centre, with a soft edge.
+  // 2) The transition wave: a crest at radius R with trailing ripples.
   float R = uProg * 1.3;
+  float x = d - R;
   float active = smoothstep(0.0, 0.04, uProg);
+  float crest = exp(-(x * x) / 0.0035);
+  float wake = sin(x * 64.0 - t * 5.0) * exp(-abs(x) * 8.0);
+  offset += dir * (crest * 0.045 + wake * 0.011) * active;
 
   vec2 uv = vUv - offset / aspect;
-  vec3 col = texture2D(uTex, uv).rgb;
+  vec2 split = dir / aspect * crest * 0.005 * active;
+
+  vec3 col;
+  col.r = texture2D(uTex, uv + split).r;
+  col.g = texture2D(uTex, uv).g;
+  col.b = texture2D(uTex, uv - split).b;
 
   // text fades in over the plain background on arrival
   col = mix(BG, col, uFade);
-  // a faint gold sheen where the cursor lifts the water
+  // a faint gold light riding the crest, and a sheen where the cursor lifts the water
+  col += GOLD * crest * 0.32 * active * (1.0 - uProg * 0.7);
   col += GOLD * min(lift, 1.0) * 0.14 * (1.0 - uProg);
 
-  // inside the opening the screen is gone: transparent, so the site shows through
-  float alpha = mix(1.0, smoothstep(R - 0.09, R + 0.02, d), active);
+  // behind the wave the screen is gone: transparent, so the site shows through
+  float alpha = mix(1.0, smoothstep(R - 0.07, R + 0.012, d), active);
   gl_FragColor = vec4(col * alpha, alpha);
 }`
 
@@ -173,8 +189,8 @@ export function createRipple(canvas, paint) {
     gl.clearColor(0, 0, 0, 0)
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.drawArrays(gl.TRIANGLES, 0, 6)
-    // keep drawing while the text fades in, the cursor's water moves, or the screen is opening
-    if (start !== null && (t < 1 || progress > 0 || live)) raf = requestAnimationFrame(frame)
+    // keep animating while the arrival drop, the cursor's water or a wave is under way
+    if (start !== null && (t < 5 || progress > 0 || live)) raf = requestAnimationFrame(frame)
   }
 
   function wake() {
@@ -208,7 +224,7 @@ export function createRipple(canvas, paint) {
   resize()
 
   return {
-    /** Starts the entrance: the text fades in. */
+    /** Starts the entrance: the text fades in and the arrival drop plays. */
     reveal() {
       if (start !== null) return
       start = performance.now()
