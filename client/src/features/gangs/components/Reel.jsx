@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom'
 import Odometer from '../../../components/ui/Odometer'
 import { gsap } from '../../../lib/gsap'
 import { formatFileNumber } from '../gangsModel'
+import GangPicker from './GangPicker'
 import ReelCard from './ReelCard'
 
 /*
@@ -156,6 +157,7 @@ export default function Reel({ files }) {
 
     // Wheel / trackpad: the reel follows the wheel; the pull to the nearest card does the rest.
     const onWheel = (event) => {
+      if (event.target.closest?.('.gpick__list')) return // scrolling the gang list, not the reel
       event.preventDefault()
       const delta = event.deltaMode === 1 ? event.deltaY * 30 : event.deltaMode === 2 ? event.deltaY * window.innerHeight : event.deltaY
       m.target += delta * WHEEL
@@ -167,6 +169,7 @@ export default function Reel({ files }) {
     let drag = null
     const onPointerDown = (e) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return
+      if (e.target.closest?.('.gpick')) return // the gang dropdown is not a drag handle
       drag = { startY: e.clientY, startTarget: m.target, lastY: e.clientY, moved: false }
       m.dragging = true
       el.classList.add('is-dragging')
@@ -201,6 +204,7 @@ export default function Reel({ files }) {
       if (event.altKey || event.ctrlKey || event.metaKey) return
       const tag = document.activeElement?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+      if (document.activeElement?.closest?.('.gpick')) return // the gang dropdown has its own keys
       const next = ['ArrowDown', 'PageDown'].includes(event.key) || (event.key === ' ' && !event.shiftKey)
       const prev = ['ArrowUp', 'PageUp'].includes(event.key) || (event.key === ' ' && event.shiftKey)
       if (!next && !prev) return
@@ -258,6 +262,21 @@ export default function Reel({ files }) {
     }
   }, [reduced])
 
+  /** The gang dropdown: turn the reel to that gang the shortest way round (or scroll to it). */
+  const goTo = (i) => {
+    if (reduced) {
+      slotEls.current[i]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      return
+    }
+    const m = motion.current
+    const base = Math.round(m.target)
+    const steps = mod(i - base + count / 2, count) - count / 2
+    m.dragging = false
+    m.holdUntil = 0
+    m.target = base + steps
+    m.speed += Math.min(4, Math.abs(steps) * 0.8)
+  }
+
   /** Keyboard users tabbing to a card's Explore link bring that card to the centre. */
   const onFocusCard = (i) => {
     if (reduced) return
@@ -286,8 +305,9 @@ export default function Reel({ files }) {
         </div>
       )}
 
-      {/* Corner ticket: the gang counter */}
+      {/* Corner ticket: the gang counter, and the dropdown to choose a gang */}
       <div className="reel__hud">
+        {count > 1 && <GangPicker files={files} active={active} onPick={goTo} />}
         {/* HUD counter: a slanted black plate with the gang number and one pip per gang */}
         <div className="hud" role="group" aria-label="Gang counter">
           <span className="hud__label">Gang file</span>
