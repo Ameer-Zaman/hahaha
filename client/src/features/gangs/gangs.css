@@ -334,96 +334,89 @@
   pointer-events: none;
 }
 
-/* "Choose gang" dropdown, top-left of the reel */
+/* "Choose gang" drawer: hidden off the left edge, only the arrow tab shows */
 .gpick {
-  position: absolute;
-  top: 0.4rem;
-  left: clamp(1rem, 2.5vw, 2.25rem);
-  pointer-events: auto;
-  color: #f4efe6;
-}
-/* wide screens: centred at the top, clear of the card's year / place label */
-@media (min-width: 60rem) {
-  .gpick {
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  .gpick__list {
-    left: 50%;
-    translate: -50% 0;
-  }
-}
-.gpick__button {
-  display: grid;
-  grid-template-columns: auto auto;
+  --gpick-w: min(21rem, calc(100vw - 3.5rem));
+  position: fixed;
+  top: 50%;
+  left: 0;
+  z-index: 450;
+  display: flex;
   align-items: center;
-  column-gap: 0.75rem;
-  min-height: 3.25rem;
-  padding: 0.55rem 1rem 0.6rem 1.1rem;
-  border: 2px solid var(--c-gold);
-  border-radius: 4px;
-  background: linear-gradient(160deg, #15171d, #07080b);
-  box-shadow: 4px 4px 0 rgb(var(--rgb-gold) / 0.55);
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  color: #f4efe6;
+  translate: calc(-1 * var(--gpick-w)) -50%;
+  transition: translate 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.gpick__button:hover,
-.gpick__button:focus-visible {
-  transform: translate(-1px, -1px);
-  box-shadow: 5px 5px 0 rgb(var(--rgb-gold) / 0.7);
+.gpick.is-open {
+  translate: 0 -50%;
+}
+.gpick__panel {
+  width: var(--gpick-w);
+  max-height: min(34rem, 72svh);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0.5rem;
+  padding: 0.9rem 0.5rem 0.5rem;
+  border: 1px solid rgb(var(--rgb-gold) / 0.45);
+  border-left: 0;
+  border-radius: 0 14px 14px 0;
+  background: rgb(8 8 10 / 0.96);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 30px 70px -20px #000;
 }
 .gpick__label {
-  grid-column: 1 / -1;
+  margin: 0;
+  padding-inline: 0.6rem;
   font-family: var(--font-mono);
   font-size: 0.62rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--c-gold);
 }
-.gpick__current {
-  max-width: 14rem;
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  line-height: 1.1;
-  text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.gpick__chev {
+.gpick__tab {
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  width: 2.75rem;
+  padding: 0.9rem 0;
+  border: 2px solid var(--c-gold);
+  border-left: 0;
+  border-radius: 0 10px 10px 0;
+  background: linear-gradient(160deg, #15171d, #07080b);
+  box-shadow: 3px 3px 0 rgb(var(--rgb-gold) / 0.5);
   color: var(--c-gold);
-  transition: rotate 0.2s ease;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, color 0.2s ease;
 }
-.gpick.is-open .gpick__chev {
+.gpick__tab:hover,
+.gpick__tab:focus-visible {
+  color: var(--c-gold-light);
+  box-shadow: 4px 4px 0 rgb(var(--rgb-gold) / 0.75);
+}
+.gpick__arrow {
+  transition: rotate 0.35s ease;
+}
+.gpick.is-open .gpick__arrow {
   rotate: 180deg;
 }
+.gpick__tabtext {
+  writing-mode: vertical-rl;
+  rotate: 180deg;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #f4efe6;
+}
 .gpick__list {
-  position: absolute;
-  top: calc(100% + 0.6rem);
-  left: 0;
   display: grid;
+  align-content: start;
   gap: 0.2rem;
-  width: min(21rem, calc(100vw - 2rem));
-  max-height: min(26rem, 60svh);
   margin: 0;
-  padding: 0.4rem;
+  padding: 0;
   list-style: none;
   overflow-y: auto;
   overscroll-behavior: contain;
-  border: 1px solid rgb(var(--rgb-gold) / 0.4);
-  border-radius: 12px;
-  background: rgb(8 8 10 / 0.95);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 30px 70px -20px #000;
-  animation: gpick-in 0.2s ease;
-}
-@keyframes gpick-in {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
 }
 .gpick__item {
   display: flex;
@@ -493,14 +486,10 @@
   text-transform: uppercase;
   color: rgb(244 239 230 / 0.55);
 }
-@media (max-width: 40rem) {
-  .gpick__current {
-    max-width: 9rem;
-    font-size: 1rem;
-  }
-  .gpick__button {
-    min-height: 2.9rem;
-    padding: 0.45rem 0.8rem 0.5rem 0.9rem;
+@media (prefers-reduced-motion: reduce) {
+  .gpick,
+  .gpick__arrow {
+    transition: none;
   }
 }
 
