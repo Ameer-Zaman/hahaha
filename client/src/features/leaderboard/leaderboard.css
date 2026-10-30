@@ -1,3 +1,9 @@
+/* ---------- page ---------- */
+/* the page head already ends in a wide band of space; don't add a second one */
+.lb.section {
+  padding-top: clamp(1.5rem, 0.5rem + 3vw, 3rem);
+}
+
 /* ---------- tabs ---------- */
 .lb-tabs {
   display: inline-flex;
@@ -63,12 +69,11 @@
 
 /* ---------- podium ---------- */
 .lb-podium {
-  --medal: var(--c-gold);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: end;
   gap: var(--sp-4);
-  margin: 0 0 var(--sp-7);
+  margin: 0 0 var(--sp-6);
   padding: 0;
   list-style: none;
 }
@@ -76,8 +81,9 @@
   --medal: #e3b55a;
   --medal-soft: rgb(227 181 90 / 0.14);
   position: relative;
-  min-height: 12rem;
-  border: 1px solid color-mix(in srgb, var(--medal) 55%, transparent);
+  display: flex;
+  min-height: 9.5rem;
+  border: 1px solid color-mix(in srgb, var(--medal) 45%, transparent);
   border-radius: 16px;
   background:
     radial-gradient(120% 90% at 50% 0%, var(--medal-soft), transparent 70%),
@@ -92,9 +98,11 @@
   --medal: #cd8a52;
   --medal-soft: rgb(205 138 82 / 0.14);
 }
+/* first place leads: taller, a gold edge and a glow under it */
 .lb-podium__card--pos1 {
   order: 2;
-  min-height: 15rem;
+  min-height: 11.5rem;
+  border-color: color-mix(in srgb, var(--medal) 75%, transparent);
   box-shadow: 0 30px 70px -40px rgb(227 181 90 / 0.6);
 }
 .lb-podium__card--pos2 {
@@ -103,17 +111,14 @@
 .lb-podium__card--pos3 {
   order: 3;
 }
-.lb-podium__card {
-  display: flex;
-}
 .lb-podium__body {
   position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  gap: 0.4rem;
-  padding: var(--sp-5);
+  gap: 0.55rem;
+  padding: var(--sp-4) var(--sp-5) var(--sp-5);
   color: var(--fg);
   text-decoration: none;
 }
@@ -125,40 +130,79 @@
   outline-offset: -4px;
   border-radius: 14px;
 }
-.lb-podium__name,
-.lb-podium__stat {
+/* the place, said in words — several gangs can share one */
+.lb-podium__place {
   position: relative;
-  max-width: calc(100% - 3.5rem);
-}
-.lb-podium__rank {
-  position: absolute;
-  top: 0.4rem;
-  right: 1rem;
-  font-family: var(--font-display);
-  font-size: clamp(4rem, 3rem + 4vw, 7rem);
-  line-height: 1;
-  color: transparent;
-  -webkit-text-stroke: 1.5px var(--medal);
-  opacity: 0.85;
-}
-.lb-podium__card--pos1 .lb-podium__rank {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin-bottom: auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
   color: var(--medal);
-  -webkit-text-stroke: 0;
-  opacity: 0.95;
+}
+.lb-podium__joint {
+  padding: 0.1rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--medal) 45%, transparent);
+  border-radius: 4px;
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.1em;
+  color: var(--fg-muted);
+}
+.lb-podium__who {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  max-width: calc(100% - 3rem);
+}
+.lb-podium__emblem {
+  width: 2.1rem;
+  height: 2.1rem;
+  font-size: 1.1rem;
+  border-color: color-mix(in srgb, var(--medal) 55%, transparent);
+}
+.lb-podium__card--pos1 .lb-podium__emblem {
+  width: 2.6rem;
+  height: 2.6rem;
+  font-size: 1.3rem;
 }
 .lb-podium__name {
   font-family: var(--font-display);
-  font-size: clamp(1.4rem, 1.1rem + 1vw, 2rem);
+  font-size: clamp(1.3rem, 1.05rem + 0.9vw, 1.8rem);
   line-height: 1;
   text-transform: uppercase;
   overflow-wrap: anywhere;
 }
+.lb-podium__card--pos1 .lb-podium__name {
+  font-size: clamp(1.5rem, 1.1rem + 1.3vw, 2.2rem);
+}
 .lb-podium__stat {
+  position: relative;
+  max-width: calc(100% - 3rem);
   font-family: var(--font-mono);
   font-size: var(--fs-2xs);
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.lb-podium__rank {
+  position: absolute;
+  top: 0.1rem;
+  right: 0.9rem;
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 2.6rem + 3.4vw, 6rem);
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--medal);
+  opacity: 0.5;
+}
+.lb-podium__card--pos1 .lb-podium__rank {
   color: var(--medal);
+  -webkit-text-stroke: 0;
+  opacity: 0.9;
 }
 
 /* ---------- tools ---------- */
@@ -195,6 +239,7 @@
 /* ---------- table ---------- */
 .lb-table-wrap {
   overflow-x: auto;
+  overflow-y: clip;
   border: 1px solid rgb(var(--rgb-ivory) / 0.08);
   border-radius: 14px;
   background: rgb(var(--rgb-card) / 0.35);
@@ -216,6 +261,9 @@
   border-bottom: 0;
 }
 .lb-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   font-family: var(--font-mono);
   font-size: var(--fs-2xs);
   font-weight: 400;
@@ -292,7 +340,10 @@
 .lb-sort {
   display: inline-flex;
   align-items: center;
+  justify-content: inherit;
   gap: 0.35rem;
+  min-height: 2.5rem;
+  margin: -0.85rem 0;
   padding: 0.3rem 0;
   border: 0;
   background: none;
@@ -320,6 +371,31 @@
 .lb-sort__icon.is-up {
   transform: rotate(180deg);
 }
+/* win rate: number first, bar as a quiet second reading (never colour alone) */
+.lb-rate {
+  display: inline-grid;
+  justify-items: end;
+  gap: 0.3rem;
+  min-width: 3.4rem;
+}
+.lb-rate__num {
+  font-variant-numeric: tabular-nums;
+}
+.lb-rate__bar {
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+  background: rgb(var(--rgb-ivory) / 0.12);
+  overflow: hidden;
+}
+.lb-rate__fill {
+  display: block;
+  width: var(--pct, 0%);
+  height: 100%;
+  border-radius: inherit;
+  background: var(--c-gold);
+}
+
 .lb-table__empty {
   padding: var(--sp-6) !important;
   text-align: center !important;
@@ -368,10 +444,16 @@
   color: var(--c-gold-light);
 }
 .lb-empty {
-  padding: var(--sp-9) var(--sp-5);
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-7) var(--sp-5);
   border: 1px dashed rgb(var(--rgb-ivory) / 0.14);
   border-radius: 16px;
   text-align: center;
+}
+.lb-empty__action {
+  margin-top: var(--sp-3);
 }
 .lb-empty__title {
   margin: 0 0 var(--sp-2);
@@ -387,11 +469,20 @@
 @media (max-width: 720px) {
   .lb-podium {
     grid-template-columns: 1fr;
+    gap: var(--sp-3);
   }
   .lb-podium__card,
   .lb-podium__card--pos1 {
     order: 0;
-    min-height: 8.5rem;
+    min-height: 0;
+  }
+  .lb-podium__body {
+    padding: var(--sp-4);
+  }
+  .lb-podium__rank {
+    font-size: 3.4rem;
+    top: 50%;
+    translate: 0 -50%;
   }
   .lb-tools {
     justify-content: stretch;
@@ -405,6 +496,86 @@
   .lb-tab {
     flex: 1;
     min-width: 0;
+  }
+
+  /* A wide table on a phone hides its own columns, so each row becomes a card:
+     rank and name on top, every stat below with the label it had in the header. */
+  .lb-table-wrap {
+    border: 0;
+    border-radius: 0;
+    background: none;
+    overflow: visible;
+  }
+  .lb-table,
+  .lb-table thead,
+  .lb-table tbody,
+  .lb-table tr,
+  .lb-table td,
+  .lb-table th {
+    display: block;
+    min-width: 0;
+  }
+  .lb-table thead {
+    display: none; /* the labels ride on each cell instead */
+  }
+  .lb-table tbody tr {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(4.25rem, 1fr));
+    gap: var(--sp-3) 0.75rem;
+    margin-bottom: var(--sp-3);
+    padding: var(--sp-4);
+    border: 1px solid rgb(var(--rgb-ivory) / 0.1);
+    border-radius: 14px;
+    background: rgb(var(--rgb-card) / 0.45);
+  }
+  .lb-table tbody tr.is-top {
+    border-color: rgb(var(--rgb-gold) / 0.35);
+  }
+  .lb-table tbody tr:hover {
+    background: rgb(var(--rgb-card) / 0.45);
+  }
+  .lb-table tbody tr > * {
+    padding: 0;
+    border: 0;
+    text-align: left;
+    white-space: normal;
+  }
+  /* the rank sits in the corner; the name takes the whole first line */
+  .lb-table tbody .lb-col-rank {
+    position: absolute;
+    top: var(--sp-4);
+    left: var(--sp-4);
+    width: auto;
+  }
+  .lb-table tbody .lb-col-name {
+    grid-column: 1 / -1;
+    padding-left: 2.75rem;
+    min-height: 2rem;
+    display: flex;
+    align-items: center;
+    font-size: var(--fs-md);
+  }
+  /* each stat is a little label-over-value stack, flowing across the card */
+  .lb-table tbody td[data-label] {
+    display: grid;
+    gap: 0.15rem;
+    align-content: start;
+  }
+  .lb-table tbody td[data-label]::before {
+    content: attr(data-label);
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+  .lb-rate {
+    justify-items: start;
+    min-width: 0;
+  }
+  .lb-table__empty {
+    padding: var(--sp-6) 0 !important;
   }
 }
 

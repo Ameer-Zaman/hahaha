@@ -99,7 +99,9 @@ function TdmBoard() {
   if (entry.status === 'loading') return <BoardSkeleton label="Loading the TDM board" />
   if (ranked.length === 0) {
     return (
-      <Empty title="No TDM results yet">The board fills in once the team posts the first match results.</Empty>
+      <Empty title="No TDM results yet" action={{ to: '/gangs', label: 'See the gangs' }}>
+        The board fills in once the team posts the first match results.
+      </Empty>
     )
   }
 
@@ -111,7 +113,7 @@ function TdmBoard() {
   return (
     <div className="reveal-stagger">
       <BoardMeta season={entry.data?.season} updatedAt={entry.data?.updatedAt} count={ranked.length} noun="player" />
-      {!q && <Podium rows={ranked.slice(0, 3)} stat={(r) => `${r.kills} kills · ${formatKd(r.kills, r.deaths)} K/D`} />}
+      {!q && <Podium rows={ranked.slice(0, 3)} rankedRows={ranked} stat={(r) => `${r.kills} kills · ${formatKd(r.kills, r.deaths)} K/D`} />}
       <div className="lb-tools">
         <label className="lb-search">
           <span className="visually-hidden">Find a player</span>
@@ -142,7 +144,7 @@ const WAR_COLUMNS = [
   { key: 'wins', label: 'W', title: 'Wins' },
   { key: 'losses', label: 'L', title: 'Losses' },
   { key: 'draws', label: 'D', title: 'Draws' },
-  { key: 'winRate', label: 'Win %', format: (r) => `${Math.round(r.winRate * 100)}%` },
+  { key: 'winRate', label: 'Win %', title: 'Win rate', format: (r) => <WinRate value={r.winRate} /> },
   { key: 'form', label: 'Last 5', sortable: false, format: (r) => <Form outcomes={r.form} /> },
 ]
 
@@ -152,7 +154,11 @@ function WarBoard() {
 
   if (!ready) return <BoardSkeleton label="Loading the war record" />
   if (ranked.length === 0) {
-    return <Empty title="No wars on the record yet">Standings appear here as soon as the first war between gangs is logged.</Empty>
+    return (
+      <Empty title="No wars on the record yet" action={{ to: '/gangs', label: 'See the gangs' }}>
+        Standings appear here as soon as the first war between gangs is logged.
+      </Empty>
+    )
   }
   const demo = ranked.some((r) => r.demo)
 
@@ -164,7 +170,7 @@ function WarBoard() {
         </p>
       )}
       <BoardMeta count={ranked.length} noun="gang" />
-      <Podium rows={ranked.slice(0, 3)} stat={(r) => `${r.wins} W · ${r.losses} L · ${r.draws} D`} link={(r) => `/gangs/${r.slug}`} />
+      <Podium rows={ranked.slice(0, 3)} rankedRows={ranked} stat={(r) => `${r.wins} W · ${r.losses} L · ${r.draws} D`} link={(r) => `/gangs/${r.slug}`} />
       <RankTable
         caption="War leaderboard"
         rows={ranked}
@@ -229,26 +235,39 @@ function BoardMeta({ season, updatedAt, count, noun }) {
 }
 
 const MEDAL = ['gold', 'silver', 'bronze']
+const PLACE = ['1st', '2nd', '3rd']
 
 /** Top three as cards: second, first, third on wide screens; first to third on phones. */
-function Podium({ rows, stat, link }) {
+function Podium({ rows, stat, link, rankedRows = rows }) {
   if (rows.length === 0) return null
   return (
     <ol className="lb-podium" aria-label="Top three">
       {rows.map((r, i) => {
         const medal = MEDAL[Math.min(r.rank, 3) - 1] ?? MEDAL[i]
+        // several can share a place, so say so rather than printing the same number twice
+        const joint = rankedRows.filter((o) => o.rank === r.rank).length > 1
+        const place = PLACE[r.rank - 1] ?? `${r.rank}th`
         const body = (
           <>
             <span className="lb-podium__rank" aria-hidden="true">
               {r.rank}
             </span>
-            <span className="lb-podium__name">{r.name}</span>
+            <span className="lb-podium__place">
+              {joint && <span className="lb-podium__joint">Joint</span>}
+              {place}
+            </span>
+            <span className="lb-podium__who">
+              <Emblem src={r.emblem} name={r.name} className="lb-podium__emblem" />
+              <span className="lb-podium__name">{r.name}</span>
+            </span>
             <span className="lb-podium__stat">{stat(r)}</span>
           </>
         )
         return (
           <li key={r.name} className={`lb-podium__card lb-podium__card--${medal} lb-podium__card--pos${i + 1}`}>
-            <span className="visually-hidden">Rank {r.rank}: </span>
+            <span className="visually-hidden">
+              {joint ? 'Joint ' : ''}rank {r.rank}:{' '}
+            </span>
             {link ? (
               <Link to={link(r)} className="lb-podium__body lb-podium__body--link">
                 {body}
@@ -320,7 +339,9 @@ function RankTable({ caption, rows, rowKey, nameHeader, renderName, columns, emp
                   {renderName(r)}
                 </th>
                 {columns.map((c) => (
-                  <td key={c.key}>{c.format ? c.format(r) : r[c.key]}</td>
+                  <td key={c.key} data-label={c.label.length <= 2 ? (c.title ?? c.label) : c.label}>
+                    <span className="lb-cell">{c.format ? c.format(r) : r[c.key]}</span>
+                  </td>
                 ))}
               </tr>
             ))
@@ -342,6 +363,19 @@ function SortButton({ active, dir, onClick, children }) {
   )
 }
 
+/** Win rate: the number stays the message, the bar just makes the board scannable. */
+function WinRate({ value }) {
+  const pct = Math.round(value * 100)
+  return (
+    <span className="lb-rate">
+      <span className="lb-rate__num">{pct}%</span>
+      <span className="lb-rate__bar" aria-hidden="true">
+        <span className="lb-rate__fill" style={{ '--pct': `${pct}%` }} />
+      </span>
+    </span>
+  )
+}
+
 const FORM_LABEL = { win: 'W', loss: 'L', draw: 'D' }
 const FORM_TITLE = { win: 'Win', loss: 'Loss', draw: 'Draw' }
 
@@ -357,20 +391,25 @@ function Form({ outcomes }) {
   )
 }
 
-function Emblem({ src, name }) {
-  if (src) return <img className="lb-emblem" src={src} alt="" loading="lazy" />
+function Emblem({ src, name, className = '' }) {
+  if (src) return <img className={`lb-emblem ${className}`} src={src} alt="" loading="lazy" />
   return (
-    <span className="lb-emblem lb-emblem--initial" aria-hidden="true">
+    <span className={`lb-emblem lb-emblem--initial ${className}`} aria-hidden="true">
       {name.slice(0, 1)}
     </span>
   )
 }
 
-function Empty({ title, children }) {
+function Empty({ title, children, action }) {
   return (
     <div className="lb-empty">
       <p className="lb-empty__title">{title}</p>
       <p className="lb-empty__body">{children}</p>
+      {action && (
+        <Link to={action.to} className="btn btn--ghost lb-empty__action">
+          {action.label}
+        </Link>
+      )}
     </div>
   )
 }
