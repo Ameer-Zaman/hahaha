@@ -377,12 +377,6 @@
   translate: 4px 0;
 }
 
-.gx-pager {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--sp-4);
-}
-
 /* a gang's small picture */
 .gx-thumb {
   position: relative;
@@ -408,61 +402,6 @@
 }
 
 /* previous / next at the bottom */
-.gx-next {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-4);
-  min-height: 6rem;
-  padding: var(--sp-4) var(--sp-5);
-  border: 1px solid var(--gx-line);
-  border-radius: 14px;
-  background: rgb(255 255 255 / 0.02);
-  color: inherit;
-  text-decoration: none;
-  transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
-}
-.gx-next--next {
-  flex-direction: row-reverse;
-  text-align: right;
-}
-.gx-next:hover,
-.gx-next:focus-visible {
-  border-color: rgb(var(--gx-accent-rgb) / 0.55);
-  background: rgb(var(--gx-accent-rgb) / 0.06);
-}
-.gx-next--prev:hover {
-  transform: translateX(-3px);
-}
-.gx-next--next:hover {
-  transform: translateX(3px);
-}
-.gx-next__glyph {
-  font-size: 2.2rem;
-  line-height: 1;
-  color: var(--gx-accent);
-}
-.gx-next__text {
-  display: grid;
-  gap: 0.25rem;
-  min-width: 0;
-}
-.gx-next__dir {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgb(var(--rgb-ivory) / 0.55);
-}
-.gx-next__name {
-  font-family: var(--font-display);
-  font-size: clamp(1.2rem, 1rem + 0.8vw, 1.7rem);
-  line-height: 1.05;
-  text-transform: uppercase;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 /* big side arrows on the title scene (laptops and up) */
 .gx-arrow {
   position: absolute;
@@ -874,13 +813,6 @@
   }
   .gx-row__date {
     width: 100%;
-  }
-  .gx-pager {
-    grid-template-columns: 1fr;
-  }
-  .gx-next {
-    min-height: 5rem;
-    padding: var(--sp-3) var(--sp-4);
   }
   .gx-thumb {
     width: 3.25rem;

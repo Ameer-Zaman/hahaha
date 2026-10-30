@@ -266,12 +266,6 @@ function GangDetail({ file, prev, next, total }) {
           </button>
         </div>
 
-        {total > 1 && (
-          <nav className="gx-pager" aria-label="Other gangs">
-            <GangLink file={prev} dir="prev" />
-            <GangLink file={next} dir="next" />
-          </nav>
-        )}
       </div>
 
       <Popup open={open === 'wars'} onClose={() => setOpen(null)} title="War record" subtitle={file.title} icon={Icon.swords}>
@@ -362,22 +356,6 @@ function GangArrow({ file, dir }) {
 }
 
 /** The previous / next gang at the bottom of the page, with its picture. */
-function GangLink({ file, dir }) {
-  return (
-    <Link to={`/gangs/${file.slug}`} className={`gx-next gx-next--${dir}`}>
-      <span className="gx-next__glyph" aria-hidden="true">
-        {DIR[dir].glyph}
-      </span>
-      <GangThumb file={file} />
-      <span className="gx-next__text">
-        <span className="gx-next__dir">
-          {DIR[dir].word} · {formatFileNumber(file.number)}
-        </span>
-        <span className="gx-next__name">{file.title}</span>
-      </span>
-    </Link>
-  )
-}
 
 /** A list shown PAGE_SIZE at a time, with page controls when there's more than one page. */
 function Paged({ items, label, children }) {
