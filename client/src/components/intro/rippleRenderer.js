@@ -3,7 +3,9 @@
  *
  * The welcome screen is painted into a texture. The shader then:
  *  1. on arrival, drops a single "drop" at the centre: soft rings spread through the text;
- *  2. as the visitor scrolls, sends a wave front outwards from the centre. Ahead of the
+ *  2. follows the cursor: moving the pointer drops water where it goes, so the text ripples
+ *     under the hand — the same rings as the arrival drop, smaller and quicker;
+ *  3. as the visitor scrolls, sends a wave front outwards from the centre. Ahead of the
  *     front the screen refracts (with a faint gold crest and colour split); behind it the
  *     screen turns transparent, revealing the site underneath.
  *
@@ -21,11 +23,14 @@ void main() {
 
 const FRAG = `
 precision highp float;
+#define DROPS 10
+#define DROP_LIFE 1.5
 uniform sampler2D uTex;
 uniform vec2 uRes;
 uniform float uTime;   // seconds since mount
 uniform float uFade;   // 0..1 text fade-in
 uniform float uProg;   // 0..1 transition progress
+uniform vec3 uDrops[DROPS]; // cursor drops: xy in aspect space, z = birth time (<0: unused)
 varying vec2 vUv;
 
 const vec3 BG = vec3(0.0235, 0.0275, 0.0392);
@@ -43,6 +48,25 @@ void main() {
   float inside = smoothstep(spread + 0.04, spread - 0.22, d);
   float drop = sin(d * 46.0 - t * 8.5) * exp(-d * 2.4) * exp(-t * 0.85) * inside;
   vec2 offset = dir * drop * 0.0055;
+
+  // 1b) The cursor's wake: a small drop wherever the hand has just been.
+  float lift = 0.0;
+  for (int i = 0; i < DROPS; i++) {
+    float born = uDrops[i].z;
+    if (born < 0.0) continue;
+    float age = t - born;
+    if (age < 0.0 || age > DROP_LIFE) continue;
+    vec2 pv = dv - uDrops[i].xy;
+    float pd = length(pv);
+    vec2 pdir = pd > 0.0001 ? pv / pd : vec2(0.0);
+    float ring = sin(pd * 58.0 - age * 13.0);        // rings running outwards
+    float reach = smoothstep(age * 0.55 + 0.04, age * 0.55 - 0.2, pd); // front edge
+    float fade = 1.0 - age / DROP_LIFE;
+    float decay = exp(-pd * 4.6) * fade * fade;
+    float w = ring * reach * decay;
+    offset += pdir * w * 0.013;
+    lift += abs(w);
+  }
 
   // 2) The transition wave: a crest at radius R with trailing ripples.
   float R = uProg * 1.3;
@@ -62,8 +86,9 @@ void main() {
 
   // text fades in over the plain background on arrival
   col = mix(BG, col, uFade);
-  // a faint gold light riding the crest
+  // a faint gold light riding the crest, and a sheen where the cursor lifts the water
   col += GOLD * crest * 0.32 * active * (1.0 - uProg * 0.7);
+  col += GOLD * min(lift, 1.0) * 0.14 * (1.0 - uProg);
 
   // behind the wave the screen is gone: transparent, so the site shows through
   float alpha = mix(1.0, smoothstep(R - 0.07, R + 0.012, d), active);
@@ -107,7 +132,14 @@ export function createRipple(canvas, paint) {
     time: gl.getUniformLocation(program, 'uTime'),
     fade: gl.getUniformLocation(program, 'uFade'),
     prog: gl.getUniformLocation(program, 'uProg'),
+    drops: gl.getUniformLocation(program, 'uDrops') ?? gl.getUniformLocation(program, 'uDrops[0]'),
   }
+
+  // the cursor's drops, oldest overwritten first: [x, y, birth] × DROPS, birth < 0 = unused
+  const DROPS = 10
+  const DROP_LIFE = 1.5
+  const drops = new Float32Array(DROPS * 3).fill(-1)
+  let dropAt = 0
 
   const texture = gl.createTexture()
   gl.bindTexture(gl.TEXTURE_2D, texture)
@@ -145,18 +177,50 @@ export function createRipple(canvas, paint) {
     gl.uniform1f(u.time, t)
     gl.uniform1f(u.fade, start === null ? 0 : Math.min(1, Math.max(0, t / 0.7)))
     gl.uniform1f(u.prog, progress)
+    // retire drops that have faded, so the shader can skip them
+    let live = false
+    for (let i = 0; i < DROPS; i++) {
+      const born = drops[i * 3 + 2]
+      if (born < 0) continue
+      if (t - born > DROP_LIFE) drops[i * 3 + 2] = -1
+      else live = true
+    }
+    gl.uniform3fv(u.drops, drops)
     gl.clearColor(0, 0, 0, 0)
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.drawArrays(gl.TRIANGLES, 0, 6)
-    // keep animating while the arrival drop is still moving or a wave is under way
-    if (start !== null && (t < 5 || progress > 0)) raf = requestAnimationFrame(frame)
+    // keep animating while the arrival drop, the cursor's water or a wave is under way
+    if (start !== null && (t < 5 || progress > 0 || live)) raf = requestAnimationFrame(frame)
   }
 
   function wake() {
     if (!raf) raf = requestAnimationFrame(frame)
   }
 
+  // The cursor drops water as it moves: a new drop every so often along its path.
+  let lastDrop = { x: 0, y: 0, at: -1 }
+  const onMove = (e) => {
+    if (start === null || progress > 0.02) return // not before the text, not during the wave
+    if (e.pointerType === 'touch') return // a finger is scrolling, not drawing
+    const t = (performance.now() - start) / 1000
+    // the canvas fills the screen; to aspect space, the same frame the shader works in
+    const aspect = canvas.clientWidth / canvas.clientHeight
+    const x = (e.clientX / canvas.clientWidth - 0.5) * aspect
+    const y = (1 - e.clientY / canvas.clientHeight - 0.5)
+    // one drop at a time, and only once the hand has actually travelled
+    const far = Math.hypot(x - lastDrop.x, y - lastDrop.y) > 0.045
+    if (lastDrop.at >= 0 && t - lastDrop.at < 0.06) return
+    if (lastDrop.at >= 0 && !far) return
+    lastDrop = { x, y, at: t }
+    drops[dropAt * 3] = x
+    drops[dropAt * 3 + 1] = y
+    drops[dropAt * 3 + 2] = t
+    dropAt = (dropAt + 1) % DROPS
+    wake()
+  }
+
   window.addEventListener('resize', resize)
+  window.addEventListener('pointermove', onMove, { passive: true })
   resize()
 
   return {
@@ -174,6 +238,7 @@ export function createRipple(canvas, paint) {
     dispose() {
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', resize)
+      window.removeEventListener('pointermove', onMove)
       gl.deleteTexture(texture)
       gl.deleteBuffer(buffer)
       gl.deleteProgram(program)
