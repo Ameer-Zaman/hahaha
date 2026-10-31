@@ -102,6 +102,10 @@
   --z-skip: 100;
 
   --header-h: 4.5rem;
+  /* Height of the announcement strip above the header: 0 unless one is pinned. Anything
+     that sits below the fixed chrome offsets by --top-chrome, not by --header-h alone. */
+  --abar-h: 0px;
+  --top-chrome: calc(var(--header-h) + var(--abar-h));
 }
 
 /* Section treatments */

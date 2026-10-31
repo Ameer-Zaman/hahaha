@@ -53,6 +53,23 @@ router.patch('/:id', validateBody(updateUserSchema), async (req, res) => {
   res.json({ user: user.toSafeJSON() })
 })
 
+/**
+ * Switches two-step sign-in off for someone else. For the case it exists for: a staff
+ * member has lost their phone and used up their recovery codes. Only a Super Admin can,
+ * it is written to the audit log, and it signs that account out everywhere.
+ */
+router.post('/:id/two-factor/reset', async (req, res) => {
+  const user = await User.findById(req.params.id)
+  if (!user) throw new HttpError(404, 'Account not found.')
+  if (!user.totp?.enabled) throw new HttpError(409, 'That account does not use two-step sign-in.')
+  user.totp = { secret: '', enabled: false, confirmedAt: null, lastStep: 0 }
+  user.recoveryCodes = []
+  user.tokenVersion += 1
+  await user.save()
+  await audit(req, 'user.2fa_reset', user.email, 'two-step sign-in switched off')
+  res.json({ user: user.toSafeJSON() })
+})
+
 router.delete('/:id', async (req, res) => {
   const user = await User.findById(req.params.id)
   if (!user) throw new HttpError(404, 'Account not found.')

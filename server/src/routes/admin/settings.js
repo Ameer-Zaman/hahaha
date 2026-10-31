@@ -5,7 +5,8 @@ import { validateBody } from '../../middleware/validate.js'
 import { MEDIA_SLOTS, readSections, SECTION_KEYS, Settings } from '../../models/Settings.js'
 import { audit } from '../../services/audit.js'
 import { findFile } from '../../services/media.js'
-import { settingsMediaSchema, settingsSiteSchema } from '../../validation/schemas.js'
+import { requireRole } from '../../middleware/auth.js'
+import { settingsMediaSchema, settingsSecuritySchema, settingsSiteSchema } from '../../validation/schemas.js'
 
 const router = Router()
 
@@ -13,6 +14,8 @@ const VIDEO_SLOTS = new Set(MEDIA_SLOTS.filter((slot) => slot.endsWith('Video'))
 
 const getSettings = async () =>
   (await Settings.findOne({ key: 'main' })) ?? (await Settings.create({ key: 'main' }))
+
+const securityState = (settings) => ({ requireTwoFactor: Boolean(settings.security?.requireTwoFactor) })
 
 const siteState = (settings) => ({
   sections: readSections(settings),
@@ -25,7 +28,7 @@ const siteState = (settings) => ({
 
 router.get('/', async (req, res) => {
   const settings = await getSettings()
-  res.json({ slots: MEDIA_SLOTS, media: settings.media, ...siteState(settings) })
+  res.json({ slots: MEDIA_SLOTS, media: settings.media, ...siteState(settings), security: securityState(settings) })
 })
 
 /** Sections on/off and maintenance mode. Each change is written to the audit log. */
@@ -60,6 +63,22 @@ router.put('/site', validateBody(settingsSiteSchema), async (req, res) => {
   await settings.save()
   for (const [action, detail] of entries) await audit(req, action, 'site', detail)
   res.json(siteState(settings))
+})
+
+/**
+ * Rules for the panel's own accounts. Super Admin only — this decides how everyone signs in.
+ * Turning the requirement on does not lock anyone out: they are asked to set it up on their
+ * next visit, and until they do they cannot change anything.
+ */
+router.put('/security', requireRole('superadmin'), validateBody(settingsSecuritySchema), async (req, res) => {
+  const settings = await getSettings()
+  const before = securityState(settings)
+  settings.security = { requireTwoFactor: req.body.requireTwoFactor }
+  await settings.save()
+  if (before.requireTwoFactor !== req.body.requireTwoFactor) {
+    await audit(req, 'settings.security', 'site', `two-step sign-in ${req.body.requireTwoFactor ? 'required' : 'optional'}`)
+  }
+  res.json({ security: securityState(settings) })
 })
 
 router.put('/media', validateBody(settingsMediaSchema), async (req, res) => {

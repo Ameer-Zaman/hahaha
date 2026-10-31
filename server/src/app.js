@@ -25,6 +25,9 @@ export function createApp() {
   // only for local development or a direct call from an allowed origin.
   app.use(cors({ origin: env.allowedOrigins, credentials: true }))
   app.use(cookieParser())
+  // 1 MB is plenty for every request the panel makes, except putting a backup back:
+  // that one carries the whole site's content, so it gets its own, larger ceiling.
+  app.use('/api/admin/backup', express.json({ limit: process.env.BACKUP_MAX_MB ?? '25mb' }))
   app.use(express.json({ limit: '1mb' }))
 
   /**

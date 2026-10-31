@@ -1,5 +1,6 @@
 import { Router } from 'express'
 
+import { Announcement, isLive } from '../models/Announcement.js'
 import { Club } from '../models/Club.js'
 import { Gang } from '../models/Gang.js'
 import { RuleBook } from '../models/RuleBook.js'
@@ -50,6 +51,30 @@ router.get('/gangs', async (req, res) => {
         sides: w.sides.map((s) => slugById.get(String(s))),
         winner: w.winner ? (slugById.get(String(w.winner)) ?? null) : null,
         result: w.result,
+      })),
+  })
+})
+
+/**
+ * The announcements a visitor should see right now. Drafts, ones not started and ones that
+ * have finished never leave the server, so nothing unpublished can be read from the website.
+ */
+router.get('/announcements', async (req, res) => {
+  res.set('Cache-Control', 'public, max-age=30')
+  const now = new Date()
+  const items = await Announcement.find({ status: 'published' }).sort({ pinned: -1, createdAt: -1 }).limit(60).lean()
+  res.json({
+    announcements: items
+      .filter((a) => isLive(a, now))
+      .slice(0, 20)
+      .map((a) => ({
+        id: String(a._id),
+        title: a.title,
+        body: a.body,
+        tone: a.tone,
+        pinned: a.pinned,
+        at: a.startsAt ?? a.createdAt,
+        link: a.linkUrl ? { url: a.linkUrl, label: a.linkLabel || 'Read more' } : null,
       })),
   })
 })

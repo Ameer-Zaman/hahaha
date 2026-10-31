@@ -6,6 +6,9 @@ import { USE_API } from '../../lib/api'
 import { AuthProvider } from './auth'
 import { useAuth } from './authContext'
 import { Account, Accounts, AuditLog } from './screens/Accounts'
+import { AnnouncementEditor, AnnouncementList } from './screens/Announcements'
+import Backup from './screens/Backup'
+import TwoFactor from './screens/TwoFactor'
 import Dashboard from './screens/Dashboard'
 import { GangEditor, GangList } from './screens/Gangs'
 import { ClubEditor, ClubList } from './screens/Clubs'
@@ -26,6 +29,7 @@ const NAV = [
     group: 'Website',
     items: [
       { to: '/panel/site', label: 'Sections & maintenance' },
+      { to: '/panel/announcements', label: 'Announcements' },
       { to: '/panel/chat', label: 'Rules help chat' },
     ],
   },
@@ -53,6 +57,7 @@ const NAV = [
     superOnly: true,
     items: [
       { to: '/panel/accounts', label: 'Accounts' },
+      { to: '/panel/backup', label: 'Backup' },
       { to: '/panel/audit', label: 'Audit log' },
     ],
   },
@@ -105,7 +110,33 @@ function Gate() {
   }
   if (auth.status === 'unconnected') return <NotConnected reason="missing" />
   if (auth.status === 'out') return <Login />
+  // A Super Admin has made two-step sign-in compulsory and this account hasn't set it up:
+  // the server refuses everything else anyway, so there is nothing else to show.
+  if (auth.mustSetUpTwoFactor) return <TwoFactorRequired />
   return <Shell />
+}
+
+/** Nothing else can be done until two-step sign-in is set up. */
+function TwoFactorRequired() {
+  const { user, signOut } = useAuth()
+  return (
+    <main className="p-center p-center--wide">
+      <div className="p-gate">
+        <p className="p-brand">
+          {site.name}
+          <span>Panel</span>
+        </p>
+        <h1 className="p-gate__title">One more step</h1>
+        <p className="p-gate__sub">
+          Signed in as {user.email}. Two-step sign-in is required for every account here, so set it up to carry on.
+        </p>
+        <TwoFactor />
+        <button type="button" className="pbtn" onClick={signOut}>
+          Sign out instead
+        </button>
+      </div>
+    </main>
+  )
 }
 
 /** Shown when the website runs without its server: the panel needs the API to sign in. */
@@ -209,9 +240,12 @@ function Shell() {
           <Route path="site-media" element={<SiteMedia />} />
           <Route path="story-media" element={<StoryMedia />} />
           <Route path="site" element={<SiteSettings />} />
+          <Route path="announcements" element={<AnnouncementList />} />
+          <Route path="announcements/:id" element={<AnnouncementEditor />} />
           <Route path="chat" element={<Chat />} />
           <Route path="account" element={<Account />} />
           {isSuper && <Route path="accounts" element={<Accounts />} />}
+          {isSuper && <Route path="backup" element={<Backup />} />}
           {isSuper && <Route path="audit" element={<AuditLog />} />}
           <Route path="*" element={<Navigate to="/panel" replace />} />
         </Routes>

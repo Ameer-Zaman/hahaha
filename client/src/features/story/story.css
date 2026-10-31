@@ -25,7 +25,7 @@
   place-content: center;
   justify-items: center;
   gap: clamp(1.5rem, 4svh, 2.75rem);
-  padding: var(--header-h) var(--gutter, 1.25rem) 0;
+  padding: var(--top-chrome) var(--gutter, 1.25rem) 0;
   text-align: center;
   background:
     radial-gradient(ellipse 60% 50% at 50% 45%, rgb(var(--rgb-gold) / 0.08), transparent 70%),
@@ -191,7 +191,7 @@
 }
 .ch__text {
   position: sticky;
-  top: calc(var(--header-h) + 3rem);
+  top: calc(var(--top-chrome) + 3rem);
   display: grid;
   gap: 1.4rem;
   max-width: 34rem;

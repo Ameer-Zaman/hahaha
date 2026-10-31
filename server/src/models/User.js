@@ -15,6 +15,24 @@ const userSchema = new mongoose.Schema(
     /** Bumped on password change / disable, so existing sessions stop working. */
     tokenVersion: { type: Number, default: 0 },
     lastLoginAt: { type: Date, default: null },
+    /**
+     * Two-step sign-in. `secret` is set when setup starts and only counts once `enabled`
+     * is true, so an abandoned setup locks nobody out. `lastStep` is the 30-second step a
+     * code was last accepted for: the same code is refused afterwards, so one seen over a
+     * shoulder (or in a proxy log) cannot be used again.
+     */
+    totp: {
+      secret: { type: String, default: '', select: false },
+      enabled: { type: Boolean, default: false },
+      confirmedAt: { type: Date, default: null },
+      lastStep: { type: Number, default: 0, select: false },
+    },
+    /** Hashes of the one-time recovery codes, for a lost phone. Never the codes themselves. */
+    recoveryCodes: {
+      type: [{ hash: String, usedAt: { type: Date, default: null } }],
+      default: [],
+      select: false,
+    },
   },
   { timestamps: true },
 )
@@ -26,6 +44,7 @@ userSchema.methods.toSafeJSON = function toSafeJSON() {
     name: this.name,
     role: this.role,
     active: this.active,
+    twoFactor: Boolean(this.totp?.enabled),
     lastLoginAt: this.lastLoginAt,
     createdAt: this.createdAt,
   }

@@ -16,7 +16,7 @@
   display: grid;
   grid-template-rows: auto 1fr auto;
   justify-items: center;
-  padding: calc(var(--header-h) + clamp(1rem, 4svh, 2.5rem)) var(--gutter, 1.25rem) clamp(1.5rem, 5svh, 3rem);
+  padding: calc(var(--top-chrome) + clamp(1rem, 4svh, 2.5rem)) var(--gutter, 1.25rem) clamp(1.5rem, 5svh, 3rem);
 }
 
 .clubs-deck__title {

@@ -5,6 +5,7 @@ import { adminApi, authApi } from '../panelApi'
 import { formatWhen } from '../format'
 import { useAction, useResource } from '../hooks'
 import { ConfirmButton, ErrorNote, Loading, PageHead, Panel, SelectField, TextField } from '../ui'
+import TwoFactor from './TwoFactor'
 
 const ROLE_LABEL = { admin: 'Admin', superadmin: 'Super Admin' }
 const ROLE_OPTIONS = [
@@ -46,6 +47,18 @@ export function Accounts() {
     const result = await run(() => adminApi.patch(`/users/${user.id}`, change), message)
     if (result) replace(result.user)
     return result
+  }
+
+  /**
+   * Switches two-step sign-in off for someone who has lost their phone and used up their
+   * recovery codes. It signs them out everywhere, and they set it up again next time.
+   */
+  async function resetTwoFactor(user) {
+    const res = await run(
+      () => adminApi.post(`/users/${user.id}/two-factor/reset`),
+      `Two-step sign-in switched off for ${user.email} — they will set it up again`,
+    )
+    if (res) setData((d) => ({ users: d.users.map((u) => (u.id === user.id ? res.user : u)) }))
   }
 
   async function remove(user) {
@@ -115,7 +128,15 @@ export function Accounts() {
                     <span className="p-muted">{u.email}</span>
                   </td>
                   <td>{ROLE_LABEL[u.role]}</td>
-                  <td>{u.active ? 'Active' : <span className="p-muted">Disabled</span>}</td>
+                  <td>
+                    {u.active ? 'Active' : <span className="p-muted">Disabled</span>}
+                    {u.twoFactor && (
+                      <>
+                        <br />
+                        <span className="p-tag p-tag--ok">Two-step on</span>
+                      </>
+                    )}
+                  </td>
                   <td className="p-nowrap">{formatWhen(u.lastLoginAt)}</td>
                   <td className="p-actions-cell">
                     {!self && (
@@ -141,6 +162,15 @@ export function Accounts() {
                         <button type="button" className="pbtn pbtn--ghost pbtn--sm" onClick={() => setReset({ id: u.id, name: u.name, password: generatePassword() })}>
                           Reset password
                         </button>
+                        {u.twoFactor && (
+                          <ConfirmButton
+                            className="pbtn pbtn--quiet pbtn--sm"
+                            confirmLabel="Confirm — switch it off"
+                            onConfirm={() => resetTwoFactor(u)}
+                          >
+                            Reset two-step
+                          </ConfirmButton>
+                        )}
                         <ConfirmButton className="pbtn pbtn--quiet pbtn--sm" confirmLabel="Confirm delete" onConfirm={() => remove(u)}>
                           Delete
                         </ConfirmButton>
@@ -251,6 +281,7 @@ export function Account() {
   return (
     <>
       <PageHead title="Your account" sub={`${user.name} · ${user.email} · ${ROLE_LABEL[user.role]}`} />
+      <TwoFactor />
       <Panel title="Change password">
         <form className="p-form-grid p-form-grid--narrow" onSubmit={submit}>
           <TextField label="Current password" type="password" value={fields.current} onChange={set('current')} autoComplete="current-password" required wide />

@@ -54,6 +54,11 @@ const settingsSchema = new mongoose.Schema(
       message: { type: String, default: '', maxlength: 300 },
       changedAt: { type: Date, default: null },
     },
+    /** Rules for every panel account, set by a Super Admin. Never sent to the website. */
+    security: {
+      /** Everyone must finish setting up two-step sign-in before they can use the panel. */
+      requireTwoFactor: { type: Boolean, default: false },
+    },
   },
   { timestamps: true, minimize: false },
 )

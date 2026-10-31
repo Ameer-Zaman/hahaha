@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useAuth } from '../authContext'
 
 import { formatWhen } from '../format'
 import { useAction, useResource } from '../hooks'
@@ -26,11 +27,12 @@ export default function SiteSettings() {
   if (error) return <ErrorNote message={error} onRetry={reload} />
   if (loading || !data) return <Loading />
   // a fresh form whenever the saved values change
-  const key = JSON.stringify([data.sections, data.maintenance])
+  const key = JSON.stringify([data.sections, data.maintenance, data.security])
   return <SettingsForm key={key} data={data} setData={setData} />
 }
 
 function SettingsForm({ data, setData }) {
+  const { isSuper } = useAuth()
   const [run, busy] = useAction()
   const [sections, setSections] = useState(data.sections)
   const [message, setMessage] = useState(data.maintenance.message)
@@ -41,6 +43,16 @@ function SettingsForm({ data, setData }) {
 
   async function save(body, success) {
     const result = await run(() => adminApi.put('/settings/site', body), success)
+    if (result) setData((d) => ({ ...d, ...result }))
+  }
+
+  async function saveSecurity(requireTwoFactor) {
+    const result = await run(
+      () => adminApi.put('/settings/security', { requireTwoFactor }),
+      requireTwoFactor
+        ? 'Two-step sign-in is now required — anyone without it is asked to set it up'
+        : 'Two-step sign-in is optional again',
+    )
     if (result) setData((d) => ({ ...d, ...result }))
   }
 
@@ -143,6 +155,28 @@ function SettingsForm({ data, setData }) {
           )}
         </div>
       </Panel>
+
+      {isSuper && (
+        <Panel
+          title="Sign-in security"
+          sub="Applies to every panel account. It does not change anything for visitors to the website."
+        >
+          <div className="p-setting">
+            <div className="p-setting__text">
+              <p className="p-setting__name">Require two-step sign-in</p>
+              <p className="p-setting__note">
+                Everyone needs a code from their phone as well as their password. Anyone who hasn't set it up is asked to on
+                their next visit, and can't change anything until they do.
+              </p>
+            </div>
+            <Switch
+              checked={Boolean(data.security?.requireTwoFactor)}
+              onChange={saveSecurity}
+              label={data.security?.requireTwoFactor ? 'Required' : 'Optional'}
+            />
+          </div>
+        </Panel>
+      )}
     </>
   )
 }

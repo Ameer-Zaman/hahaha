@@ -25,10 +25,27 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
+  /**
+   * The password step. An account with two-step sign-in gets no session here — only a
+   * ticket saying the password was right, which the code step then exchanges.
+   */
   const signIn = useCallback(async (email, password, onWaking) => {
-    const { user } = await withWake(() => authApi.login(email, password), { onWaking, tries: 6 })
-    setState({ status: 'in', user, waking: false })
-    return user
+    const res = await withWake(() => authApi.login(email, password), { onWaking, tries: 6 })
+    if (res.twoFactor) return { twoFactor: true, ticket: res.ticket }
+    setState({ status: 'in', user: res.user, waking: false, mustSetUpTwoFactor: res.mustSetUpTwoFactor })
+    return { user: res.user }
+  }, [])
+
+  /** The code step: six digits from the app, or a recovery code. */
+  const signInTwoFactor = useCallback(async (ticket, code) => {
+    const res = await authApi.loginTwoFactor(ticket, code)
+    setState({ status: 'in', user: res.user, waking: false, mustSetUpTwoFactor: res.mustSetUpTwoFactor })
+    return res.user
+  }, [])
+
+  /** Called once two-step sign-in has been set up, so the panel stops asking. */
+  const twoFactorDone = useCallback(() => {
+    setState((s) => ({ ...s, mustSetUpTwoFactor: false, user: s.user ? { ...s.user, twoFactor: true } : s.user }))
   }, [])
 
   const signOut = useCallback(async () => {
@@ -45,8 +62,8 @@ export function AuthProvider({ children }) {
   }, [])
 
   const value = useMemo(
-    () => ({ ...state, isSuper: state.user?.role === 'superadmin', signIn, signOut, handleError }),
-    [state, signIn, signOut, handleError],
+    () => ({ ...state, isSuper: state.user?.role === 'superadmin', signIn, signInTwoFactor, twoFactorDone, signOut, handleError }),
+    [state, signIn, signInTwoFactor, twoFactorDone, signOut, handleError],
   )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

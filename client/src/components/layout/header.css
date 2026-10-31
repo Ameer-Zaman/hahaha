@@ -1,6 +1,6 @@
 .site-header {
   position: fixed;
-  inset: 0 0 auto;
+  inset: var(--abar-h) 0 auto;
   z-index: var(--z-header);
   color: var(--c-white);
   transition:
@@ -175,7 +175,7 @@
    Closing: the links fade first, then the panel lifts away. */
 .mobile-menu {
   position: fixed;
-  inset: var(--header-h) 0 0;
+  inset: var(--top-chrome) 0 0;
   z-index: var(--z-menu);
   overflow-y: auto;
   background: #050505;

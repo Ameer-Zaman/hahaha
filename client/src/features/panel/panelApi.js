@@ -17,6 +17,13 @@ export const authApi = {
   logout: () => api('/auth/logout', { method: 'POST' }),
   changePassword: (currentPassword, newPassword) =>
     api('/auth/password', { method: 'POST', body: { currentPassword, newPassword } }),
+  /** The second step, when an account uses two-step sign-in. */
+  loginTwoFactor: (ticket, code) => api('/auth/login/2fa', { method: 'POST', body: { ticket, code }, timeout: 25_000 }),
+  twoFactor: () => api('/auth/2fa'),
+  twoFactorSetup: () => api('/auth/2fa/setup', { method: 'POST' }),
+  twoFactorEnable: (code) => api('/auth/2fa/enable', { method: 'POST', body: { code } }),
+  twoFactorDisable: (password, code) => api('/auth/2fa/disable', { method: 'POST', body: { password, code } }),
+  twoFactorNewCodes: (code) => api('/auth/2fa/recovery-codes', { method: 'POST', body: { code } }),
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))

@@ -44,6 +44,8 @@ if (jwtSecret.length < 32) throw new Error('JWT_SECRET must be at least 32 chara
 
 export const env = {
   isProd,
+  /** Shown in an authenticator app next to the six digits, so the entry is recognisable. */
+  siteName: process.env.SITE_NAME ?? 'Rameirah Empire',
   port: Number(process.env.PORT ?? 4000),
   mongoUri: required('MONGODB_URI'),
   jwtSecret,

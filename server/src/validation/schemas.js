@@ -23,6 +23,54 @@ export const changePasswordSchema = z.object({
   newPassword: passwordSchema,
 })
 
+/** Six digits from the app, or a recovery code (with or without its dash). */
+const secondFactor = z.string().trim().min(6, 'enter the code').max(20)
+
+export const twoFactorLoginSchema = z.object({
+  ticket: z.string().min(10).max(2000),
+  code: secondFactor,
+})
+
+export const twoFactorCodeSchema = z.object({ code: secondFactor })
+
+/**
+ * A date-time from the panel, or nothing at all.
+ *
+ * `z.null()` has to come first: `z.coerce.date()` happily turns null into 1970, which made
+ * an empty start and finish look like two equal dates and fail the check below.
+ */
+const when = z
+  .preprocess((v) => (v === '' || v === undefined ? null : v), z.union([z.null(), z.coerce.date()]))
+  .default(null)
+
+export const announcementSchema = z
+  .object({
+    title: text(120).min(1, 'give it a title'),
+    body: z.string().trim().max(4000).optional().default(''),
+    tone: z.enum(['news', 'good', 'warning']).default('news'),
+    status: z.enum(['draft', 'published']).default('draft'),
+    pinned: z.boolean().default(false),
+    startsAt: when,
+    endsAt: when,
+    // only ordinary links: a javascript: address in a headline is a way to run code
+    linkUrl: z
+      .union([z.string().trim().url().max(500).refine((u) => /^https?:\/\//i.test(u), 'use a http:// or https:// address'), z.literal('')])
+      .optional()
+      .default(''),
+    linkLabel: text(60).optional().default(''),
+  })
+  .refine((a) => !a.startsAt || !a.endsAt || a.endsAt > a.startsAt, {
+    message: 'the finish must be after the start',
+    path: ['endsAt'],
+  })
+
+export const settingsSecuritySchema = z.object({ requireTwoFactor: z.boolean() })
+
+export const twoFactorOffSchema = z.object({
+  password: z.string().min(1).max(200),
+  code: secondFactor,
+})
+
 export const createUserSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(200),
   name: text(80).min(1),

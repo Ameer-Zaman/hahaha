@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 
+import AnnouncementBar from '../site/AnnouncementBar'
 import SiteHeader from './SiteHeader'
 import SiteFooter from './SiteFooter'
 import ScrollProgress from './ScrollProgress'
@@ -88,6 +89,7 @@ export default function Layout() {
         Skip to content
       </a>
       {!NO_FOOTER.includes(pathname) && <ScrollProgress />}
+      <AnnouncementBar />
       <SiteHeader tone={tone} />
       <main id="main" tabIndex={-1}>
         {/* keyed by path so each page fades in once on arrival */}

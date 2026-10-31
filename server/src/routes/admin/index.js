@@ -1,6 +1,7 @@
 import { Router } from 'express'
 
 import { authenticate, requireRole } from '../../middleware/auth.js'
+import { twoFactorRequired } from '../../services/twoFactor.js'
 import { Club } from '../../models/Club.js'
 import { Gang } from '../../models/Gang.js'
 import { Settings } from '../../models/Settings.js'
@@ -8,7 +9,9 @@ import { RuleBook } from '../../models/RuleBook.js'
 import { Staff } from '../../models/Staff.js'
 import { War } from '../../models/War.js'
 import { AuditLog } from '../../models/AuditLog.js'
+import announcements from './announcements.js'
 import auditRoutes from './audit.js'
+import backup from './backup.js'
 import chat from './chat.js'
 import clubs from './clubs.js'
 import gangs from './gangs.js'
@@ -31,6 +34,20 @@ router.use(authenticate)
 router.use((req, res, next) => {
   res.set('Cache-Control', 'no-store')
   next()
+})
+
+/**
+ * When a Super Admin has made two-step sign-in compulsory, an account that has not set it
+ * up yet cannot do anything here. Setting it up lives under /api/auth/2fa, which is outside
+ * this router, so there is always a way forward.
+ */
+router.use(async (req, res, next) => {
+  if (req.user.totp?.enabled) return next()
+  if (!(await twoFactorRequired())) return next()
+  res.status(403).json({
+    message: 'Set up two-step sign-in to carry on.',
+    code: 'two_factor_required',
+  })
 })
 
 const staffRoles = requireRole('admin', 'superadmin')
@@ -63,6 +80,7 @@ router.get('/overview', staffRoles, async (req, res) => {
   })
 })
 
+router.use('/announcements', staffRoles, announcements)
 router.use('/gangs', staffRoles, gangs)
 router.use('/clubs', staffRoles, clubs)
 router.use('/chat', staffRoles, chat)
@@ -72,6 +90,7 @@ router.use('/tdm', staffRoles, tdm)
 router.use('/rules', staffRoles, rules)
 router.use('/media', staffRoles, media)
 router.use('/settings', staffRoles, settings)
+router.use('/backup', superOnly, backup)
 router.use('/users', superOnly, users)
 router.use('/audit', superOnly, auditRoutes)
 

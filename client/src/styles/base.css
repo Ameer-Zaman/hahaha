@@ -8,7 +8,7 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  scroll-padding-top: calc(var(--header-h) + var(--sp-4));
+  scroll-padding-top: calc(var(--top-chrome) + var(--sp-4));
 }
 
 @media (prefers-reduced-motion: no-preference) {

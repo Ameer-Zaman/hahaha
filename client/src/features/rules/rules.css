@@ -83,7 +83,7 @@
 
   .rules-index {
     position: sticky;
-    top: calc(var(--header-h) + var(--sp-6));
+    top: calc(var(--top-chrome) + var(--sp-6));
     align-self: start;
   }
 

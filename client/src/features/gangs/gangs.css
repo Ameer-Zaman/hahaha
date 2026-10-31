@@ -326,7 +326,7 @@
 /* ---------- corner ticket (counter) + autoplay ---------- */
 .reel__hud {
   position: sticky;
-  top: calc(var(--header-h) + 0.5rem);
+  top: calc(var(--top-chrome) + 0.5rem);
   z-index: 300;
   height: 0;
   max-width: 118rem;

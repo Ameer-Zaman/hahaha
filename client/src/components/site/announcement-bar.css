@@ -1,0 +1,101 @@
+/* The strip across the very top of every page, for anything the team has pinned. */
+.abar {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: calc(var(--z-header) + 2);
+  border-bottom: 1px solid rgb(var(--rgb-gold) / 0.3);
+  background: linear-gradient(180deg, rgb(20 17 12), rgb(13 11 9));
+  color: var(--fg);
+}
+.abar--warning {
+  border-bottom-color: rgb(226 89 107 / 0.5);
+  background: linear-gradient(180deg, rgb(32 14 17), rgb(18 11 12));
+}
+.abar--good {
+  border-bottom-color: rgb(61 220 132 / 0.4);
+  background: linear-gradient(180deg, rgb(12 24 18), rgb(10 15 12));
+}
+
+.abar__inner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: min(118rem, 100%);
+  margin-inline: auto;
+  padding: 0.6rem clamp(1rem, 3vw, 2.5rem);
+}
+.abar__icon {
+  flex: none;
+  color: var(--c-gold);
+}
+.abar--warning .abar__icon {
+  color: #e2596b;
+}
+.abar--good .abar__icon {
+  color: #3ddc84;
+}
+.abar__text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+}
+.abar__body {
+  color: var(--fg-muted);
+}
+.abar__link {
+  flex: none;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid rgb(var(--rgb-gold) / 0.5);
+  border-radius: 999px;
+  color: var(--c-gold-light);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.abar__link:hover {
+  background: rgb(var(--rgb-gold) / 0.12);
+}
+.abar__close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+.abar__close:hover {
+  background: rgb(var(--rgb-ivory) / 0.08);
+  color: var(--fg);
+}
+.abar__close:focus-visible,
+.abar__link:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (max-width: 48rem) {
+  .abar__inner {
+    flex-wrap: wrap;
+    row-gap: 0.4rem;
+    padding-block: 0.5rem;
+  }
+  .abar__text {
+    flex: 1 1 100%;
+    order: 2;
+  }
+  .abar__link {
+    order: 3;
+  }
+  .abar__close {
+    margin-left: auto;
+  }
+}

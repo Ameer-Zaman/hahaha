@@ -1430,3 +1430,182 @@
   opacity: 0.6;
   font-style: italic;
 }
+
+/* ---------- two-step sign-in ---------- */
+.p-input--code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 1.3rem;
+  letter-spacing: 0.3em;
+  text-align: center;
+}
+.p-steps {
+  display: grid;
+  gap: var(--sp-5, 1.5rem);
+  margin: 0;
+  padding-left: 1.2rem;
+}
+.p-steps > li {
+  padding-left: 0.3rem;
+  line-height: 1.5;
+}
+.p-qr {
+  margin-top: 0.8rem;
+}
+.p-qr__box {
+  display: inline-grid;
+  place-items: center;
+  width: 196px;
+  height: 196px;
+  padding: 10px;
+  border-radius: 10px;
+  background: #fff;
+}
+.p-qr__box svg {
+  width: 100%;
+  height: 100%;
+}
+.p-secret {
+  display: block;
+  margin-top: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 0.06);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  word-break: break-all;
+  user-select: all;
+}
+/* the recovery codes, shown once */
+.p-codes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.4rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  list-style: none;
+  border: 1px dashed rgb(255 255 255 / 0.2);
+  border-radius: 10px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  user-select: all;
+}
+.p-details {
+  margin-top: 1.4rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(255 255 255 / 0.08);
+}
+.p-details > summary {
+  cursor: pointer;
+  color: var(--p-muted, #9b978f);
+}
+.p-details > summary:hover {
+  color: inherit;
+}
+.p-details[open] > summary {
+  margin-bottom: 1rem;
+}
+/* the "set this up before you can carry on" screen */
+.p-center--wide {
+  align-items: start;
+  padding: clamp(1.5rem, 5vw, 4rem) 1rem;
+}
+.p-gate {
+  width: min(40rem, 100%);
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+}
+.p-gate__title {
+  margin: 0;
+  font-size: 1.6rem;
+}
+.p-gate__sub {
+  margin: 0;
+  color: var(--p-muted, #9b978f);
+}
+.p-gate .p-panel {
+  width: 100%;
+}
+.p-tag--ok {
+  border-color: rgb(var(--rgb-gold) / 0.5);
+  color: var(--c-gold-light);
+}
+/* a short explanation above a form */
+.p-note {
+  margin: 0 0 1rem;
+  max-width: 58ch;
+  line-height: 1.55;
+  color: var(--fg-muted);
+}
+/* a single setting: its name and explanation on the left, its switch on the right */
+.p-setting {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  flex-wrap: wrap;
+}
+.p-setting__text {
+  flex: 1 1 22rem;
+  min-width: 0;
+}
+.p-setting__name {
+  margin: 0 0 0.3rem;
+  font-weight: 600;
+}
+.p-setting__note {
+  margin: 0;
+  max-width: 62ch;
+  line-height: 1.5;
+  color: var(--fg-muted);
+}
+
+/* ---------- backup ---------- */
+.p-counts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--sp-3);
+  margin: 0 0 var(--sp-5);
+  padding: 0;
+  list-style: none;
+}
+.p-counts > li {
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--p-line);
+  border-radius: 10px;
+}
+.p-counts__n {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--c-gold-light);
+}
+.p-counts__label {
+  display: block;
+  margin-top: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.p-file {
+  display: block;
+  width: 100%;
+  max-width: 32rem;
+  padding: 0.8rem;
+  border: 1px dashed var(--p-line-strong);
+  border-radius: 10px;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+.p-restore {
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-5);
+  border-top: 1px solid var(--p-line);
+}
+.p-warn {
+  color: #e2596b;
+}
