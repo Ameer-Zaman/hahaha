@@ -1,0 +1,6 @@
+# The public pages are welcome in search results. The admin panel is not: it is no secret
+# that it exists, but there is no reason for its sign-in page to sit in an index where
+# someone can go looking for it.
+User-agent: *
+Disallow: /panel
+Allow: /

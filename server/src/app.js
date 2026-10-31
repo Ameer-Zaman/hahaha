@@ -1,6 +1,7 @@
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
+import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
 
 import { env } from './config/env.js'
@@ -25,6 +26,24 @@ export function createApp() {
   app.use(cors({ origin: env.allowedOrigins, credentials: true }))
   app.use(cookieParser())
   app.use(express.json({ limit: '1mb' }))
+
+  /**
+   * A ceiling on how fast one address can call the API at all. The website's own visitors
+   * are served from Cloudflare's cache and rarely reach here, but this address answers on
+   * the open internet too, so nothing stops someone pointing a script straight at it.
+   * Generous enough that a real visitor never notices; low enough that a flood doesn't
+   * burn through the hosting. Sign-in and chat have their own, much tighter, limits.
+   */
+  app.use(
+    rateLimit({
+      windowMs: 60 * 1000,
+      limit: Number(process.env.RATE_LIMIT_PER_MINUTE ?? 300),
+      standardHeaders: 'draft-8',
+      legacyHeaders: false,
+      skip: (req) => req.path === '/api/health',
+      message: { message: 'Too many requests. Wait a moment and try again.' },
+    }),
+  )
 
   app.get('/api/health', (req, res) => res.json({ ok: true }))
 

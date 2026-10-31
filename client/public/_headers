@@ -1,4 +1,6 @@
-# Cloudflare Pages: how long browsers and Cloudflare keep each kind of file.
+# Headers Cloudflare sends with the website's own files (Workers static assets and Pages both
+# read this file). The API sets its own headers in server/src/app.js.
+
 # Built code has a fingerprint in its name, so it can be kept forever.
 /static/*
   Cache-Control: public, max-age=31536000, immutable
@@ -11,5 +13,25 @@
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
 /*
+  # Don't let a file be treated as a type it isn't.
   X-Content-Type-Options: nosniff
+  # Other sites only ever see that the visit came from this site, never which page.
   Referrer-Policy: strict-origin-when-cross-origin
+  # Always HTTPS, for two years, including anything on a subdomain.
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  # Nobody may put this site in a frame: an invisible frame over a real page is how a
+  # signed-in admin gets tricked into clicking something in the panel.
+  X-Frame-Options: DENY
+  # The site asks for none of these, so the browser should refuse them outright.
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+  # What the page is allowed to load. Scripts and styles come only from this site, so a
+  # stray <script> from injected text has nowhere to load from and cannot run inline.
+  # data: and blob: cover the city skylines drawn in the browser and the preloaded videos;
+  # the two cloudinary hosts are where uploaded pictures and videos live, and where the
+  # panel sends a new one. Keep this in step with server/src/config/env.js (cloudinary).
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://res.cloudinary.com; media-src 'self' blob: https://res.cloudinary.com; font-src 'self'; connect-src 'self' https://res.cloudinary.com https://api.cloudinary.com; worker-src 'self' blob:; manifest-src 'self'; frame-src 'none'; upgrade-insecure-requests
+
+# The admin panel is never cached and never indexed.
+/panel/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, nofollow

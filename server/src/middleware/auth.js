@@ -4,6 +4,12 @@ import { env } from '../config/env.js'
 import { User } from '../models/User.js'
 
 export const SESSION_COOKIE = 'shy_session'
+/**
+ * Every token this server signs says what it is for. A session token opens the panel; an
+ * upload token (middleware/uploadToken.js) only uploads one file. Without this, a token
+ * meant for one job would be accepted for the other.
+ */
+const PURPOSE = 'session'
 
 export function sessionCookieOptions() {
   return {
@@ -16,7 +22,7 @@ export function sessionCookieOptions() {
 }
 
 export function issueSession(res, user) {
-  const token = jwt.sign({ sub: user._id.toString(), tv: user.tokenVersion }, env.jwtSecret, {
+  const token = jwt.sign({ sub: user._id.toString(), tv: user.tokenVersion, purpose: PURPOSE }, env.jwtSecret, {
     expiresIn: `${env.sessionHours}h`,
   })
   res.cookie(SESSION_COOKIE, token, sessionCookieOptions())
@@ -41,6 +47,11 @@ export async function authenticate(req, res, next) {
   } catch {
     clearSession(res)
     return res.status(401).json({ message: 'Your session has expired. Please sign in again.' })
+  }
+  // a token signed for anything else (an upload token, say) is not a way in
+  if (payload.purpose !== PURPOSE) {
+    clearSession(res)
+    return res.status(401).json({ message: 'Please sign in.' })
   }
   const user = await User.findById(payload.sub)
   if (!user || !user.active || user.tokenVersion !== payload.tv) {
