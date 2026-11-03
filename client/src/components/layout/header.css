@@ -144,68 +144,28 @@
 }
 
 .hub__mini {
-  --r: 1.05rem; /* how far the logos circle from the middle */
   position: relative;
   width: 100%;
   height: 100%;
 }
-.hub__mini-core {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  display: grid;
-  place-items: center;
-  width: 1rem;
-  height: 1rem;
-  color: var(--c-gold);
-  transform: translate(-50%, -50%);
-}
-.hub__mini-core svg {
-  width: 100%;
-  height: 100%;
-}
-/* the whole ring turns; each logo turns back the other way so it stays upright */
-.hub__mini-orbit {
+/* every logo sits in the centre; only the active one is shown, the rest fade out small */
+.hub__spot {
   position: absolute;
   inset: 0;
-  animation: hub-orbit 14s linear infinite;
-}
-.hub__trigger:hover .hub__mini-orbit,
-.hub.is-open .hub__mini-orbit {
-  animation-play-state: paused;
-}
-.hub__mini-item {
-  --a: calc(360deg / var(--n) * var(--i));
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0.95rem;
-  height: 0.95rem;
-  margin: -0.475rem 0 0 -0.475rem;
-  transform: rotate(var(--a)) translateY(calc(-1 * var(--r))) rotate(calc(-1 * var(--a)));
-}
-.hub__mini-logo {
   display: grid;
   place-items: center;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: #0d0f13;
-  box-shadow: 0 0 0 1px rgb(var(--rgb-ivory) / 0.14);
-  animation: hub-orbit 14s linear infinite reverse;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.55s var(--ease-out), transform 0.6s var(--ease-out);
+  will-change: opacity, transform;
 }
-.hub__trigger:hover .hub__mini-logo,
-.hub.is-open .hub__mini-logo {
-  animation-play-state: paused;
+.hub__spot.is-active {
+  opacity: 1;
+  transform: none;
 }
-.hub__mini-logo svg {
-  width: 0.62rem;
-  height: 0.62rem;
-}
-@keyframes hub-orbit {
-  to {
-    transform: rotate(360deg);
-  }
+.hub__spot svg {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 /* the drop-down: see-through, the links one under another */
@@ -285,9 +245,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hub__mini-orbit,
-  .hub__mini-logo {
-    animation: none;
+  .hub__spot {
+    transition: none;
   }
   .hub__panel,
   .hub.is-open .hub__panel,

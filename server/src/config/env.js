@@ -75,6 +75,19 @@ export const env = {
     discordChannelId: process.env.DISCORD_CHAT_CHANNEL_ID ?? '',
     discordStaffRoleId: process.env.DISCORD_STAFF_ROLE_ID ?? '',
   },
+
+  /**
+   * Admin-panel sign-in alerts to Discord (optional): a message in a staff channel every time
+   * someone signs into /panel, and on failed attempts, with the IP, rough location and device.
+   * Needs the Discord bot above. Posts to DISCORD_SECURITY_CHANNEL_ID, or the chat channel when
+   * that is unset. Turn the whole thing off with LOGIN_ALERTS=off, or the IP location lookup
+   * (a call to a free geo service) with IP_GEO_LOOKUP=off.
+   */
+  security: {
+    alertChannelId: process.env.DISCORD_SECURITY_CHANNEL_ID ?? '',
+    loginAlerts: (process.env.LOGIN_ALERTS ?? 'on').toLowerCase() !== 'off',
+    geoLookup: (process.env.IP_GEO_LOOKUP ?? 'on').toLowerCase() !== 'off',
+  },
   uploads: {
     // Cloudinary's free plan allows 10 MB images and 100 MB videos; the database is smaller
     imageMaxBytes: Number(process.env.IMAGE_MAX_MB ?? (cloudinary.enabled ? 10 : 5)) * 1024 * 1024,

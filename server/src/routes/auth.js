@@ -9,6 +9,7 @@ import { HttpError } from '../middleware/errors.js'
 import { validateBody } from '../middleware/validate.js'
 import { User } from '../models/User.js'
 import { audit } from '../services/audit.js'
+import { reportLogin } from '../services/loginAlert.js'
 import { newSecret, otpauthUrl, verifyTotp } from '../services/totp.js'
 import { issueTicket, makeRecoveryCodes, readTicket, recoveryCodesLeft, twoFactorRequired, useSecondFactor } from '../services/twoFactor.js'
 import { changePasswordSchema, loginSchema, twoFactorCodeSchema, twoFactorLoginSchema, twoFactorOffSchema } from '../validation/schemas.js'
@@ -51,6 +52,8 @@ async function signIn(req, res, user, how = 'auth.login') {
     // a Super Admin can require two-step sign-in; the panel then asks for it before anything else
     mustSetUpTwoFactor: !user.totp?.enabled && (await twoFactorRequired()),
   })
+  // tell the staff Discord channel someone signed in (best-effort, after the response)
+  void reportLogin({ ip: req.ip, ua: req.get('user-agent'), email: user.email, role: user.role, outcome: 'success' })
 }
 
 router.post('/login', loginLimiter, accountLimiter, validateBody(loginSchema), async (req, res) => {
@@ -59,6 +62,7 @@ router.post('/login', loginLimiter, accountLimiter, validateBody(loginSchema), a
   const ok = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH)
   if (!user || !ok || !user.active) {
     await audit({ ip: req.ip }, 'auth.login_failed', email)
+    void reportLogin({ ip: req.ip, ua: req.get('user-agent'), email, outcome: 'failed' })
     return res.status(401).json({ message: 'Wrong email or password.' })
   }
   // The password alone is not a way in for an account with two-step sign-in: the ticket
@@ -76,6 +80,7 @@ router.post('/login/2fa', loginLimiter, validateBody(twoFactorLoginSchema), asyn
   const used = await useSecondFactor(user, req.body.code)
   if (!used) {
     await audit({ ip: req.ip }, 'auth.2fa_failed', user.email)
+    void reportLogin({ ip: req.ip, ua: req.get('user-agent'), email: user.email, role: user.role, outcome: 'twofactor_failed' })
     throw new HttpError(401, 'That code is not right. Check the app and try again.')
   }
   if (used === 'recovery') {

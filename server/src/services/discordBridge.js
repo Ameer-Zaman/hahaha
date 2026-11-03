@@ -14,6 +14,7 @@ import { env } from '../config/env.js'
  */
 let client = null
 let channel = null
+let securityChannel = null // where admin sign-in alerts go (the chat channel unless one is set)
 let state = 'off' // off | connecting | ready | error: …
 let onStaff = () => {}
 
@@ -25,7 +26,32 @@ export const fakeDiscordLog = () => fakeLog
 export const fakeStaffReply = (threadId, name, text) =>
   onStaff({ threadId, name, text, command: /^!(close|block)\b/i.exec(text)?.[1]?.toLowerCase() ?? null, react: () => {} })
 
-export const discordStatus = () => ({ configured: Boolean(env.chat.discordToken && (env.chat.discordChannelId || isFakeDiscord())), state })
+export const discordStatus = () => ({
+  configured: Boolean(env.chat.discordToken && (env.chat.discordChannelId || isFakeDiscord())),
+  state,
+  securityAlerts: env.security.loginAlerts,
+  securityChannelSeparate: Boolean(env.security.alertChannelId && env.security.alertChannelId !== env.chat.discordChannelId),
+})
+
+/**
+ * Posts an admin sign-in alert (a Discord embed) to the security channel. Best-effort: never
+ * throws, and does nothing when Discord isn't connected, so a sign-in is never held up or
+ * undone by a logging problem. `pingStaff` @-mentions the staff role (used for failures).
+ */
+export async function postSecurityAlert(embed, { pingStaff = false } = {}) {
+  try {
+    if (isFakeDiscord()) return void fakeLog.push({ security: embed.title ?? 'alert', embed, pingStaff })
+    if (!discordReady() || !securityChannel) return
+    const role = pingStaff && env.chat.discordStaffRoleId ? env.chat.discordStaffRoleId : null
+    await securityChannel.send({
+      content: role ? `<@&${role}>` : undefined,
+      embeds: [embed],
+      allowedMentions: { roles: role ? [role] : [] },
+    })
+  } catch (err) {
+    console.error('Discord security alert failed:', err.message)
+  }
+}
 export const discordReady = () => state === 'ready'
 
 /** Called for every staff message in a chat thread: ({ threadId, name, text, command }). */
@@ -48,6 +74,9 @@ export async function startDiscord() {
     try {
       channel = await client.channels.fetch(env.chat.discordChannelId)
       if (!channel || channel.type !== ChannelType.GuildText) throw new Error('DISCORD_CHAT_CHANNEL_ID is not a text channel')
+      // admin sign-in alerts: a separate channel if given, otherwise the chat channel
+      const secId = env.security.alertChannelId
+      securityChannel = secId && secId !== env.chat.discordChannelId ? await client.channels.fetch(secId).catch(() => null) : channel
       state = 'ready'
       console.log(`Discord chat bridge ready as ${client.user.tag} in #${channel.name}`)
     } catch (err) {

@@ -64,6 +64,16 @@ function ChatScreen({ data, reload }) {
                 <Status warn>{d.state}</Status>
               )}
             </li>
+            <li>
+              Admin sign-in alerts to Discord:{' '}
+              {!d.securityAlerts ? (
+                <Status warn>Off (LOGIN_ALERTS=off)</Status>
+              ) : d.configured ? (
+                <Status ok>On · {d.securityChannelSeparate ? 'separate security channel' : 'this chat channel'}</Status>
+              ) : (
+                <Status warn>Waiting for the Discord bot</Status>
+              )}
+            </li>
           </ul>
           <p className="p-text">
             The bot token is set on the server (Render → Environment), never here. Without it, visitors who can’t find a rule get a link to

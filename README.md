@@ -194,6 +194,12 @@ The bot lives in the API server, so it's only online while the server is awake. 
 - **Feature it** to lead the Events page while it is still to come; only one event is featured at a time.
 - Drafts never leave the server, sign-up links must be http(s), every change is in the audit log, and events are included in backups. Switch the page off in **Panel → Sections & maintenance**.
 
+## Admin sign-in alerts to Discord
+
+When someone signs into the admin panel — or fails to — the server can post a message to a staff Discord channel with the **IP address, a rough location** (city/country, from the IP) **and the browser/device**, plus the account and time. A run of failed attempts from one IP pings your staff role. It uses the same bot as the rules-help chat; by default it posts to the chat channel, or set `DISCORD_SECURITY_CHANNEL_ID` for a separate one. Turn it off with `LOGIN_ALERTS=off`, or just the location lookup with `IP_GEO_LOOKUP=off`.
+
+This is deliberately only for the **panel** — the people signing in are you and your staff, into your own tool. There is no visitor tracking and no MAC address: a website never receives a visitor's MAC (it never leaves their own network), and silently logging every visitor's IP would be covert surveillance of people who haven't consented. Panel → Rules help chat shows whether the alerts are on.
+
 ## Importing players from JSON
 
 **Gangs → Import players (JSON)** fills several gangs at once. **Import JSON** on a gang's own page fills just that gang; press Save afterwards. Paste the JSON or choose a `.json` file, check the preview, then pick one:

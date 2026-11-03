@@ -1,13 +1,15 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 
-import BrandMark from '../ui/BrandMark'
 import SocialIcon from '../ui/SocialIcon'
 
+const CYCLE_MS = 1900
+const motionOk = () => typeof window === 'undefined' || !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
 /**
- * The community links in the header: a small button where the links' logos circle round the
- * server's mark; clicking it drops down a plain see-through list of the links, one under
- * another. The links come from Panel → Sections & maintenance → Community links.
+ * The community links in the header: a small button where the links' logos take turns coming
+ * to the centre, one at a time; clicking it drops down a plain see-through list of the links,
+ * one under another. The links come from Panel → Sections & maintenance → Community links.
  */
 export default function SocialHub({ links }) {
   // open belongs to the page it was opened on, so moving to another page closes it
@@ -17,6 +19,14 @@ export default function SocialHub({ links }) {
   const root = useRef(null)
   const trigger = useRef(null)
   const panelId = useId()
+
+  // which logo is in the centre of the button; it steps to the next one on a gentle timer
+  const [active, setActive] = useState(0)
+  useEffect(() => {
+    if (links.length <= 1 || !motionOk()) return undefined
+    const timer = setInterval(() => setActive((i) => (i + 1) % links.length), CYCLE_MS)
+    return () => clearInterval(timer)
+  }, [links.length])
 
   useEffect(() => {
     if (!open) return undefined
@@ -38,8 +48,6 @@ export default function SocialHub({ links }) {
   }, [open])
 
   if (links.length === 0) return null
-  // the button has room for six logos circling; the list below always has all of them
-  const orbit = links.slice(0, 6)
 
   return (
     <div ref={root} className={`hub ${open ? 'is-open' : ''}`}>
@@ -53,20 +61,13 @@ export default function SocialHub({ links }) {
         title="Community"
         onClick={() => setOpenOn((cur) => (cur === pathname ? null : pathname))}
       >
-        {/* the little platform: the mark in the middle, the logos circling round it */}
+        {/* the logos take turns in the centre, one fading out as the next fades in */}
         <span className="hub__mini" aria-hidden="true">
-          <span className="hub__mini-core">
-            <BrandMark />
-          </span>
-          <span className="hub__mini-orbit" style={{ '--n': orbit.length }}>
-            {orbit.map((link, i) => (
-              <span key={`${link.id}-${i}`} className="hub__mini-item" style={{ '--i': i }}>
-                <span className="hub__mini-logo">
-                  <SocialIcon id={link.id} size={11} />
-                </span>
-              </span>
-            ))}
-          </span>
+          {links.map((link, i) => (
+            <span key={`${link.id}-${i}`} className={`hub__spot ${i === active ? 'is-active' : ''}`}>
+              <SocialIcon id={link.id} size={18} />
+            </span>
+          ))}
         </span>
       </button>
 
