@@ -151,7 +151,7 @@ function BotForm({ initial }) {
           label="Picture"
           value={form.avatar}
           onChange={(avatar) => setForm((f) => ({ ...f, avatar }))}
-          fallback="Optional. A square picture works best; it shows in a small circle. Without one, the bot shows the first letter of its name."
+          fallback="Shown on the chat button on every page and beside the bot's messages. A square picture works best; it shows in a circle. Without one, the button shows the first letter of the name."
         />
         <div className="p-row">
           <button type="submit" className="pbtn pbtn--gold" disabled={busy || !changed || !form.name.trim()}>

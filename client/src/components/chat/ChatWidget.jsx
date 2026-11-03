@@ -9,7 +9,8 @@ import { useSiteSettings } from '../../lib/siteSettings'
 import './chat.css'
 
 /**
- * The chat assistant (Vexy by default — its name and picture are set in Panel → Rules help chat):
+ * The chat assistant (Vexy by default — its name and picture, which is also the chat button, are set in
+ * Panel → Rules help chat → The bot):
  * a chat button on every page that answers questions about the server rules.
  * Answers are found in the rule book right here in the browser (free, instant, and always the
  * real wording). If no rule fits, "Ask staff" sends the question to the team's Discord and their
@@ -55,13 +56,6 @@ async function call(path, { method = 'GET', body, token } = {}) {
 }
 
 const Icon = {
-  /* Instagram-style "direct" paper plane for the chat button */
-  direct: (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M21.5 3 2.8 9.7l7.3 3.3 3.3 7.3z" />
-      <path d="m10.1 13 4.6-4.6" />
-    </svg>
-  ),
   close: (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M6 6l12 12M18 6L6 18" />
@@ -309,7 +303,7 @@ function RulesChat({ bot }) {
           <BotAvatar bot={bot} size="sm" />
           <div className="chatw__title">
             <p className="chatw__name">{bot.name}</p>
-            <p className="chatw__status">{inStaffChat ? 'Chatting with staff' : 'Typically replies instantly'}</p>
+            <p className="chatw__status">{inStaffChat ? 'Chatting with staff' : 'Answers from the rule book'}</p>
           </div>
           {auth && (
             <button type="button" className="chatw__text-btn" onClick={endStaffChat} title="End the chat with staff">
@@ -505,10 +499,24 @@ function RulesChat({ bot }) {
               : `Chat with ${bot.name} — rules help`
         }
       >
-        <span className="chatw__launcher-icon">{open ? Icon.close : Icon.direct}</span>
+        {open ? <span className="chatw__launcher-close">{Icon.close}</span> : <LauncherFace bot={bot} />}
         {!open && unread > 0 && <span className="chatw__badge">{unread}</span>}
       </button>
     </div>
+  )
+}
+
+/** The chat button: the bot's picture from the panel, or its initial on gold. */
+function LauncherFace({ bot }) {
+  const [failed, setFailed] = useState(false)
+  return (
+    <span className="chatw__avatar" aria-hidden="true">
+      {bot.avatar && !failed ? (
+        <img src={bot.avatar} alt="" className="chatw__avatar-img" onError={() => setFailed(true)} />
+      ) : (
+        (bot.name.trim()[0] ?? 'V').toUpperCase()
+      )}
+    </span>
   )
 }
 
@@ -521,7 +529,7 @@ function StaffFace({ name = '' }) {
   )
 }
 
-/** The bot's picture from the panel (or the first letter of its name), in an Instagram-style ring. */
+/** The bot's picture from the panel (or the first letter of its name), in a gold ring. */
 function BotAvatar({ bot, size = 'sm' }) {
   const [failed, setFailed] = useState(false)
   return (
