@@ -12,17 +12,45 @@ import { useSectionOn } from '../../lib/siteSettings'
 import LoopMedia from './LoopMedia'
 import './story.css'
 
+/** 1 → "01". The numerals are set like a magazine's, so they need the leading zero. */
+const num = (i) => String(i + 1).padStart(2, '0')
+
+/* -------------------------------------------------------------- contents */
+
+/** A contents strip under the title: where the page goes, and a way to jump there. */
+function Contents({ story }) {
+  return (
+    <nav className="sidx" aria-label="Chapters">
+      <ol className="sidx__list">
+        {story.map((ch, i) => (
+          <li key={ch.id} className="sidx__item">
+            <a className="sidx__link" href={`#ch-${ch.id}`}>
+              <span className="sidx__n" aria-hidden="true">
+                {num(i)}
+              </span>
+              <span className="sidx__name">{ch.title}</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
+
 /* -------------------------------------------------------------- chapter */
 
 /**
- * One chapter: a number, a title, the writing in a readable column, and its pictures beside
- * it — the scene, then the two smaller places under it. The column changes side each
- * chapter, which is all the rhythm the page needs.
+ * One chapter. The writing sits in a readable column with an oversized outlined numeral
+ * over it; its pictures stack beside it, the second of the pair dropped to break the grid.
+ * The column changes side each chapter, which is all the rhythm the page needs.
  */
 function Chapter({ ch, index }) {
   return (
     <section className={`sc ${index % 2 ? 'sc--flip' : ''}`} aria-labelledby={`ch-${ch.id}`}>
-      <div className="sc__text">
+      <div className="sc__text reveal-item">
+        <p className="sc__num" aria-hidden="true">
+          {num(index)}
+        </p>
         <p className="sc__kicker">{ch.kicker}</p>
         <h2 id={`ch-${ch.id}`} className="sc__title">
           {ch.title}
@@ -40,7 +68,7 @@ function Chapter({ ch, index }) {
         )}
       </div>
 
-      <div className="sc__media">
+      <div className="sc__media reveal-item">
         <figure className="sc__figure">
           <LoopMedia video={ch.video} image={ch.image} scene={ch.scene} />
         </figure>
@@ -61,10 +89,10 @@ function Chapter({ ch, index }) {
 
 /* ---------------------------------------------------------------- quote */
 
-/** A line from the city, between chapters. Quiet: a gold rule, the words, the attribution. */
+/** A line from the city, between chapters: set large, between two hairlines. */
 function Quote({ quote, id }) {
   return (
-    <figure className="sq" aria-labelledby={`qs-${id}`}>
+    <figure className="sq reveal-item" aria-labelledby={`qs-${id}`}>
       <blockquote id={`qs-${id}`} className="sq__words">
         {quote.text}
       </blockquote>
@@ -77,7 +105,7 @@ function Quote({ quote, id }) {
 
 function StoryOutro() {
   return (
-    <section className="so" aria-labelledby="story-outro-title">
+    <section className="so reveal-item" aria-labelledby="story-outro-title">
       <h2 id="story-outro-title" className="so__title">
         {storyOutro.title}
       </h2>
@@ -117,25 +145,27 @@ function withPanelMedia(ch, picked) {
 
 /**
  * The Story — the city explained, in order, as something you read rather than something you
- * scroll through. Each chapter is one screen of writing with one picture; the quotes sit
- * between them.
+ * scroll through. A contents strip, then three chapters of writing with their pictures, and
+ * a line from the city between each.
  */
 export default function StoryPage() {
   usePageTitle('Story')
   const picked = useSiteMedia()
   const story = chapters.map((ch) => withPanelMedia(ch, picked))
 
-  // one gentle fade as each section arrives; nothing moves when motion is turned down
+  // each part arrives as a short stagger; nothing moves when motion is turned down
   useGSAP(() => {
     const mm = gsap.matchMedia()
     mm.add(MOTION_OK, () => {
       gsap.utils.toArray('.story-reveal').forEach((el) => {
-        gsap.from(el, {
+        const bits = el.querySelectorAll('.reveal-item')
+        gsap.from(bits.length ? bits : el, {
           opacity: 0,
-          y: 24,
-          duration: 0.7,
-          ease: 'power2.out',
-          scrollTrigger: { trigger: el, start: 'top 88%' },
+          y: 28,
+          duration: 0.65,
+          ease: 'power3.out',
+          stagger: 0.08,
+          scrollTrigger: { trigger: el, start: 'top 85%' },
         })
       })
     })
@@ -151,18 +181,19 @@ export default function StoryPage() {
             Story
           </h1>
           <p className="lede">{storyIntro.tagline}</p>
+          <Contents story={story} />
         </div>
       </ParallaxScope>
 
       <div className="story theme-black">
         <div className="container story__inner">
           {story.map((ch, i) => (
-            <div key={ch.id} className="story-reveal">
+            <div key={ch.id} className="story-reveal story__part">
               <Chapter ch={ch} index={i} />
               {ch.quote && <Quote quote={ch.quote} id={ch.id} />}
             </div>
           ))}
-          <div className="story-reveal">
+          <div className="story-reveal story__part">
             <StoryOutro />
           </div>
         </div>

@@ -1,13 +1,60 @@
 /* =========================================================
    Story — the city, read in order
-   One column of writing, one picture per chapter, a quote between them.
+   A contents strip, then chapters: writing in one column under an outlined numeral,
+   pictures stacked beside it, a line from the city between each.
    ========================================================= */
 .story {
-  padding-block: clamp(3rem, 2rem + 4vw, 6rem) clamp(4rem, 3rem + 5vw, 8rem);
+  padding-block: clamp(2.5rem, 1.5rem + 4vw, 5rem) clamp(4rem, 3rem + 5vw, 8rem);
 }
 .story__inner {
   display: grid;
-  gap: clamp(4rem, 3rem + 5vw, 8rem);
+}
+
+/* a gold hairline opens every part after the first */
+.story__part + .story__part {
+  margin-top: clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
+  padding-top: clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
+  border-top: 1px solid rgb(var(--rgb-gold) / 0.14);
+}
+
+/* ---------- contents ---------- */
+.sidx {
+  margin-top: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+  border-top: 1px solid rgb(var(--rgb-gold) / 0.2);
+}
+.sidx__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 clamp(1.5rem, 0.5rem + 3vw, 4rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sidx__link {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  /* 44px+ target without a visible box */
+  padding-block: 0.85rem;
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.sidx__link:hover,
+.sidx__link:focus-visible {
+  color: var(--c-gold-light);
+}
+.sidx__link:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.sidx__n {
+  color: var(--c-gold);
+  font-size: var(--fs-2xs);
 }
 
 /* ---------- scene media (shared with LoopMedia) ---------- */
@@ -57,16 +104,35 @@
 /* ---------- a chapter ---------- */
 .sc {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  /* deliberately uneven: the pictures get the wider half */
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
   align-items: center;
-  gap: clamp(2rem, 1rem + 4vw, 5rem);
+  gap: clamp(2rem, 1rem + 4vw, 5.5rem);
 }
 /* every other chapter puts its pictures on the left */
 .sc--flip .sc__media {
   order: -1;
 }
 
+/* the oversized outlined numeral over each chapter's opening */
+.sc__num {
+  /* clear of the kicker: gold text over gold strokes would not be readable */
+  margin: 0 0 var(--sp-3);
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 1.5rem + 6.5vw, 7rem);
+  line-height: 0.95;
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(var(--rgb-gold) / 0.45);
+  user-select: none;
+}
+@supports not (-webkit-text-stroke: 1px red) {
+  .sc__num {
+    color: rgb(var(--rgb-gold) / 0.2);
+  }
+}
+
 .sc__kicker {
+  position: relative;
   margin: 0 0 var(--sp-3);
   font-family: var(--font-mono);
   font-size: var(--fs-2xs);
@@ -78,19 +144,23 @@
   margin: 0 0 var(--sp-5);
   font-size: var(--fs-xl);
   line-height: var(--lh-display);
+  letter-spacing: -0.01em;
   text-transform: uppercase;
+  /* so the contents links do not land under the fixed header */
+  scroll-margin-top: calc(var(--top-chrome) + 2rem);
 }
 .sc__lead {
   margin: 0 0 var(--sp-4);
-  max-width: 34ch;
+  max-width: 32ch;
   font-size: var(--fs-md);
-  line-height: 1.4;
+  line-height: 1.35;
+  letter-spacing: -0.005em;
   color: var(--c-gold-light);
 }
 .sc__body {
   margin: 0 0 var(--sp-4);
-  max-width: 46ch;
-  line-height: 1.65;
+  max-width: 44ch; /* 65-75 characters, counting the wider glyphs */
+  line-height: 1.7;
   color: var(--fg-muted);
 }
 .sc__body:last-of-type {
@@ -109,7 +179,7 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   text-decoration: none;
-  transition: border-color 0.2s var(--ease-out), color 0.2s var(--ease-out);
+  transition: border-color var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out);
 }
 .sc__link:hover {
   border-bottom-color: var(--c-gold);
@@ -120,43 +190,55 @@
   outline-offset: 4px;
 }
 
+/* ---------- a chapter's pictures ---------- */
 .sc__media {
   display: grid;
-  gap: var(--sp-3);
+  gap: clamp(0.75rem, 0.5rem + 1vw, 1.25rem);
 }
 .sc__figure,
 .sc__thumb {
   position: relative;
   margin: 0;
-  border: 1px solid rgb(var(--rgb-ivory) / 0.08);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   overflow: hidden;
+  /* a hairline that reads as a frame rather than a box */
+  box-shadow: inset 0 0 0 1px rgb(var(--rgb-ivory) / 0.09);
 }
 .sc__figure {
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 10;
 }
-/* the two smaller places, side by side under the scene */
+/* the two smaller places, the second dropped so the pair is not a tidy grid */
 .sc__pair {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--sp-3);
+  gap: clamp(0.75rem, 0.5rem + 1vw, 1.25rem);
+  align-items: start;
 }
 .sc__thumb {
-  aspect-ratio: 3 / 2;
+  aspect-ratio: 16 / 11;
+  border-radius: var(--radius-md);
+}
+.sc__thumb:last-child {
+  margin-top: clamp(0.75rem, 0.25rem + 1.5vw, 1.75rem);
 }
 
 /* ---------- a quote between chapters ---------- */
 .sq {
-  margin: clamp(3rem, 2rem + 3vw, 5rem) 0 0;
-  padding-left: clamp(1.25rem, 0.5rem + 2vw, 2.5rem);
-  border-left: 2px solid rgb(var(--rgb-gold) / 0.5);
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-5);
+  margin: clamp(2.5rem, 1.5rem + 3vw, 4.5rem) 0 0;
+  padding-top: clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
+  border-top: 1px solid rgb(var(--rgb-ivory) / 0.08);
+  text-align: center;
 }
 .sq__words {
-  margin: 0 0 var(--sp-3);
-  max-width: 30ch;
+  margin: 0;
+  max-width: 26ch;
   font-family: var(--font-display);
   font-size: var(--fs-lg);
-  line-height: 1.2;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
   text-transform: uppercase;
   color: var(--fg);
 }
@@ -170,8 +252,9 @@
   margin: 0;
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
-  letter-spacing: 0.12em;
-  color: var(--fg-muted);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-gold);
 }
 
 /* ---------- the end ---------- */
@@ -179,20 +262,25 @@
   display: grid;
   justify-items: center;
   gap: var(--sp-4);
-  padding-top: clamp(2rem, 1rem + 3vw, 4rem);
-  border-top: 1px solid rgb(var(--rgb-ivory) / 0.08);
+  padding: clamp(2.5rem, 1.5rem + 4vw, 5rem) var(--sp-5);
+  border: 1px solid rgb(var(--rgb-gold) / 0.16);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(120% 140% at 50% 0%, rgb(var(--rgb-gold) / 0.07), transparent 62%),
+    var(--c-ink);
   text-align: center;
 }
 .so__title {
   margin: 0;
   font-size: var(--fs-xl);
   line-height: var(--lh-display);
+  letter-spacing: -0.01em;
   text-transform: uppercase;
 }
 .so__body {
   margin: 0;
-  max-width: 48ch;
-  line-height: 1.65;
+  max-width: 46ch;
+  line-height: 1.7;
   color: var(--fg-muted);
 }
 .so__actions {
@@ -203,7 +291,7 @@
   margin-top: var(--sp-4);
 }
 
-/* ---------- phones: one column, picture first ---------- */
+/* ---------- phones: one column, pictures first ---------- */
 @media (max-width: 60rem) {
   .sc {
     grid-template-columns: minmax(0, 1fr);
@@ -216,15 +304,22 @@
   .sc__figure {
     aspect-ratio: 16 / 10;
   }
+  .sc__thumb {
+    aspect-ratio: 4 / 3;
+  }
   .sc__lead,
   .sc__body {
     max-width: none;
+  }
+  .sidx__list {
+    gap: 0 var(--sp-5);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .scrub__video,
-  .sc__link {
+  .sc__link,
+  .sidx__link {
     transition: none;
   }
 }
