@@ -1758,3 +1758,42 @@
   display: grid;
   gap: var(--sp-4);
 }
+
+/* a line under a card's title saying what it is for */
+.p-card__sub {
+  margin: calc(-1 * var(--sp-2)) 0 0;
+  max-width: 64ch;
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  color: var(--fg-muted);
+}
+.p-rows__item--social {
+  grid-template-columns: 2.75rem minmax(0, 10rem) minmax(0, 1fr) auto;
+  align-items: end;
+}
+.p-rows__item--social .p-field {
+  margin: 0;
+}
+.p-social-logo {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--p-line);
+  border-radius: 50%;
+  background: #111317;
+}
+@media (max-width: 820px) {
+  .p-rows__item--social {
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+    padding-bottom: var(--sp-3);
+    border-bottom: 1px solid var(--p-line);
+  }
+  .p-rows__item--social > .p-field:nth-of-type(2) {
+    grid-column: 1 / -1;
+  }
+  .p-rows__item--social .p-rowtools {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+}

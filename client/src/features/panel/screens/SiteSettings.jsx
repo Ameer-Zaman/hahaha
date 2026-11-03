@@ -4,7 +4,11 @@ import { useAuth } from '../authContext'
 import { formatWhen } from '../format'
 import { useAction, useResource } from '../hooks'
 import { adminApi } from '../panelApi'
-import { ConfirmButton, ErrorNote, Loading, PageHead, Panel, Switch, TextField } from '../ui'
+import { ConfirmButton, ErrorNote, Loading, PageHead, Panel, SelectField, Switch, TextField } from '../ui'
+import SocialIcon from '../../../components/ui/SocialIcon'
+import { SOCIAL_PLATFORMS } from '../../../components/ui/socialPlatforms'
+import { move } from '../format'
+import { RowTools } from './Gangs'
 
 /** The website sections that can be switched off. Home is always on. */
 const SECTIONS = [
@@ -92,10 +96,20 @@ function SettingsForm({ data, setData }) {
         <div className="p-row">
           {maintenance.on ? (
             <>
-              <button type="button" className="pbtn pbtn--gold" disabled={busy} onClick={() => save({ maintenance: { on: false, message: message.trim() } }, 'Website reopened')}>
+              <button
+                type="button"
+                className="pbtn pbtn--gold"
+                disabled={busy}
+                onClick={() => save({ maintenance: { on: false, message: message.trim() } }, 'Website reopened')}
+              >
                 Turn off and reopen the website
               </button>
-              <button type="button" className="pbtn pbtn--ghost" disabled={busy || !messageDirty} onClick={() => save({ maintenance: { on: true, message: message.trim() } }, 'Message updated')}>
+              <button
+                type="button"
+                className="pbtn pbtn--ghost"
+                disabled={busy || !messageDirty}
+                onClick={() => save({ maintenance: { on: true, message: message.trim() } }, 'Message updated')}
+              >
                 Save message
               </button>
             </>
@@ -110,7 +124,12 @@ function SettingsForm({ data, setData }) {
                 Turn on maintenance mode
               </ConfirmButton>
               {messageDirty && (
-                <button type="button" className="pbtn pbtn--ghost" disabled={busy} onClick={() => save({ maintenance: { on: false, message: message.trim() } }, 'Message saved')}>
+                <button
+                  type="button"
+                  className="pbtn pbtn--ghost"
+                  disabled={busy}
+                  onClick={() => save({ maintenance: { on: false, message: message.trim() } }, 'Message saved')}
+                >
                   Save message for later
                 </button>
               )}
@@ -121,8 +140,8 @@ function SettingsForm({ data, setData }) {
 
       <Panel title="Sections">
         <p className="p-text">
-          A section that’s off disappears from the menu, the footer and the homepage, and its page shows “Closed for now”.
-          Home is always on.
+          A section that’s off disappears from the menu, the footer and the homepage, and its page shows “Closed for now”. Home is always
+          on.
         </p>
         <ul className="p-sections" role="list">
           <li className="p-sections__row is-locked">
@@ -146,7 +165,12 @@ function SettingsForm({ data, setData }) {
           })}
         </ul>
         <div className="p-row">
-          <button type="button" className="pbtn pbtn--gold" disabled={busy || !sectionsDirty} onClick={() => save({ sections }, 'Sections saved')}>
+          <button
+            type="button"
+            className="pbtn pbtn--gold"
+            disabled={busy || !sectionsDirty}
+            onClick={() => save({ sections }, 'Sections saved')}
+          >
             Save sections
           </button>
           {sectionsDirty && (
@@ -157,17 +181,16 @@ function SettingsForm({ data, setData }) {
         </div>
       </Panel>
 
+      <CommunityLinks initial={data.socials} />
+
       {isSuper && (
-        <Panel
-          title="Sign-in security"
-          sub="Applies to every panel account. It does not change anything for visitors to the website."
-        >
+        <Panel title="Sign-in security" sub="Applies to every panel account. It does not change anything for visitors to the website.">
           <div className="p-setting">
             <div className="p-setting__text">
               <p className="p-setting__name">Require two-step sign-in</p>
               <p className="p-setting__note">
-                Everyone needs a code from their phone as well as their password. Anyone who hasn't set it up is asked to on
-                their next visit, and can't change anything until they do.
+                Everyone needs a code from their phone as well as their password. Anyone who hasn't set it up is asked to on their next
+                visit, and can't change anything until they do.
               </p>
             </div>
             <Switch
@@ -179,5 +202,102 @@ function SettingsForm({ data, setData }) {
         </Panel>
       )}
     </>
+  )
+}
+
+/* --------------------------------------------------------- community links */
+
+const PLATFORM_OPTIONS = SOCIAL_PLATFORMS.map((p) => ({ value: p.id, label: p.label }))
+const EXAMPLE = {
+  discord: 'https://discord.gg/your-invite',
+  youtube: 'https://www.youtube.com/@yourchannel',
+  twitch: 'https://www.twitch.tv/yourchannel',
+  kick: 'https://kick.com/yourchannel',
+  tiktok: 'https://www.tiktok.com/@youraccount',
+  instagram: 'https://www.instagram.com/youraccount',
+  x: 'https://x.com/youraccount',
+  facebook: 'https://www.facebook.com/yourpage',
+}
+
+/**
+ * The community's links: in the header (the round button that opens them on a ring), the
+ * footer and the phone menu, in this order. Never saved = the website keeps the links from
+ * its config file.
+ */
+function CommunityLinks({ initial }) {
+  const [links, setLinks] = useState(() => initial ?? [])
+  const [saved, setSaved] = useState(() => JSON.stringify(initial ?? []))
+  const [run, busy] = useAction()
+  const changed = JSON.stringify(links) !== saved
+  const edit = (i, field, value) => setLinks((list) => list.map((l, j) => (j === i ? { ...l, [field]: value } : l)))
+  const unused = SOCIAL_PLATFORMS.find((p) => !links.some((l) => l.platform === p.id))?.id ?? 'discord'
+
+  async function save() {
+    const body = { links: links.map((l) => ({ platform: l.platform, url: l.url.trim() })).filter((l) => l.url) }
+    const res = await run(() => adminApi.put('/settings/socials', body), 'Saved — the website shows them within a minute')
+    if (res) {
+      setLinks(res.socials)
+      setSaved(JSON.stringify(res.socials))
+    }
+  }
+
+  return (
+    <Panel
+      title="Community links"
+      sub="Your Discord, YouTube and other pages. They appear in the header (the round button that opens them around your logo), the footer and the phone menu, in this order."
+      actions={
+        links.length < 12 && (
+          <button
+            type="button"
+            className="pbtn pbtn--ghost pbtn--sm"
+            onClick={() => setLinks((l) => [...l, { platform: unused, url: '' }])}
+          >
+            Add a link
+          </button>
+        )
+      }
+    >
+      {initial == null && links.length === 0 && (
+        <p className="p-note">Not set here yet, so the website shows the Discord link from its settings file. Add links to take over.</p>
+      )}
+      {links.length > 0 && (
+        <ol className="p-rows" role="list">
+          {links.map((l, i) => (
+            <li key={i} className="p-rows__item p-rows__item--social">
+              <span className="p-social-logo" aria-hidden="true">
+                <SocialIcon id={l.platform} size={18} />
+              </span>
+              <SelectField
+                label={`Link ${i + 1} platform`}
+                value={l.platform}
+                onChange={(v) => edit(i, 'platform', v)}
+                options={PLATFORM_OPTIONS}
+              />
+              <TextField
+                label={`Link ${i + 1} address`}
+                type="url"
+                value={l.url}
+                onChange={(v) => edit(i, 'url', v)}
+                maxLength={300}
+                placeholder={EXAMPLE[l.platform]}
+              />
+              <RowTools
+                index={i}
+                count={links.length}
+                label={`link ${i + 1}`}
+                onMove={(d) => setLinks((list) => move(list, i, d))}
+                onRemove={() => setLinks((list) => list.filter((_, j) => j !== i))}
+              />
+            </li>
+          ))}
+        </ol>
+      )}
+      <p className="p-field__hint">Each link must be an https address on that platform's own site.</p>
+      <div className="p-row">
+        <button type="button" className="pbtn pbtn--gold" onClick={save} disabled={busy || !changed}>
+          {busy ? 'Saving…' : 'Save links'}
+        </button>
+      </div>
+    </Panel>
   )
 }

@@ -5,7 +5,7 @@ import { Club } from '../models/Club.js'
 import { endOf, Event, eventState } from '../models/Event.js'
 import { Gang } from '../models/Gang.js'
 import { RuleBook } from '../models/RuleBook.js'
-import { MEDIA_SLOTS, readChatBot, readSections, Settings } from '../models/Settings.js'
+import { MEDIA_SLOTS, readChatBot, readSections, readSocials, Settings } from '../models/Settings.js'
 import { Staff } from '../models/Staff.js'
 import { TdmBoard } from '../models/TdmBoard.js'
 import { War } from '../models/War.js'
@@ -188,6 +188,7 @@ router.get('/site', async (req, res) => {
     media,
     sections: readSections(settings),
     chatBot: { name: bot.name, avatar: mediaUrl(bot.avatar) },
+    socials: readSocials(settings),
     maintenance: { on: Boolean(settings?.maintenance?.on), message: settings?.maintenance?.message ?? '' },
   })
 })

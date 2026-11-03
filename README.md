@@ -182,6 +182,10 @@ When no rule fits, **Ask staff** sends the question to a **thread in your Discor
 
 The bot lives in the API server, so it's only online while the server is awake. On Render's free plan the server sleeps after 15 minutes without visitors; the repo's "keep API awake" GitHub workflow pings it every 10 minutes to prevent that. Visitors can't send links, messages are rate-limited, and chats are deleted 30 days after the last message.
 
+## Community links
+
+**Panel → Sections & maintenance → Community links**: add the server's Discord, YouTube, TikTok, Instagram, Twitch, Kick, X or Facebook (up to 12), in the order you want them. In the header they sit behind one round button that opens a small drop-down with your logo in the middle and the links on a ring around it; the footer and the phone menu show them as small round logos. Each link must be an https address on that platform's own site, and every change is in the audit log. Until links are saved here, the site uses the Discord invite in `client/src/config/site.js`. (The Apply button always uses that invite.)
+
 ## Events
 
 **Panel → Events** holds everything the server hosts: a race, a heist night, a tournament. Each event has a title, category, start (and optional finish — without one it counts as 3 hours), place, host, summary, full description, a programme, what people need, prizes, the number of places, a sign-up link and a picture. The website shows them at **/events** (on now, coming up, past) and each one on its own page at **/events/short-name**, with a countdown and an **Add to calendar** button. Times are entered in your own time and shown to each visitor in theirs.

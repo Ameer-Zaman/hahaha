@@ -34,6 +34,10 @@ MEDIA_SLOTS.push(...STORY_SLOTS)
 /** Website sections that can be switched off from the panel (Home is always on). */
 export const SECTION_KEYS = ['story', 'staff', 'gangs', 'clubs', 'dhadhas', 'events', 'leaderboard', 'rules', 'chat']
 
+/** The saved community links, or null when the panel has never set them. */
+export const readSocials = (settings) =>
+  Array.isArray(settings?.socials) ? settings.socials.map(({ platform, url }) => ({ platform, url })) : null
+
 /** The chat assistant's name until the team picks another in the panel. */
 export const DEFAULT_BOT_NAME = 'Vexy'
 
@@ -67,6 +71,11 @@ const settingsSchema = new mongoose.Schema(
       message: { type: String, default: '', maxlength: 300 },
       changedAt: { type: Date, default: null },
     },
+    /**
+     * The community's own links (Discord, YouTube …), shown in the header, footer and phone
+     * menu. null = never set: the website keeps the links in its config file.
+     */
+    socials: { type: [{ _id: false, platform: String, url: String }], default: undefined },
     /** The website chat's assistant: what it is called and its picture (a media id). */
     chatBot: {
       name: { type: String, default: DEFAULT_BOT_NAME, maxlength: 30 },

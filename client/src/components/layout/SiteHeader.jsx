@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 
-import { applyLink, communityLinks, site } from '../../config/site'
-import { useNavigation } from '../../lib/siteSettings'
+import { applyLink, site } from '../../config/site'
+import { useCommunityLinks, useNavigation } from '../../lib/siteSettings'
 import Arrow from '../ui/Arrow'
 import BrandMark from '../ui/BrandMark'
 import SocialIcon from '../ui/SocialIcon'
@@ -10,8 +10,8 @@ import './header.css'
 import ApplyLink from '../ui/ApplyLink'
 import MusicButton from '../ui/MusicButton'
 import { MobileNavGroup, NavDropdown } from './NavDropdown'
+import SocialHub from './SocialHub'
 
-const socials = communityLinks.filter((link) => link.url).slice(0, 3)
 const YEAR = new Date().getFullYear()
 
 /**
@@ -22,6 +22,7 @@ const YEAR = new Date().getFullYear()
  * scroll up — but never hides near the top, while the menu is open, or while it has focus.
  */
 export default function SiteHeader({ tone = 'dark' }) {
+  const socials = useCommunityLinks()
   const { navigation } = useNavigation()
   const [scrolled, setScrolled] = useState(false)
   const [tucked, setTucked] = useState(false)
@@ -127,15 +128,9 @@ export default function SiteHeader({ tone = 'dark' }) {
             )}
           </ul>
           {socials.length > 0 && (
-            <ul role="list" className="site-nav__social">
-              {socials.map((link) => (
-                <li key={link.id}>
-                  <a href={link.url} target="_blank" rel="noopener noreferrer" aria-label={link.label}>
-                    <SocialIcon id={link.id} />
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <div className="site-nav__social">
+              <SocialHub links={socials} />
+            </div>
           )}
           <ApplyLink className="btn btn--primary site-nav__cta">{applyLink.label}</ApplyLink>
         </nav>
@@ -158,12 +153,7 @@ export default function SiteHeader({ tone = 'dark' }) {
         </button>
       </div>
 
-      <div
-        id="mobile-menu"
-        ref={menuRef}
-        className={`mobile-menu theme-black ${open ? 'is-open' : ''}`}
-        inert={!open}
-      >
+      <div id="mobile-menu" ref={menuRef} className={`mobile-menu theme-black ${open ? 'is-open' : ''}`} inert={!open}>
         <nav aria-label="Main mobile" className="container mobile-menu__inner">
           <ul role="list" className="mobile-menu__list">
             {navigation.map((item, i) =>
@@ -186,11 +176,16 @@ export default function SiteHeader({ tone = 'dark' }) {
             </ApplyLink>
             {socials.length > 0 && (
               <ul role="list" className="mobile-menu__socials">
-                {socials.map((link) => (
-                  <li key={link.id}>
-                    <a href={link.url} target="_blank" rel="noopener noreferrer" aria-label={`${link.label} (opens in a new tab)`}>
-                      <SocialIcon id={link.id} />
-                      <span>{link.label}</span>
+                {socials.map((link, i) => (
+                  <li key={`${link.id}-${i}`}>
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${link.label} (opens in a new tab)`}
+                      title={link.label}
+                    >
+                      <SocialIcon id={link.id} size={18} />
                     </a>
                   </li>
                 ))}

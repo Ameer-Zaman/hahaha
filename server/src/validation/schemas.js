@@ -231,6 +231,21 @@ const socialUrl = (platform) =>
       }
     }, `must be an https link on ${SOCIAL_HOSTS[platform][0]}`)
 
+/** The community's links for the header and footer: known platforms only, each on its own site. */
+export const settingsSocialsSchema = z.object({
+  links: z
+    .array(
+      z
+        .object({ platform: z.enum(Object.keys(SOCIAL_HOSTS)), url: z.string().trim().min(1, 'add the link').max(300) })
+        .superRefine((link, ctx) => {
+          const check = socialUrl(link.platform).safeParse(link.url)
+          if (!check.success) ctx.addIssue({ code: 'custom', path: ['url'], message: `${link.platform}: ${check.error.issues[0].message}` })
+        }),
+    )
+    .max(12, 'at most 12 links')
+    .refine((list) => new Set(list.map((l) => l.url.toLowerCase())).size === list.length, 'each link only once'),
+})
+
 export const staffSocialsSchema = z
   .object(Object.fromEntries(Object.keys(SOCIAL_HOSTS).map((p) => [p, socialUrl(p).optional()])))
   .strict()

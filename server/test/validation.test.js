@@ -107,3 +107,16 @@ test('event state: drafts and cancellations win, then the clock decides', async 
   assert.equal(eventState(at('2026-12-06T20:00:00Z', { status: 'draft' }), now), 'draft')
   assert.equal(eventState(at('2026-12-06T20:00:00Z', { status: 'cancelled' }), now), 'cancelled')
 })
+
+test('community links: known platforms only, https on that platform, each once', async () => {
+  const { settingsSocialsSchema } = await import('../src/validation/schemas.js')
+  const ok = (links) => settingsSocialsSchema.safeParse({ links }).success
+  assert.equal(ok([{ platform: 'discord', url: 'https://discord.gg/abc' }, { platform: 'youtube', url: 'https://www.youtube.com/@server' }]), true)
+  assert.equal(ok([]), true) // removing them all is allowed
+  assert.equal(ok([{ platform: 'youtube', url: 'https://evil.example/youtube.com' }]), false)
+  assert.equal(ok([{ platform: 'discord', url: 'http://discord.gg/abc' }]), false)
+  assert.equal(ok([{ platform: 'discord', url: 'javascript:alert(1)' }]), false)
+  assert.equal(ok([{ platform: 'myspace', url: 'https://myspace.com/x' }]), false)
+  assert.equal(ok([{ platform: 'discord', url: '' }]), false)
+  assert.equal(ok([{ platform: 'discord', url: 'https://discord.gg/a' }, { platform: 'discord', url: 'https://discord.gg/A' }]), false)
+})

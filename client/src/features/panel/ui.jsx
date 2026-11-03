@@ -74,7 +74,7 @@ export function PageHead({ title, sub, children }) {
   )
 }
 
-export function Panel({ title, children, actions, className = '' }) {
+export function Panel({ title, sub, children, actions, className = '' }) {
   return (
     <section className={`p-card ${className}`}>
       {(title || actions) && (
@@ -83,6 +83,7 @@ export function Panel({ title, children, actions, className = '' }) {
           {actions}
         </div>
       )}
+      {sub && <p className="p-card__sub">{sub}</p>}
       {children}
     </section>
   )

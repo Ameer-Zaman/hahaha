@@ -6,13 +6,12 @@ import Arrow from '../../components/ui/Arrow'
 import ParallaxScope from '../../components/ui/ParallaxScope'
 import ParallaxWord from '../../components/ui/ParallaxWord'
 import { Skeleton, SkeletonGroup } from '../../components/ui/Skeleton'
-import { communityLinks } from '../../config/site'
 import usePageTitle from '../../hooks/usePageTitle'
 import { usePublic } from '../../lib/publicData'
+import { useCommunityLinks } from '../../lib/siteSettings'
 import { dateTile, formatDay, groupEvents, seedFor, STATE_LABEL, timeRange, untilText, useNow } from './eventsModel'
 import './events.css'
 
-const DISCORD = communityLinks.find((l) => l.id === 'discord')?.url
 const WEEK = 7 * 86400_000
 
 /**
@@ -22,6 +21,7 @@ const WEEK = 7 * 86400_000
  * cancelled events ever reach the website.
  */
 export default function EventsPage() {
+  const DISCORD = useCommunityLinks().find((l) => l.id === 'discord')?.url
   usePageTitle('Events')
   const entry = usePublic('/events')
   const now = useNow()
@@ -54,6 +54,7 @@ export default function EventsPage() {
 }
 
 function Feed({ events, now }) {
+  const DISCORD = useCommunityLinks().find((l) => l.id === 'discord')?.url
   const { lead, ahead, past } = groupEvents(events, now)
   const [filter, setFilter] = useState('all')
 

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 
-import { applyLink, communityLinks, site } from '../../config/site'
-import { useNavigation } from '../../lib/siteSettings'
+import { applyLink, site } from '../../config/site'
+import { useCommunityLinks, useNavigation } from '../../lib/siteSettings'
 import ApplyLink from '../ui/ApplyLink'
 import { BrandIcon } from '../ui/BrandIcons'
 import { SOCIAL_PLATFORMS } from '../ui/socialPlatforms'
@@ -12,10 +12,8 @@ const YEAR = new Date().getFullYear()
 
 /** A compact footer: the name, the page links in one row, community links + Apply, and the small print. */
 export default function SiteFooter() {
-  // community links with a URL, shown with their real logos (set them in config/site.js)
-  const socials = communityLinks
-    .filter((link) => link.url)
-    .map((link) => ({ ...link, platform: SOCIAL_PLATFORMS.find((p) => p.id === link.id) }))
+  // community links from the panel (or config/site.js until it has saved some), with their real logos
+  const socials = useCommunityLinks().map((link) => ({ ...link, platform: SOCIAL_PLATFORMS.find((p) => p.id === link.id) }))
   const { links: navigation } = useNavigation()
 
   return (
@@ -39,8 +37,8 @@ export default function SiteFooter() {
         <div className="site-footer__end">
           {socials.length > 0 && (
             <ul role="list" className="site-footer__socials">
-              {socials.map((link) => (
-                <li key={link.id}>
+              {socials.map((link, i) => (
+                <li key={`${link.id}-${i}`}>
                   <a
                     href={link.url}
                     target="_blank"

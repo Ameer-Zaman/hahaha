@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
-import { navigation } from '../config/site'
+import { communityLinks, navigation } from '../config/site'
+import { SOCIAL_PLATFORMS } from '../components/ui/socialPlatforms'
 import { api, USE_API } from './api'
 import { usePublic } from './publicData'
 
@@ -17,7 +18,7 @@ const STORAGE_KEY = 'shy-site-settings'
 const ALL_ON = { story: true, staff: true, gangs: true, clubs: true, dhadhas: true, events: true, leaderboard: true, rules: true, chat: true }
 /** The chat assistant, until the panel says otherwise (Panel → Rules help chat → The bot). */
 export const DEFAULT_BOT = { name: 'Vexy', avatar: null }
-const DEFAULTS = { sections: ALL_ON, maintenance: { on: false, message: '' }, chatBot: DEFAULT_BOT }
+const DEFAULTS = { sections: ALL_ON, maintenance: { on: false, message: '' }, chatBot: DEFAULT_BOT, socials: null }
 
 /** The section a path belongs to, or null for pages that are always on. */
 export function sectionOf(path = '') {
@@ -42,6 +43,8 @@ function normalise(data) {
     sections: { ...ALL_ON, ...saved },
     maintenance: { on: Boolean(data?.maintenance?.on), message: data?.maintenance?.message ?? '' },
     chatBot: { name: data?.chatBot?.name?.trim() || DEFAULT_BOT.name, avatar: data?.chatBot?.avatar ?? null },
+    // null = never set in the panel: the links in config/site.js are used instead
+    socials: Array.isArray(data?.socials) ? data.socials : null,
   }
 }
 
@@ -57,7 +60,7 @@ export function useSiteSettings({ watch = false } = {}) {
     } catch {
       /* storage unavailable: fine */
     }
-  }, [live?.maintenance.on, live?.maintenance.message, JSON.stringify(live?.sections), live?.chatBot.name, live?.chatBot.avatar]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [live?.maintenance.on, live?.maintenance.message, JSON.stringify(live?.sections), live?.chatBot.name, live?.chatBot.avatar, JSON.stringify(live?.socials)]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!USE_API) return DEFAULTS
   if (live) return live
@@ -108,4 +111,14 @@ export function useStaffPreview(maintenanceOn) {
     }
   }, [maintenanceOn])
   return { checked: !maintenanceOn || state.for, staff: maintenanceOn && state.ok }
+}
+
+/**
+ * The community's links (Discord, YouTube …) as set in Panel → Sections & maintenance →
+ * Community links, in that order; until the panel saves a list, the ones in config/site.js.
+ */
+export function useCommunityLinks() {
+  const { socials } = useSiteSettings()
+  const list = socials ?? communityLinks.filter((l) => l.url).map((l) => ({ platform: l.id, url: l.url }))
+  return list.map((l) => ({ id: l.platform, url: l.url, label: SOCIAL_PLATFORMS.find((p) => p.id === l.platform)?.label ?? l.platform }))
 }

@@ -2,11 +2,11 @@ import { Router } from 'express'
 
 import { HttpError } from '../../middleware/errors.js'
 import { validateBody } from '../../middleware/validate.js'
-import { MEDIA_SLOTS, readChatBot, readSections, SECTION_KEYS, Settings } from '../../models/Settings.js'
+import { MEDIA_SLOTS, readChatBot, readSections, readSocials, SECTION_KEYS, Settings } from '../../models/Settings.js'
 import { audit } from '../../services/audit.js'
 import { findFile } from '../../services/media.js'
 import { requireRole } from '../../middleware/auth.js'
-import { settingsChatBotSchema, settingsMediaSchema, settingsSecuritySchema, settingsSiteSchema } from '../../validation/schemas.js'
+import { settingsChatBotSchema, settingsMediaSchema, settingsSecuritySchema, settingsSiteSchema, settingsSocialsSchema } from '../../validation/schemas.js'
 
 const router = Router()
 
@@ -33,8 +33,21 @@ router.get('/', async (req, res) => {
     media: settings.media,
     ...siteState(settings),
     chatBot: readChatBot(settings),
+    socials: readSocials(settings),
     security: securityState(settings),
   })
+})
+
+/** The community links in the header, footer and phone menu, in this order. */
+router.put('/socials', validateBody(settingsSocialsSchema), async (req, res) => {
+  const settings = await getSettings()
+  const before = readSocials(settings) ?? []
+  settings.socials = req.body.links.map(({ platform, url }) => ({ platform, url }))
+  settings.markModified('socials')
+  await settings.save()
+  const now = readSocials(settings)
+  if (JSON.stringify(before) !== JSON.stringify(now)) await audit(req, 'settings.socials', 'site', now.map((l) => l.platform).join(', ') || 'all removed')
+  res.json({ socials: now })
 })
 
 /** The chat assistant's name and picture. The picture must be an image from the media library. */

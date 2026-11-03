@@ -1,4 +1,5 @@
-import { communityLinks, site } from '../../config/site'
+import { site } from '../../config/site'
+import { useCommunityLinks } from '../../lib/siteSettings'
 import usePageTitle from '../../hooks/usePageTitle'
 import BrandMark from '../ui/BrandMark'
 import './site-status.css'
@@ -6,7 +7,7 @@ import './site-status.css'
 /** What visitors see while maintenance mode is on (Panel → Site settings). */
 export default function MaintenanceScreen({ message }) {
   usePageTitle('Back soon')
-  const discord = communityLinks.find((link) => link.id === 'discord' && link.url)
+  const discord = useCommunityLinks().find((link) => link.id === 'discord')
   return (
     <main className="maint" aria-labelledby="maint-title">
       <div className="maint__card">

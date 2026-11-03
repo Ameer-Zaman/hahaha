@@ -56,8 +56,10 @@
 
 .site-footer__end {
   display: flex;
+  flex-wrap: wrap; /* any number of community links: the logos wrap, Apply moves under them */
   align-items: center;
-  gap: var(--sp-5);
+  gap: var(--sp-4) var(--sp-5);
+  min-width: 0;
 }
 .site-footer__apply {
   min-height: 2.9rem;
@@ -68,7 +70,11 @@
 /* social icons: the real logos, in their brand colours */
 .site-footer__socials {
   display: flex;
-  gap: var(--sp-3);
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 .site-footer__social {
   display: grid;
