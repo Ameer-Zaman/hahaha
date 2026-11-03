@@ -119,13 +119,14 @@
   line-height: 1;
   font-family: var(--font-display);
 }
+/* Face text scales with the card, but never below a size that can be read on a phone. */
 .club-face__corner b {
   font-weight: 400;
-  font-size: calc(var(--card-w) * 0.075);
+  font-size: max(11px, calc(var(--card-w) * 0.075));
 }
 .club-face__corner i {
   font-style: normal;
-  font-size: calc(var(--card-w) * 0.08);
+  font-size: max(11px, calc(var(--card-w) * 0.08));
 }
 .club-face__corner--tl {
   top: 2.5%;
@@ -156,26 +157,29 @@
 .club-face__type {
   margin: 0;
   font-family: var(--font-mono);
-  font-size: calc(var(--card-w) * 0.05);
+  font-size: max(11px, calc(var(--card-w) * 0.05));
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--c-gold-deep, #a87a2c);
+  /* bronze, not gold-deep: gold-deep is about 3:1 on the ivory face, too faint at this size */
+  color: var(--c-bronze, #7a5a1e);
 }
 .club-face__name {
   margin: 0;
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: calc(var(--card-w) * 0.13);
+  font-size: max(17px, calc(var(--card-w) * 0.13));
   line-height: 0.95;
   text-transform: uppercase;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
   color: #111;
 }
 .club-face__soon {
   margin: 0;
   font-family: var(--font-mono);
-  font-size: calc(var(--card-w) * 0.046);
+  font-size: max(11px, calc(var(--card-w) * 0.046));
   letter-spacing: 0.1em;
-  white-space: nowrap;
+  text-wrap: balance;
   text-transform: uppercase;
   color: rgb(17 17 17 / 0.55);
 }
@@ -184,9 +188,11 @@
   margin: 0;
   max-width: 90%;
   font-family: var(--font-mono);
-  font-size: calc(var(--card-w) * 0.04);
-  letter-spacing: 0.08em;
+  font-size: max(11px, calc(var(--card-w) * 0.04));
+  line-height: 1.3;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  text-wrap: balance;
   color: rgb(17 17 17 / 0.6);
 }
 
@@ -229,8 +235,56 @@
   transform: rotateY(180deg);
 }
 
-@media (max-width: 640px) {
-  .clubs {
-    --card-w: clamp(130px, 40vw, 180px);
+/* ---- phones and portrait tablets: a grid, every card whole ----
+   A fan narrow enough for a phone hides most of each card behind the next one, so the deck
+   is dealt into rows instead. Keep the width in step with GRID in ClubsPage.jsx. */
+@media (max-width: 900px) {
+  .clubs-deck {
+    --cols: 2;
+    --deal-gap: 0.75rem;
+    padding-inline: clamp(1rem, 4vw, 2rem);
+  }
+  .clubs-deck__table {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* an unfinished last row sits in the middle */
+    align-content: center;
+    gap: var(--deal-gap);
+    min-height: 0;
+    margin-block: clamp(1.5rem, 4svh, 2.5rem);
+  }
+  .club-card,
+  .clubs-deck.is-static .club-card {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: calc((100% - (var(--cols) - 1) * var(--deal-gap)) / var(--cols));
+    margin: 0;
+    transform: none;
+    /* the face text sizes itself against this card, not the viewport */
+    container-type: inline-size;
+    --card-w: 100cqi;
+  }
+  /* there is no fan to scroll through, so no hint, and the button is simply there */
+  .clubs-deck__hint {
+    display: none;
+  }
+  .clubs-deck.is-animated .clubs-deck__foot {
+    opacity: 1;
+  }
+  .club-face__suit {
+    font-size: calc(var(--card-w) * 0.32);
+  }
+  .club-face__emblem {
+    width: 50%;
+  }
+  .club-face__body {
+    inset: 11% 9%;
+  }
+}
+@media (min-width: 600px) and (max-width: 900px) {
+  .clubs-deck {
+    --cols: 3;
+    --deal-gap: 1rem;
   }
 }

@@ -20,6 +20,12 @@ const dealDeck = (clubs) =>
     number: i + 1,
   }))
 
+/**
+ * Phones and portrait tablets get a grid instead of the fan: a fan narrow enough to fit a
+ * phone hides most of every card behind the next. Keep in step with clubs.css.
+ */
+const GRID = '(max-width: 900px)'
+
 /** Where card `i` of `n` sits in the fan: spread sideways along a gentle arc, tilted outwards. */
 function fanPose(i, n, width) {
   const mid = (n - 1) / 2
@@ -60,10 +66,23 @@ function ClubsDeck({ clubs }) {
   useGSAP(
     () => {
       const mm = gsap.matchMedia()
-      mm.add(MOTION_OK, () => {
+      mm.add({ grid: GRID, motion: MOTION_OK }, (ctx) => {
+        const { grid, motion: moving } = ctx.conditions
+        if (!moving) return
         const cards = gsap.utils.toArray('.club-card')
         const inners = gsap.utils.toArray('.club-card__inner')
         const n = cards.length
+
+        if (grid) {
+          // the grid: once the table is in view, the cards are dealt in and turned over in turn
+          gsap.set(inners, { rotationY: 0 })
+          gsap.set(cards, { y: 36, opacity: 0 })
+          gsap
+            .timeline({ scrollTrigger: { trigger: '.clubs-deck__table', start: 'top 85%', once: true } })
+            .to(cards, { y: 0, opacity: 1, duration: 0.45, stagger: 0.07, ease: 'power3.out' })
+            .to(inners, { rotationY: 180, duration: 0.55, stagger: 0.1, ease: 'power3.inOut' })
+          return () => ScrollTrigger.refresh()
+        }
 
         // the stacked deck: slightly offset, a touch untidy
         cards.forEach((card, i) =>
