@@ -345,6 +345,7 @@
 }
 .lb-sort {
   display: inline-flex;
+  min-width: 2.75rem;
   align-items: center;
   justify-content: inherit;
   gap: 0.35rem;
@@ -377,31 +378,6 @@
 .lb-sort__icon.is-up {
   transform: rotate(180deg);
 }
-/* win rate: number first, bar as a quiet second reading (never colour alone) */
-.lb-rate {
-  display: inline-grid;
-  justify-items: end;
-  gap: 0.3rem;
-  min-width: 3.4rem;
-}
-.lb-rate__num {
-  font-variant-numeric: tabular-nums;
-}
-.lb-rate__bar {
-  width: 100%;
-  height: 3px;
-  border-radius: 999px;
-  background: rgb(var(--rgb-ivory) / 0.12);
-  overflow: hidden;
-}
-.lb-rate__fill {
-  display: block;
-  width: var(--pct, 0%);
-  height: 100%;
-  border-radius: inherit;
-  background: var(--c-gold);
-}
-
 .lb-table__empty {
   padding: var(--sp-6) !important;
   text-align: center !important;
@@ -420,15 +396,17 @@
   height: 22px;
   border-radius: 6px;
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   color: #0b0b0e;
 }
+/* the site's own result colours, as on the gang pages: gold win, crimson loss, grey draw */
 .lb-form__dot--win {
-  background: #3ddc84;
+  background: var(--c-gold);
 }
 .lb-form__dot--loss {
-  background: #e2596b;
+  background: var(--c-crimson);
+  color: #fff;
 }
 .lb-form__dot--draw {
   background: #8d8a84;
@@ -576,12 +554,320 @@
     text-transform: uppercase;
     color: var(--fg-muted);
   }
-  .lb-rate {
-    justify-items: start;
-    min-width: 0;
-  }
   .lb-table__empty {
     padding: var(--sp-6) 0 !important;
+  }
+}
+
+/* =========================================================
+   War standings — one precise row per gang, no podium
+   ========================================================= */
+.wb-totals {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0 0 var(--sp-6);
+  border-block: 1px solid rgb(var(--rgb-ivory) / 0.1);
+}
+.wb-totals > div {
+  display: grid;
+  gap: 0.35rem;
+  padding: var(--sp-4) var(--sp-4) var(--sp-4) 0;
+}
+.wb-totals > div + div {
+  padding-left: var(--sp-4);
+  border-left: 1px solid rgb(var(--rgb-ivory) / 0.08);
+}
+.wb-totals dt {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.wb-totals dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 1.2rem + 1.2vw, 2.25rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.wb {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+.wb thead th {
+  padding: 0.85rem var(--sp-3);
+  border-bottom: 1px solid rgb(var(--rgb-ivory) / 0.14);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.wb tbody tr {
+  border-bottom: 1px solid rgb(var(--rgb-ivory) / 0.07);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.wb tbody tr:hover {
+  background: rgb(var(--rgb-gold) / 0.04);
+}
+.wb td,
+.wb tbody th {
+  padding: var(--sp-4) var(--sp-3);
+  vertical-align: middle;
+  text-align: left;
+  font-weight: 400;
+}
+/* the leader carries a thin gold edge; 2nd and 3rd only their rank badge */
+.wb tbody tr.is-top-1 td:first-child {
+  box-shadow: inset 2px 0 var(--c-gold);
+}
+
+.wb__rank {
+  width: 3.5rem;
+}
+.wb__gang {
+  width: 100%;
+  min-width: 0;
+}
+.wb__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  max-width: 100%;
+  min-height: 44px;
+  color: var(--fg);
+  font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.wb__name:hover .wb__name-text {
+  color: var(--c-gold-light);
+}
+.wb__name:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.wb__last {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: -0.35rem;
+  padding-left: calc(2rem + 0.7rem); /* lines up under the name, past the emblem */
+  font-size: var(--fs-xs);
+  color: var(--fg-muted);
+  overflow-wrap: anywhere;
+}
+.wb__last-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  translate: 0 -1px;
+}
+.wb__last-dot--win {
+  background: var(--c-gold);
+}
+.wb__last-dot--loss {
+  background: var(--c-crimson);
+}
+.wb__last-dot--draw {
+  background: rgb(var(--rgb-ivory) / 0.45);
+}
+
+.wb__record {
+  white-space: nowrap;
+}
+.wb__wld {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+  font-variant-numeric: tabular-nums;
+}
+.wb__wld b {
+  font-weight: 700;
+}
+.wb__wld .is-win {
+  color: var(--c-gold-light);
+}
+.wb__wld .is-loss {
+  color: var(--c-crimson);
+}
+.wb__wld i {
+  font-style: normal;
+  color: rgb(var(--rgb-ivory) / 0.3);
+}
+.wb__played {
+  display: block;
+  margin-top: 0.2rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+.wb__rate {
+  min-width: 11rem;
+}
+.wb-bal {
+  display: grid;
+  grid-template-columns: 3.2rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sp-3);
+}
+.wb-bal__num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+/* the record as one bar: wins, then draws, then losses — the number beside it is the message */
+.wb-bal__bar {
+  display: flex;
+  gap: 2px;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(var(--rgb-ivory) / 0.08);
+}
+.wb-bal__seg {
+  flex-basis: 0;
+  min-width: 3px;
+}
+.wb-bal__seg--win {
+  background: var(--c-gold);
+}
+.wb-bal__seg--draw {
+  background: rgb(var(--rgb-ivory) / 0.35);
+}
+.wb-bal__seg--loss {
+  background: var(--c-crimson);
+}
+.wb__form {
+  white-space: nowrap;
+}
+
+.wb-sort {
+  display: none;
+}
+
+/* tablets: the totals go two-up */
+@media (max-width: 900px) {
+  .wb-totals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .wb-totals > div:nth-child(3) {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .wb-totals > div:nth-child(n + 3) {
+    border-top: 1px solid rgb(var(--rgb-ivory) / 0.08);
+  }
+}
+
+/* phones: each gang is a compact two-line row — rank, name and last result; then the
+   record, the balance bar and the form across the line below */
+@media (max-width: 720px) {
+  .wb thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .wb,
+  .wb tbody {
+    display: block;
+  }
+  .wb {
+    position: relative; /* keeps the hidden heading row inside the table */
+  }
+  .wb tbody tr {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+    grid-template-areas:
+      'rank gang gang'
+      '.    rec  form'
+      '.    rate rate';
+    align-items: center;
+    gap: var(--sp-2) var(--sp-3);
+    padding: var(--sp-4) var(--sp-2) var(--sp-4) 0;
+  }
+  .wb td,
+  .wb tbody th {
+    padding: 0;
+  }
+  .wb tbody .wb__rank {
+    grid-area: rank;
+    width: auto;
+  }
+  .wb tbody .wb__gang {
+    grid-area: gang;
+  }
+  .wb tbody .wb__record {
+    grid-area: rec;
+    display: flex;
+    flex-wrap: wrap; /* "4 wars" drops under the record rather than into the form pills */
+    align-items: baseline;
+    gap: 0 var(--sp-3);
+    min-width: 0;
+  }
+  .wb__played {
+    margin: 0;
+  }
+  .wb tbody .wb__form {
+    grid-area: form;
+    justify-self: end;
+  }
+  .wb tbody .wb__rate {
+    grid-area: rate;
+    min-width: 0;
+  }
+  .wb__last {
+    padding-left: 0;
+    margin-top: 0;
+  }
+  .wb tbody tr.is-top-1 td:first-child {
+    box-shadow: none;
+  }
+  .wb-sort {
+    display: flex;
+    gap: 4px;
+    width: fit-content;
+    max-width: 100%;
+    margin-bottom: var(--sp-3);
+    padding: 4px;
+    border: 1px solid rgb(var(--rgb-ivory) / 0.12);
+    border-radius: 999px;
+  }
+  .wb-sort__btn {
+    min-height: 44px;
+    padding: 0 clamp(0.6rem, 3vw, 1rem);
+    white-space: nowrap;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .wb-sort__btn.is-active {
+    background: rgb(var(--rgb-gold) / 0.14);
+    color: var(--c-gold-light);
+  }
+  .wb-sort__btn:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
   }
 }
 
