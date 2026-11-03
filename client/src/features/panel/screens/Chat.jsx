@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
-import { formatWhen } from "../format";
-import { useAction, useResource } from "../hooks";
-import { MediaField } from "../mediaKit";
-import { adminApi } from "../panelApi";
-import { Empty, ErrorNote, Loading, PageHead, Panel, TextField } from "../ui";
+import { formatWhen } from '../format'
+import { useAction, useResource } from '../hooks'
+import { MediaField } from '../mediaKit'
+import { adminApi } from '../panelApi'
+import { Empty, ErrorNote, Loading, PageHead, Panel, TextField } from '../ui'
 
 /**
  * Rules help: the chat button answers rule questions from the rule book in the visitor's browser.
@@ -13,28 +13,24 @@ import { Empty, ErrorNote, Loading, PageHead, Panel, TextField } from "../ui";
  * and the latest staff chats (read-only — staff reply in Discord).
  */
 export default function Chat() {
-  const { data, error, loading, reload } = useResource(() =>
-    adminApi.get("/chat"),
-  );
-  if (error) return <ErrorNote message={error} onRetry={reload} />;
-  if (loading || !data) return <Loading />;
-  return <ChatScreen data={data} reload={reload} />;
+  const { data, error, loading, reload } = useResource(() => adminApi.get('/chat'))
+  if (error) return <ErrorNote message={error} onRetry={reload} />
+  if (loading || !data) return <Loading />
+  return <ChatScreen data={data} reload={reload} />
 }
 
 function Status({ ok, warn, children }) {
   return (
-    <span
-      className={`p-status ${ok ? "p-status--ok" : warn ? "p-status--warn" : ""}`}
-    >
+    <span className={`p-status ${ok ? 'p-status--ok' : warn ? 'p-status--warn' : ''}`}>
       <span aria-hidden="true" />
       {children}
     </span>
-  );
+  )
 }
 
 function ChatScreen({ data, reload }) {
-  const [open, setOpen] = useState(null);
-  const d = data.discord;
+  const [open, setOpen] = useState(null)
+  const d = data.discord
 
   return (
     <>
@@ -53,19 +49,16 @@ function ChatScreen({ data, reload }) {
         <Panel title="Connections">
           <ul className="p-list-plain">
             <li>
-              Chat button on the website:{" "}
-              {data.on ? <Status ok>On</Status> : <Status warn>Off</Status>}{" "}
+              Chat button on the website: {data.on ? <Status ok>On</Status> : <Status warn>Off</Status>}{' '}
               <Link to="/panel/site" className="p-link">
                 change
               </Link>
             </li>
             <li>
-              Discord bridge:{" "}
+              Discord bridge:{' '}
               {!d.configured ? (
-                <Status warn>
-                  Not set up (DISCORD_BOT_TOKEN, DISCORD_CHAT_CHANNEL_ID)
-                </Status>
-              ) : d.state === "ready" ? (
+                <Status warn>Not set up (DISCORD_BOT_TOKEN, DISCORD_CHAT_CHANNEL_ID)</Status>
+              ) : d.state === 'ready' ? (
                 <Status ok>Connected</Status>
               ) : (
                 <Status warn>{d.state}</Status>
@@ -73,10 +66,8 @@ function ChatScreen({ data, reload }) {
             </li>
           </ul>
           <p className="p-text">
-            The bot token is set on the server (Render → Environment), never
-            here. Without it, visitors who can’t find a rule get a link to your
-            Discord instead. Answers come from the published rules — keep them
-            up to date in Rules.
+            The bot token is set on the server (Render → Environment), never here. Without it, visitors who can’t find a rule get a link to
+            your Discord instead. Answers come from the published rules — keep them up to date in Rules.
           </p>
         </Panel>
       </div>
@@ -95,30 +86,15 @@ function ChatScreen({ data, reload }) {
                   aria-expanded={open === c.id}
                 >
                   <strong>{c.nickname}</strong>
-                  <span className="p-tag">
-                    {c.blocked
-                      ? "Blocked"
-                      : c.status === "closed"
-                        ? "Ended"
-                        : "Open"}
-                  </span>
+                  <span className="p-tag">{c.blocked ? 'Blocked' : c.status === 'closed' ? 'Ended' : 'Open'}</span>
                   <span className="p-chats__when">{formatWhen(c.lastAt)}</span>
-                  <span className="p-chats__count">
-                    {c.messages.length} messages
-                  </span>
+                  <span className="p-chats__count">{c.messages.length} messages</span>
                 </button>
                 {open === c.id && (
                   <ol className="p-chats__log">
                     {c.messages.map((m, i) => (
                       <li key={i} className={`p-chats__msg is-${m.from}`}>
-                        <b>
-                          {m.from === "visitor"
-                            ? c.nickname
-                            : m.from === "staff"
-                              ? `${m.name} (staff)`
-                              : "Note"}
-                        </b>{" "}
-                        {m.text}
+                        <b>{m.from === 'visitor' ? c.nickname : m.from === 'staff' ? `${m.name} (staff)` : 'Note'}</b> {m.text}
                       </li>
                     ))}
                   </ol>
@@ -129,42 +105,33 @@ function ChatScreen({ data, reload }) {
         )}
       </Panel>
     </>
-  );
+  )
 }
 
 /** The assistant's name and picture, as visitors see them in the chat window. */
 function BotSettings() {
-  const { data, error, loading, reload } = useResource(() =>
-    adminApi.get("/settings"),
-  );
-  if (error) return <ErrorNote message={error} onRetry={reload} />;
-  if (loading || !data) return <Loading />;
-  return (
-    <BotForm
-      key={`${data.chatBot.name}|${data.chatBot.avatar}`}
-      initial={data.chatBot}
-    />
-  );
+  const { data, error, loading, reload } = useResource(() => adminApi.get('/settings'))
+  if (error) return <ErrorNote message={error} onRetry={reload} />
+  if (loading || !data) return <Loading />
+  return <BotForm key={`${data.chatBot.name}|${data.chatBot.avatar}`} initial={data.chatBot} />
 }
 
 function BotForm({ initial }) {
-  const [form, setForm] = useState(initial);
-  const [run, busy] = useAction();
-  const changed =
-    form.name.trim() !== initial.name ||
-    (form.avatar ?? null) !== (initial.avatar ?? null);
+  const [form, setForm] = useState(initial)
+  const [run, busy] = useAction()
+  const changed = form.name.trim() !== initial.name || (form.avatar ?? null) !== (initial.avatar ?? null)
 
   async function save(e) {
-    e.preventDefault();
+    e.preventDefault()
     const res = await run(
       () =>
-        adminApi.put("/settings/chat-bot", {
+        adminApi.put('/settings/chat-bot', {
           name: form.name.trim(),
           avatar: form.avatar ?? null,
         }),
-      "Saved — the chat shows it within a minute",
-    );
-    if (res) setForm(res.chatBot);
+      'Saved — the chat shows it within a minute',
+    )
+    if (res) setForm(res.chatBot)
   }
 
   return (
@@ -187,15 +154,11 @@ function BotForm({ initial }) {
           fallback="Optional. A square picture works best; it shows in a small circle. Without one, the bot shows the first letter of its name."
         />
         <div className="p-row">
-          <button
-            type="submit"
-            className="pbtn pbtn--gold"
-            disabled={busy || !changed || !form.name.trim()}
-          >
-            {busy ? "Saving…" : "Save"}
+          <button type="submit" className="pbtn pbtn--gold" disabled={busy || !changed || !form.name.trim()}>
+            {busy ? 'Saving…' : 'Save'}
           </button>
         </div>
       </form>
     </Panel>
-  );
+  )
 }

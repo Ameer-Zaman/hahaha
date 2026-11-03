@@ -1,13 +1,29 @@
-/* Website chat: a gold button bottom-right, a small dark window above it */
+/* =========================================================
+   Website chat — styled like an Instagram direct-message thread
+   (dark mode). Received bubbles grey, sent bubbles a purple→blue
+   gradient, story-ring avatars, a pill composer with a blue Send.
+   The gradient stops are a touch deeper than Instagram's so white
+   text on them stays at 4.5:1.
+   ========================================================= */
 .chatw {
-  --cw-gold: var(--c-gold, #e3b55a);
-  --cw-line: rgb(244 239 230 / 0.1);
+  --ig-bg: #000;
+  --ig-surface: #121212;
+  --ig-bubble: #262626;
+  --ig-line: #262626;
+  --ig-line-strong: #363636;
+  --ig-text: #f5f5f5;
+  --ig-muted: #a8a8a8;
+  --ig-blue: #0095f6; /* links and Send, on black */
+  --ig-button: #2f66f0; /* filled buttons with white text */
+  --ig-sent: linear-gradient(160deg, #8a32f2 0%, #5a4cf4 55%, #2f66f0 100%);
+  --ig-ring: linear-gradient(45deg, #feda75 0%, #fa7e1e 25%, #d62976 50%, #962fbf 75%, #4f5bd5 100%);
+  --ig-logo: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%);
   position: fixed;
   right: max(1rem, env(safe-area-inset-right));
   bottom: max(1rem, env(safe-area-inset-bottom));
   z-index: 95;
   font-family: var(--font-sans);
-  color: #f4efe6;
+  color: var(--ig-text);
   transition: opacity 0.2s ease, visibility 0s linear 0s;
 }
 /* out of the way while the phone menu is open: it would sit on top of the menu's links */
@@ -17,7 +33,7 @@
   transition: opacity 0.15s ease, visibility 0s linear 0.15s;
 }
 
-/* the button */
+/* ---------- the button ---------- */
 .chatw__launcher {
   position: relative;
   display: grid;
@@ -27,11 +43,11 @@
   margin-left: auto;
   border: 0;
   border-radius: 50%;
-  background: var(--gold-gradient, var(--cw-gold));
-  color: #0b0a08;
-  box-shadow: 0 14px 34px -10px rgb(0 0 0 / 0.8), 0 0 0 1px rgb(255 255 255 / 0.1) inset, 0 0 24px -6px rgb(227 181 90 / 0.6);
+  background: var(--ig-logo);
+  color: #fff;
+  box-shadow: 0 14px 34px -10px rgb(0 0 0 / 0.85), 0 0 0 1px rgb(255 255 255 / 0.12) inset;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease;
 }
 .chatw__launcher:hover {
   transform: translateY(-2px) scale(1.04);
@@ -41,8 +57,8 @@
   outline-offset: 3px;
 }
 .chatw__launcher-icon svg {
-  width: 1.45rem;
-  height: 1.45rem;
+  width: 1.5rem;
+  height: 1.5rem;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
@@ -59,25 +75,25 @@
   height: 1.35rem;
   padding: 0 0.3rem;
   border-radius: 999px;
-  background: var(--c-crimson, #d0475a);
+  background: #ff3040;
   color: #fff;
-  font: 700 0.72rem/1 var(--font-mono);
-  box-shadow: 0 0 0 2px #06070a;
+  font: 700 0.75rem/1 var(--font-sans);
+  box-shadow: 0 0 0 2px var(--ig-bg);
 }
 
-/* the window */
+/* ---------- the window ---------- */
 .chatw__panel {
   position: absolute;
   right: 0;
   bottom: calc(100% + 0.85rem);
   display: flex;
   flex-direction: column;
-  width: min(23.5rem, calc(100vw - 2rem));
-  height: min(36rem, calc(100svh - 7rem));
-  border: 1px solid rgb(244 239 230 / 0.12);
-  border-radius: 18px;
-  background: #0b0b0d;
-  box-shadow: 0 30px 80px -20px #000, 0 0 0 1px rgb(227 181 90 / 0.06);
+  width: min(24rem, calc(100vw - 2rem));
+  height: min(38rem, calc(100svh - 7rem));
+  border: 1px solid var(--ig-line);
+  border-radius: 20px;
+  background: var(--ig-bg);
+  box-shadow: 0 30px 80px -20px #000;
   overflow: hidden;
   opacity: 0;
   visibility: hidden;
@@ -92,32 +108,13 @@
   transition: opacity 0.22s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s;
 }
 
+/* header: ringed avatar, bold name, a quiet line under it */
 .chatw__head {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  padding: 0.85rem 0.85rem 0.85rem 1rem;
-  border-bottom: 1px solid var(--cw-line);
-  background: linear-gradient(180deg, rgb(227 181 90 / 0.08), transparent);
-}
-.chatw__avatar {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 2.3rem;
-  height: 2.3rem;
-  border-radius: 50%;
-  background: var(--gold-gradient, var(--cw-gold));
-  color: #0b0a08;
-  font: 400 1.1rem/1 var(--font-display);
-}
-.chatw__avatar {
-  overflow: hidden;
-}
-.chatw__avatar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  gap: 0.75rem;
+  padding: 0.7rem 0.7rem 0.7rem 0.95rem;
+  border-bottom: 1px solid var(--ig-line);
 }
 .chatw__title {
   min-width: 0;
@@ -125,153 +122,189 @@
 }
 .chatw__name {
   margin: 0;
-  font: 400 1.05rem/1.1 var(--font-display);
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .chatw__status {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin: 0.15rem 0 0;
+  margin: 0.1rem 0 0;
   font-size: 0.75rem;
-  color: rgb(244 239 230 / 0.6);
-}
-.chatw__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--cw-gold);
-}
-.chatw__dot.is-staff {
-  background: #4ad295;
-  box-shadow: 0 0 8px #4ad295;
+  color: var(--ig-muted);
 }
 .chatw__icon-btn,
 .chatw__text-btn {
   display: grid;
   place-items: center;
-  height: 2.5rem;
-  border: 1px solid var(--cw-line);
+  min-height: 2.75rem;
+  border: 0;
   border-radius: 999px;
   background: none;
-  color: rgb(244 239 230 / 0.8);
+  color: var(--ig-text);
   cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease;
 }
 .chatw__icon-btn {
-  width: 2.5rem;
+  width: 2.75rem;
 }
 .chatw__text-btn {
-  padding: 0 0.8rem;
-  font: 700 0.68rem/1 var(--font-mono);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  padding: 0 0.85rem;
+  font: 600 0.875rem/1 var(--font-sans);
+  color: var(--ig-blue);
 }
 .chatw__icon-btn svg {
-  width: 1.05rem;
-  height: 1.05rem;
+  width: 1.25rem;
+  height: 1.25rem;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
   stroke-linecap: round;
 }
 .chatw__icon-btn:hover,
-.chatw__text-btn:hover,
+.chatw__text-btn:hover {
+  background: rgb(255 255 255 / 0.08);
+}
 .chatw__icon-btn:focus-visible,
-.chatw__text-btn:focus-visible {
-  border-color: var(--cw-gold);
-  color: #fff;
+.chatw__text-btn:focus-visible,
+.chatw__chip:focus-visible,
+.chatw__send:focus-visible,
+.chatw__profile-btn:focus-visible {
+  outline: 2px solid var(--ig-blue);
+  outline-offset: 2px;
 }
 
-/* start */
-.chatw__intro {
+/* ---------- avatars: the story ring ---------- */
+.chatw__ring {
   display: grid;
-  align-content: start;
-  gap: 0.7rem;
-  padding: 1.25rem 1rem;
-  overflow-y: auto;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  background: var(--ig-ring);
 }
-.chatw__hello {
-  margin: 0 0 0.4rem;
-  font-size: 0.98rem;
-  line-height: 1.5;
-}
-.chatw__label {
-  font: 700 0.7rem/1 var(--font-mono);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgb(244 239 230 / 0.6);
-}
-.chatw__input {
-  width: 100%;
-  min-height: 2.9rem;
-  padding: 0.7rem 0.9rem;
-  border: 1px solid rgb(244 239 230 / 0.16);
-  border-radius: 12px;
-  background: #141416;
-  color: #f4efe6;
-  font: inherit;
-  font-size: 1rem; /* 16px: no zoom on iPhone */
-}
-.chatw__input:focus {
-  outline: none;
-  border-color: var(--cw-gold);
-  box-shadow: 0 0 0 3px rgb(227 181 90 / 0.2);
-}
-.chatw__primary {
-  min-height: 2.9rem;
-  border: 0;
-  border-radius: 12px;
-  background: var(--gold-gradient, var(--cw-gold));
+.chatw__avatar {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--gold-gradient, #e3b55a);
   color: #0b0a08;
-  font: 400 1.05rem/1 var(--font-display);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  cursor: pointer;
+  font-family: var(--font-display);
+  line-height: 1;
 }
-.chatw__primary:disabled,
-.chatw__send:disabled,
-.chatw__staff:disabled,
-.chatw__chip:disabled {
-  opacity: 0.45;
-  cursor: default;
+.chatw__ring .chatw__avatar {
+  /* the black gap between the ring and the picture */
+  box-shadow: 0 0 0 2px var(--ig-bg);
 }
-.chatw__fine {
-  margin: 0.3rem 0 0;
-  font-size: 0.75rem;
-  line-height: 1.5;
-  color: rgb(244 239 230 / 0.45);
+.chatw__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
-.chatw__error {
-  margin: 0;
+.chatw__ring--xs {
+  width: 1.75rem;
+  height: 1.75rem;
+  background: none;
+}
+.chatw__avatar--xs {
+  width: 1.75rem;
+  height: 1.75rem;
   font-size: 0.85rem;
-  color: #f19aa5;
 }
-.chatw__error--bar {
-  padding: 0.5rem 1rem 0;
+.chatw__ring--xs .chatw__avatar {
+  box-shadow: none;
+}
+.chatw__ring--sm {
+  width: 2.6rem;
+  height: 2.6rem;
+}
+.chatw__avatar--sm {
+  width: calc(2.6rem - 6px);
+  height: calc(2.6rem - 6px);
+  font-size: 1.05rem;
+}
+.chatw__ring--lg {
+  width: 5.5rem;
+  height: 5.5rem;
+}
+.chatw__avatar--lg {
+  width: calc(5.5rem - 8px);
+  height: calc(5.5rem - 8px);
+  font-size: 2.2rem;
+}
+.chatw__ring--lg .chatw__avatar {
+  box-shadow: 0 0 0 3px var(--ig-bg);
+}
+.chatw__avatar--staff {
+  background: #3a3a3a;
+  color: var(--ig-text);
+  font-family: var(--font-sans);
+  font-weight: 700;
 }
 
-/* messages */
+/* ---------- the thread ---------- */
 .chatw__list {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
   margin: 0;
-  padding: 1rem;
+  padding: 0.75rem 0.85rem 0.6rem;
   list-style: none;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+
+/* the profile card that opens every conversation */
+.chatw__profile {
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  padding: 1rem 0 1.25rem;
+  text-align: center;
+}
+.chatw__profile .chatw__ring {
+  margin-bottom: 0.55rem;
+}
+.chatw__profile-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.chatw__profile-sub {
+  font-size: 0.8125rem;
+  color: var(--ig-muted);
+}
+.chatw__profile-btn {
+  display: inline-grid;
+  place-items: center;
+  min-height: 2.75rem;
+  margin-top: 0.75rem;
+  padding: 0 1.1rem;
+  border-radius: 10px;
+  background: var(--ig-line-strong);
+  color: var(--ig-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.chatw__profile-btn:hover {
+  background: #444;
+}
+.chatw__time {
+  padding: 0.25rem 0 0.85rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--ig-muted);
+}
+
+/* one message: [avatar] bubble (+ cards, chips) */
 .chatw__msg {
   display: grid;
-  gap: 0.25rem;
-  max-width: 85%;
-  animation: chatw-in 0.25s ease;
+  max-width: 82%;
+  margin-top: 2px;
+  animation: chatw-in 0.22s ease;
+}
+.chatw__msg.is-first {
+  margin-top: 0.6rem;
 }
 @keyframes chatw-in {
   from {
@@ -279,64 +312,99 @@
     transform: translateY(6px);
   }
 }
-.chatw__who {
-  font: 700 0.64rem/1 var(--font-mono);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgb(244 239 230 / 0.45);
-}
-.chatw__bubble {
-  padding: 0.6rem 0.85rem;
-  border-radius: 14px;
-  font-size: 0.93rem;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-.chatw__msg--bot .chatw__bubble {
-  background: #17171a;
-  border: 1px solid var(--cw-line);
-  border-bottom-left-radius: 4px;
-}
-.chatw__msg--staff .chatw__bubble {
-  background: rgb(74 210 149 / 0.1);
-  border: 1px solid rgb(74 210 149 / 0.35);
-  border-bottom-left-radius: 4px;
-}
-.chatw__msg--staff .chatw__who {
-  color: #6fdcaa;
-}
-.chatw__msg--visitor {
+.chatw__msg--me {
   align-self: flex-end;
+  justify-items: end;
 }
-.chatw__msg--visitor .chatw__bubble {
-  background: var(--gold-gradient, var(--cw-gold));
-  color: #0b0a08;
-  border-bottom-right-radius: 4px;
-}
-.chatw__msg--visitor.is-pending {
-  opacity: 0.6;
-}
-.chatw__msg--system {
+.chatw__msg--mid {
   align-self: center;
   max-width: 92%;
   text-align: center;
 }
-.chatw__msg--system .chatw__bubble {
+.chatw__msg.has-rules {
+  max-width: 94%;
+}
+.chatw__line {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  min-width: 0;
+}
+/* a fixed column for the sender's face, so every received bubble lines up */
+.chatw__face {
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+}
+.chatw__stack {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+  justify-items: start;
+}
+.chatw__msg--me .chatw__stack {
+  justify-items: end;
+}
+.chatw__who {
+  margin: 0 0 0.25rem calc(1.75rem + 0.5rem + 0.85rem);
+  font-size: 0.75rem;
+  color: var(--ig-muted);
+}
+
+.chatw__bubble {
+  padding: 0.55rem 0.85rem;
+  border-radius: 22px;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.chatw__msg--them .chatw__bubble {
+  background: var(--ig-bubble);
+}
+.chatw__msg--me .chatw__bubble {
+  background: var(--ig-sent);
+  color: #fff;
+}
+/* a run of messages from one sender reads as one block: the inner corners tighten */
+.chatw__msg--them:not(.is-last) .chatw__bubble {
+  border-bottom-left-radius: 6px;
+}
+.chatw__msg--them:not(.is-first) .chatw__bubble {
+  border-top-left-radius: 6px;
+}
+.chatw__msg--me:not(.is-last) .chatw__bubble {
+  border-bottom-right-radius: 6px;
+}
+.chatw__msg--me:not(.is-first) .chatw__bubble {
+  border-top-right-radius: 6px;
+}
+.chatw__msg--mid .chatw__bubble {
   padding: 0.3rem 0.6rem;
-  font-size: 0.78rem;
-  color: rgb(244 239 230 / 0.55);
+  background: none;
+  font-size: 0.75rem;
+  color: var(--ig-muted);
+}
+.chatw__seen {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--ig-muted);
+}
+
+/* the bot "typing" */
+.chatw__bubble--typing {
+  padding: 0.8rem 0.95rem;
 }
 .chatw__typing {
   display: inline-flex;
   gap: 0.25rem;
 }
 .chatw__typing i {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: rgb(244 239 230 / 0.6);
-  animation: chatw-dot 1s ease-in-out infinite;
+  background: var(--ig-muted);
+  animation: chatw-dot 1.1s ease-in-out infinite;
 }
 .chatw__typing i:nth-child(2) {
   animation-delay: 0.15s;
@@ -345,195 +413,248 @@
   animation-delay: 0.3s;
 }
 @keyframes chatw-dot {
-  50% {
+  30% {
     transform: translateY(-3px);
-    opacity: 0.4;
+    opacity: 0.45;
   }
 }
 
-.chatw__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  padding: 0 1rem 0.6rem;
-}
-.chatw__chip {
-  min-height: 2.25rem;
-  padding: 0 0.85rem;
-  border: 1px solid rgb(227 181 90 / 0.4);
-  border-radius: 999px;
-  background: rgb(227 181 90 / 0.06);
-  color: #f6e3b0;
-  font-size: 0.82rem;
-  cursor: pointer;
-}
-.chatw__chip:hover {
-  background: rgb(227 181 90 / 0.14);
-}
-
-/* compose */
-.chatw__compose {
-  display: grid;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  border-top: 1px solid var(--cw-line);
-}
-.chatw__staff {
-  justify-self: start;
-  min-height: 2.25rem;
-  padding: 0 0.85rem;
-  border: 1px solid rgb(74 210 149 / 0.45);
-  border-radius: 999px;
-  background: rgb(74 210 149 / 0.08);
-  color: #8fe6bf;
-  font: 700 0.72rem/1 var(--font-mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-.chatw__row {
-  display: flex;
-  align-items: flex-end;
-  gap: 0.5rem;
-}
-.chatw__input--msg {
-  resize: none;
-  max-height: 7rem;
-}
-.chatw__send {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 2.9rem;
-  height: 2.9rem;
-  border: 0;
-  border-radius: 12px;
-  background: var(--gold-gradient, var(--cw-gold));
-  color: #0b0a08;
-  cursor: pointer;
-}
-.chatw__send svg {
-  width: 1.15rem;
-  height: 1.15rem;
-  fill: currentColor;
-}
-.chatw__ended {
-  margin: 0;
-  padding: 1rem;
-  border-top: 1px solid var(--cw-line);
-  text-align: center;
-  font-size: 0.85rem;
-  color: rgb(244 239 230 / 0.55);
-}
-
-@media (max-width: 30rem) {
-  .chatw__panel {
-    position: fixed;
-    inset: auto 0.5rem calc(env(safe-area-inset-bottom) + 5rem) 0.5rem;
-    width: auto;
-    height: min(34rem, calc(100svh - 7rem));
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .chatw__panel,
-  .chatw__msg,
-  .chatw__typing i {
-    transition: none;
-    animation: none;
-  }
-}
-
-/* ---- rules answers ---- */
-.chatw__msg.has-rules {
-  max-width: 100%;
-}
-.chatw__chips--inline {
-  padding: 0.2rem 0 0;
-}
-.chatw__chip--q {
-  border-style: dashed;
-}
+/* ---------- rule answers: cards, like a shared post ---------- */
 .chatw__rules {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  width: 100%;
 }
 .chatw__rule {
   display: grid;
-  gap: 0.25rem;
-  padding: 0.75rem 0.85rem;
-  border: 1px solid rgb(227 181 90 / 0.3);
-  border-left: 3px solid var(--cw-gold);
-  border-radius: 10px;
-  background: rgb(227 181 90 / 0.05);
+  gap: 0.3rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--ig-line);
+  border-radius: 16px;
+  background: var(--ig-surface);
+  overflow-wrap: anywhere;
 }
 .chatw__rule-cat {
-  font: 700 0.62rem/1 var(--font-mono);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--cw-gold);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ig-muted);
 }
 .chatw__rule-title {
-  font: 400 1.05rem/1.15 var(--font-display);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.3;
 }
 .chatw__rule-text {
-  font-size: 0.9rem;
-  line-height: 1.5;
-  color: rgb(244 239 230 / 0.85);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: #dcdcdc;
 }
-.chatw__rule-link,
-.chatw__rule--compact {
+.chatw__rule-link {
   justify-self: start;
-  color: #f6e3b0;
-  font-size: 0.82rem;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  color: var(--ig-blue);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.chatw__rule-link:hover {
   text-decoration: underline;
-  text-decoration-color: rgb(227 181 90 / 0.5);
-  text-underline-offset: 3px;
 }
 .chatw__rule--compact {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 0.5rem;
-  padding: 0.55rem 0.8rem;
-  border: 1px solid var(--cw-line);
-  border-radius: 10px;
-  background: #141416;
-  color: #f4efe6;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 14px;
+  color: var(--ig-text);
+  font-size: 0.875rem;
+  font-weight: 600;
   text-decoration: none;
-  font-size: 0.9rem;
 }
 .chatw__rule--compact:hover {
-  border-color: rgb(227 181 90 / 0.5);
+  background: #1a1a1a;
 }
 .chatw__rule--compact span {
-  color: var(--cw-gold);
-}
-a.chatw__staff {
-  display: inline-grid;
-  place-items: center;
-  text-decoration: none;
+  color: var(--ig-muted);
+  font-size: 1.1rem;
 }
 
-/* ---- ask staff form ---- */
+/* ---------- quick replies ---------- */
+.chatw__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.chatw__chips--suggest {
+  padding: 0 0.85rem 0.6rem;
+}
+.chatw__chip {
+  display: inline-grid;
+  place-items: center;
+  min-height: 2.5rem;
+  padding: 0 0.95rem;
+  border: 1px solid var(--ig-line-strong);
+  border-radius: 999px;
+  background: none;
+  color: var(--ig-text);
+  font: 600 0.8125rem/1.2 var(--font-sans);
+  text-decoration: none;
+  cursor: pointer;
+}
+.chatw__chip:hover {
+  background: rgb(255 255 255 / 0.06);
+}
+.chatw__chip--staff {
+  border-color: transparent;
+  background: var(--ig-button);
+  color: #fff;
+}
+.chatw__chip--staff:hover {
+  background: #3d73f5;
+}
+.chatw__chip:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* ---------- the composer: a pill with Send inside ---------- */
+.chatw__compose {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.6rem 0.75rem 0.75rem;
+}
+.chatw__pill {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.25rem;
+  padding: 0.2rem 0.3rem 0.2rem 1rem;
+  border: 1px solid var(--ig-line-strong);
+  border-radius: 24px;
+  background: var(--ig-bg);
+}
+.chatw__pill:focus-within {
+  border-color: #555;
+}
+.chatw__input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--ig-line-strong);
+  border-radius: 12px;
+  background: var(--ig-surface);
+  color: var(--ig-text);
+  font: inherit;
+  font-size: 1rem; /* 16px: no zoom on iPhone */
+}
+.chatw__input:focus {
+  outline: none;
+  border-color: #6b6b6b;
+}
+.chatw__input--msg {
+  flex: 1;
+  padding: 0.65rem 0;
+  border: 0;
+  background: none;
+  resize: none;
+  max-height: 7rem;
+  line-height: 1.4;
+}
+.chatw__input--msg:focus {
+  border: 0;
+}
+.chatw__input--area {
+  resize: none;
+}
+.chatw__send {
+  flex: none;
+  min-width: 3.5rem;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--ig-blue);
+  font: 700 0.9375rem/1 var(--font-sans);
+  cursor: pointer;
+}
+.chatw__send:disabled {
+  color: rgb(0 149 246 / 0.4);
+  cursor: default;
+}
+
+/* ---------- ask the staff ---------- */
 .chatw__ask {
   display: grid;
   gap: 0.5rem;
   padding: 0.85rem;
-  border-top: 1px solid var(--cw-line);
-  background: #0e0e10;
+  border-top: 1px solid var(--ig-line);
 }
 .chatw__ask-title {
   margin: 0 0 0.2rem;
-  font: 400 1.05rem/1 var(--font-display);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.chatw__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ig-muted);
 }
 .chatw__ask-row {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
 }
-.chatw__ask-row .chatw__primary {
+.chatw__primary {
+  min-height: 2.75rem;
   padding: 0 1.1rem;
+  border: 0;
+  border-radius: 10px;
+  background: var(--ig-button);
+  color: #fff;
+  font: 600 0.875rem/1 var(--font-sans);
+  cursor: pointer;
+}
+.chatw__primary:hover {
+  background: #3d73f5;
+}
+.chatw__primary:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.chatw__fine {
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--ig-muted);
+}
+.chatw__error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #ff8a95;
+}
+
+/* ---------- phones: the window fills the width ---------- */
+@media (max-width: 30rem) {
+  .chatw__panel {
+    position: fixed;
+    inset: auto 0.5rem calc(env(safe-area-inset-bottom) + 5rem) 0.5rem;
+    width: auto;
+    height: min(36rem, calc(100svh - 7rem));
+  }
+  .chatw__chip {
+    min-height: 2.75rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chatw__panel,
+  .chatw__msg,
+  .chatw__typing i,
+  .chatw__launcher {
+    transition: none;
+    animation: none;
+  }
 }
