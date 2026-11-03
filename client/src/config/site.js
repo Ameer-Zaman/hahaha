@@ -117,6 +117,7 @@ export const navigation = [
       { label: 'Dhadhas', to: '/dhadhas', hint: 'A new faction, coming soon' },
     ],
   },
+  { label: 'Events', to: '/events' },
   { label: 'Leaderboard', to: '/leaderboard' },
   { label: 'Rules', to: '/rules' },
 ]

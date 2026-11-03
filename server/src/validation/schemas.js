@@ -64,6 +64,49 @@ export const announcementSchema = z
     path: ['endsAt'],
   })
 
+/** A web address people can safely be sent to: http(s) only, never javascript: or data:. */
+const webLink = z
+  .union([z.string().trim().url().max(500).refine((u) => /^https?:\/\//i.test(u), 'use a http:// or https:// address'), z.literal('')])
+  .optional()
+  .default('')
+
+export const eventSchema = z
+  .object({
+    slug,
+    title: text(100).min(1, 'give it a title'),
+    category: text(40).optional().default('Event'),
+    status: z.enum(['draft', 'published', 'cancelled']).default('draft'),
+    statusNote: text(200).optional().default(''),
+    startsAt: z.coerce.date({ message: 'pick when it starts' }),
+    endsAt: when,
+    location: text(80).optional().default(''),
+    host: text(80).optional().default(''),
+    summary: text(240).optional().default(''),
+    description: z.string().trim().max(4000).optional().default(''),
+    schedule: z
+      .array(z.object({ time: text(20).optional().default(''), item: text(160).min(1, 'describe this part of the event') }))
+      .max(30)
+      .optional()
+      .default([]),
+    requirements: z.array(text(160).min(1)).max(20).optional().default([]),
+    prizes: z
+      .array(z.object({ place: text(30).optional().default(''), prize: text(160).min(1, 'describe the prize') }))
+      .max(10)
+      .optional()
+      .default([]),
+    capacity: z.coerce.number().int().min(0).max(10000).optional().default(0),
+    signupUrl: webLink,
+    signupLabel: text(40).optional().default(''),
+    image: mediaId,
+    featured: z.boolean().optional().default(false),
+  })
+  .refine((e) => !e.endsAt || e.endsAt > e.startsAt, { message: 'the finish must be after the start', path: ['endsAt'] })
+
+export const settingsChatBotSchema = z.object({
+  name: text(30).min(1, 'give the bot a name'),
+  avatar: mediaId.default(null),
+})
+
 export const settingsSecuritySchema = z.object({ requireTwoFactor: z.boolean() })
 
 export const twoFactorOffSchema = z.object({
@@ -228,7 +271,7 @@ export const ruleBookSchema = z.object({
 
 export const settingsSiteSchema = z
   .object({
-    sections: z.partialRecord(z.enum(['story', 'staff', 'gangs', 'clubs', 'dhadhas', 'leaderboard', 'rules', 'chat']), z.boolean()).optional(),
+    sections: z.partialRecord(z.enum(['story', 'staff', 'gangs', 'clubs', 'dhadhas', 'events', 'leaderboard', 'rules', 'chat']), z.boolean()).optional(),
     maintenance: z
       .object({
         on: z.boolean(),

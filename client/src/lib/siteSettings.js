@@ -14,8 +14,10 @@ import { usePublic } from './publicData'
  * itself out because the server is asleep).
  */
 const STORAGE_KEY = 'shy-site-settings'
-const ALL_ON = { story: true, staff: true, gangs: true, clubs: true, dhadhas: true, leaderboard: true, rules: true, chat: true }
-const DEFAULTS = { sections: ALL_ON, maintenance: { on: false, message: '' } }
+const ALL_ON = { story: true, staff: true, gangs: true, clubs: true, dhadhas: true, events: true, leaderboard: true, rules: true, chat: true }
+/** The chat assistant, until the panel says otherwise (Panel → Rules help chat → The bot). */
+export const DEFAULT_BOT = { name: 'Vexy', avatar: null }
+const DEFAULTS = { sections: ALL_ON, maintenance: { on: false, message: '' }, chatBot: DEFAULT_BOT }
 
 /** The section a path belongs to, or null for pages that are always on. */
 export function sectionOf(path = '') {
@@ -39,6 +41,7 @@ function normalise(data) {
   return {
     sections: { ...ALL_ON, ...saved },
     maintenance: { on: Boolean(data?.maintenance?.on), message: data?.maintenance?.message ?? '' },
+    chatBot: { name: data?.chatBot?.name?.trim() || DEFAULT_BOT.name, avatar: data?.chatBot?.avatar ?? null },
   }
 }
 
@@ -54,7 +57,7 @@ export function useSiteSettings({ watch = false } = {}) {
     } catch {
       /* storage unavailable: fine */
     }
-  }, [live?.maintenance.on, live?.maintenance.message, JSON.stringify(live?.sections)]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [live?.maintenance.on, live?.maintenance.message, JSON.stringify(live?.sections), live?.chatBot.name, live?.chatBot.avatar]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!USE_API) return DEFAULTS
   if (live) return live

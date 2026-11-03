@@ -3,6 +3,7 @@ import { Router } from 'express'
 import { authenticate, requireRole } from '../../middleware/auth.js'
 import { twoFactorRequired } from '../../services/twoFactor.js'
 import { Club } from '../../models/Club.js'
+import { Event } from '../../models/Event.js'
 import { Gang } from '../../models/Gang.js'
 import { Settings } from '../../models/Settings.js'
 import { RuleBook } from '../../models/RuleBook.js'
@@ -14,6 +15,7 @@ import auditRoutes from './audit.js'
 import backup from './backup.js'
 import chat from './chat.js'
 import clubs from './clubs.js'
+import events from './events.js'
 import gangs from './gangs.js'
 import media from './media.js'
 import rules from './rules.js'
@@ -54,9 +56,10 @@ const staffRoles = requireRole('admin', 'superadmin')
 const superOnly = requireRole('superadmin')
 
 router.get('/overview', staffRoles, async (req, res) => {
-  const [gangCount, clubCount, warCount, staffCount, online, book, recent, site] = await Promise.all([
+  const [gangCount, clubCount, eventCount, warCount, staffCount, online, book, recent, site] = await Promise.all([
     Gang.countDocuments(),
     Club.countDocuments(),
+    Event.countDocuments({ status: 'published', startsAt: { $gte: new Date() } }),
     War.countDocuments(),
     Staff.countDocuments(),
     Staff.countDocuments({ online: true }),
@@ -69,6 +72,7 @@ router.get('/overview', staffRoles, async (req, res) => {
   res.json({
     gangs: gangCount,
     clubs: clubCount,
+    upcomingEvents: eventCount,
     players,
     wars: warCount,
     staff: staffCount,
@@ -83,6 +87,7 @@ router.get('/overview', staffRoles, async (req, res) => {
 router.use('/announcements', staffRoles, announcements)
 router.use('/gangs', staffRoles, gangs)
 router.use('/clubs', staffRoles, clubs)
+router.use('/events', staffRoles, events)
 router.use('/chat', staffRoles, chat)
 router.use('/wars', staffRoles, wars)
 router.use('/staff', staffRoles, staff)

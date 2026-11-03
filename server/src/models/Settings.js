@@ -32,7 +32,16 @@ export const STORY_SLOTS = Object.entries(STORY_PLACES).flatMap(([chapter, place
 MEDIA_SLOTS.push(...STORY_SLOTS)
 
 /** Website sections that can be switched off from the panel (Home is always on). */
-export const SECTION_KEYS = ['story', 'staff', 'gangs', 'clubs', 'dhadhas', 'leaderboard', 'rules', 'chat']
+export const SECTION_KEYS = ['story', 'staff', 'gangs', 'clubs', 'dhadhas', 'events', 'leaderboard', 'rules', 'chat']
+
+/** The chat assistant's name until the team picks another in the panel. */
+export const DEFAULT_BOT_NAME = 'Vexy'
+
+/** The saved bot settings, with the defaults filled in. */
+export const readChatBot = (settings) => ({
+  name: settings?.chatBot?.name?.trim() || DEFAULT_BOT_NAME,
+  avatar: settings?.chatBot?.avatar ?? null,
+})
 
 export const defaultSections = () => Object.fromEntries(SECTION_KEYS.map((key) => [key, true]))
 
@@ -57,6 +66,11 @@ const settingsSchema = new mongoose.Schema(
       on: { type: Boolean, default: false },
       message: { type: String, default: '', maxlength: 300 },
       changedAt: { type: Date, default: null },
+    },
+    /** The website chat's assistant: what it is called and its picture (a media id). */
+    chatBot: {
+      name: { type: String, default: DEFAULT_BOT_NAME, maxlength: 30 },
+      avatar: { type: String, default: null },
     },
     /** Rules for every panel account, set by a Super Admin. Never sent to the website. */
     security: {

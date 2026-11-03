@@ -13,6 +13,7 @@ const SECTIONS = [
   { key: 'gangs', label: 'Gangs', path: '/gangs', note: 'In the Factions menu' },
   { key: 'clubs', label: 'Clubs', path: '/clubs', note: 'In the Factions menu' },
   { key: 'dhadhas', label: 'Dhadhas', path: '/dhadhas', note: 'In the Factions menu' },
+  { key: 'events', label: 'Events', path: '/events' },
   { key: 'leaderboard', label: 'Leaderboard', path: '/leaderboard' },
   { key: 'rules', label: 'Rules', path: '/rules' },
   { key: 'chat', label: 'Rules help chat', path: '', note: 'The chat button on every page' },

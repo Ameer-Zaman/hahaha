@@ -169,6 +169,8 @@ Netlify forwards `/api/*` to Render behind the scenes, so the API lives on the w
 
 A gold chat button sits in the corner of every page. Visitors ask about the rules ("can I RDM?", "what is NLR?") and get the matching rules straight from the rule book, with a link to each one on the Rules page. It runs in the visitor's browser — free, instant, no AI and no API key — and it only ever quotes the real rules (the published rule book, or the draft while nothing is published). Common slang is understood (RDM, VDM, NLR, meta, cops, mod menu, banned …).
 
+The assistant is called **Vexy**. Change its name and picture in **Panel → Rules help chat → The bot** (the picture comes from the media library; without one it shows the first letter of the name). This is the assistant in the website's chat window — the Discord bot's own name and picture are set in the Discord Developer Portal.
+
 When no rule fits, **Ask staff** sends the question to a **thread in your Discord**; staff reply in that thread and the reply appears in the visitor's chat window. In a thread, `!close` ends the chat and `!block` stops that visitor. Without the Discord bot, visitors get a link to your Discord instead. Switch the chat off in **Panel → Sections & maintenance**.
 
 **Discord bot (free)**
@@ -179,6 +181,14 @@ When no rule fits, **Ask staff** sends the question to a **thread in your Discor
 5. Panel → Rules help chat should show Discord as **Connected**.
 
 The bot lives in the API server, so it's only online while the server is awake. On Render's free plan the server sleeps after 15 minutes without visitors; the repo's "keep API awake" GitHub workflow pings it every 10 minutes to prevent that. Visitors can't send links, messages are rate-limited, and chats are deleted 30 days after the last message.
+
+## Events
+
+**Panel → Events** holds everything the server hosts: a race, a heist night, a tournament. Each event has a title, category, start (and optional finish — without one it counts as 3 hours), place, host, summary, full description, a programme, what people need, prizes, the number of places, a sign-up link and a picture. The website shows them at **/events** (on now, coming up, past) and each one on its own page at **/events/short-name**, with a countdown and an **Add to calendar** button. Times are entered in your own time and shown to each visitor in theirs.
+
+- **Draft** — only the team sees it. **Published** — on the Events page. **Cancelled** — stays on the page, marked cancelled, with an optional note ("Moved to next Saturday").
+- **Feature it** to lead the Events page while it is still to come; only one event is featured at a time.
+- Drafts never leave the server, sign-up links must be http(s), every change is in the audit log, and events are included in backups. Switch the page off in **Panel → Sections & maintenance**.
 
 ## Importing players from JSON
 

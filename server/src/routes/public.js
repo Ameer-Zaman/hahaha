@@ -2,9 +2,10 @@ import { Router } from 'express'
 
 import { Announcement, isLive } from '../models/Announcement.js'
 import { Club } from '../models/Club.js'
+import { endOf, Event, eventState } from '../models/Event.js'
 import { Gang } from '../models/Gang.js'
 import { RuleBook } from '../models/RuleBook.js'
-import { MEDIA_SLOTS, readSections, Settings } from '../models/Settings.js'
+import { MEDIA_SLOTS, readChatBot, readSections, Settings } from '../models/Settings.js'
 import { Staff } from '../models/Staff.js'
 import { TdmBoard } from '../models/TdmBoard.js'
 import { War } from '../models/War.js'
@@ -95,6 +96,53 @@ router.get('/clubs', async (req, res) => {
   })
 })
 
+/**
+ * Events: published and cancelled ones only — a draft never leaves the server. Everything
+ * still to come or running now, then the most recent that have finished.
+ */
+const PAST_SHOWN = 24
+
+function publicEvent(e, mediaUrl, now) {
+  return {
+    id: e.slug,
+    title: e.title,
+    category: e.category || 'Event',
+    state: eventState(e, now),
+    statusNote: e.status === 'cancelled' ? e.statusNote || '' : '',
+    startsAt: e.startsAt,
+    endsAt: e.endsAt ?? null,
+    endsBy: endOf(e),
+    location: e.location || '',
+    host: e.host || '',
+    summary: e.summary || '',
+    description: e.description || '',
+    schedule: (e.schedule ?? []).map(({ time, item }) => ({ time, item })),
+    requirements: e.requirements ?? [],
+    prizes: (e.prizes ?? []).map(({ place, prize }) => ({ place, prize })),
+    capacity: e.capacity || 0,
+    signup: e.signupUrl ? { url: e.signupUrl, label: e.signupLabel || 'Sign up' } : null,
+    image: mediaUrl(e.image),
+    featured: Boolean(e.featured),
+  }
+}
+
+router.get('/events', async (req, res) => {
+  const now = new Date()
+  const all = await Event.find({ status: { $in: ['published', 'cancelled'] } }).sort({ startsAt: 1 }).lean()
+  const ahead = all.filter((e) => endOf(e) > now)
+  const past = all.filter((e) => endOf(e) <= now).reverse().slice(0, PAST_SHOWN)
+  const shown = [...ahead, ...past]
+  const mediaUrl = await resolveMediaUrls(shown.map((e) => e.image))
+  res.json({ events: shown.map((e) => publicEvent(e, mediaUrl, now)) })
+})
+
+router.get('/events/:slug', async (req, res) => {
+  const e = await Event.findOne({ slug: String(req.params.slug).toLowerCase(), status: { $in: ['published', 'cancelled'] } }).lean()
+  if (!e) return res.status(404).json({ message: 'No event by that name.' })
+  const mediaUrl = await resolveMediaUrls([e.image])
+  res.json({ event: publicEvent(e, mediaUrl, new Date()) })
+})
+
 router.get('/staff', async (req, res) => {
   res.set('Cache-Control', 'public, max-age=15')
   const staff = await Staff.find().sort({ order: 1, createdAt: 1 }).lean()
@@ -133,11 +181,13 @@ router.get('/rules', async (req, res) => {
 router.get('/site', async (req, res) => {
   res.set('Cache-Control', 'public, max-age=10') // maintenance and sections should land quickly
   const settings = await Settings.findOne({ key: 'main' }).lean()
-  const mediaUrl = await resolveMediaUrls(Object.values(settings?.media ?? {}))
+  const bot = readChatBot(settings)
+  const mediaUrl = await resolveMediaUrls([...Object.values(settings?.media ?? {}), bot.avatar])
   const media = Object.fromEntries(MEDIA_SLOTS.map((slot) => [slot, mediaUrl(settings?.media?.[slot] ?? null)]))
   res.json({
     media,
     sections: readSections(settings),
+    chatBot: { name: bot.name, avatar: mediaUrl(bot.avatar) },
     maintenance: { on: Boolean(settings?.maintenance?.on), message: settings?.maintenance?.message ?? '' },
   })
 })

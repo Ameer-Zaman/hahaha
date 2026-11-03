@@ -80,3 +80,30 @@ test('Cloudinary request signing matches the example in Cloudinary\'s documentat
   )
   assert.equal(signature, 'bfd09f95f331f558cbd1320e67aa8d488770583e')
 })
+
+test('events: a start is required, the finish comes after it, and links are web links only', async () => {
+  const { eventSchema } = await import('../src/validation/schemas.js')
+  const base = { slug: 'street-race-night', title: 'Street Race Night', startsAt: '2026-12-05T20:00:00Z' }
+  assert.equal(eventSchema.safeParse(base).success, true)
+  assert.equal(eventSchema.safeParse({ ...base, startsAt: undefined }).success, false)
+  assert.equal(eventSchema.safeParse({ ...base, endsAt: '2026-12-05T19:00:00Z' }).success, false)
+  assert.equal(eventSchema.safeParse({ ...base, endsAt: '' }).data?.endsAt, null)
+  assert.equal(eventSchema.safeParse({ ...base, signupUrl: 'javascript:alert(1)' }).success, false)
+  assert.equal(eventSchema.safeParse({ ...base, signupUrl: 'https://discord.gg/abc' }).success, true)
+  assert.equal(eventSchema.safeParse({ ...base, status: 'secret' }).success, false)
+  assert.equal(eventSchema.safeParse({ ...base, capacity: -1 }).success, false)
+  // unknown fields are dropped, so a request cannot set who wrote it
+  assert.equal('createdBy' in eventSchema.parse({ ...base, createdBy: 'someone' }), false)
+})
+
+test('event state: drafts and cancellations win, then the clock decides', async () => {
+  const { eventState } = await import('../src/models/Event.js')
+  const now = new Date('2026-12-05T21:00:00Z')
+  const at = (iso, extra = {}) => ({ status: 'published', startsAt: new Date(iso), endsAt: null, ...extra })
+  assert.equal(eventState(at('2026-12-06T20:00:00Z'), now), 'upcoming')
+  assert.equal(eventState(at('2026-12-05T20:00:00Z'), now), 'live') // no finish set: counts as 3 hours
+  assert.equal(eventState(at('2026-12-05T17:00:00Z'), now), 'ended')
+  assert.equal(eventState(at('2026-12-05T20:00:00Z', { endsAt: new Date('2026-12-05T20:30:00Z') }), now), 'ended')
+  assert.equal(eventState(at('2026-12-06T20:00:00Z', { status: 'draft' }), now), 'draft')
+  assert.equal(eventState(at('2026-12-06T20:00:00Z', { status: 'cancelled' }), now), 'cancelled')
+})

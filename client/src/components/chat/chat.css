@@ -111,6 +111,14 @@
   color: #0b0a08;
   font: 400 1.1rem/1 var(--font-display);
 }
+.chatw__avatar {
+  overflow: hidden;
+}
+.chatw__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .chatw__title {
   min-width: 0;
   flex: 1;

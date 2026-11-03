@@ -5,7 +5,7 @@ import { useLoadingSignal } from './loading'
 
 /**
  * Cached reads of the public API (/api/public/*). Each entry is
- *   { status: 'loading' | 'ok' | 'error' | 'off', data }
+ *   { status: 'loading' | 'ok' | 'missing' | 'error' | 'off', data }   (missing = the API answered 404)
  * Pages use the data when it is 'ok' and their built-in content otherwise, so the site never
  * breaks — or waits long — when the API is asleep or unreachable.
  */
@@ -34,7 +34,15 @@ export function loadPublic(path, { force = false } = {}) {
 
   const request = api(`/public${path}`, { timeout: TIMEOUT_MS })
     .then((data) => ({ status: 'ok', data, at: Date.now() }))
-    .catch(() => (current?.status === 'ok' ? current : { status: 'error', data: null, at: Date.now() }))
+    .catch((err) =>
+      // a real "not found" from the API (e.g. an event that was taken down) is an answer,
+      // not a failure: say so, rather than offering to try again
+      err?.status === 404 && err?.code !== 'not_connected'
+        ? { status: 'missing', data: null, at: Date.now() }
+        : current?.status === 'ok'
+          ? current
+          : { status: 'error', data: null, at: Date.now() },
+    )
     .then((entry) => {
       cache.set(path, entry)
       inflight.delete(path)

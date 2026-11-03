@@ -1714,3 +1714,47 @@
     min-height: 44px;
   }
 }
+
+/* ---------- events editor ---------- */
+/* a column of cards inside one side of .p-grid-2 */
+.p-stack {
+  display: grid;
+  gap: var(--sp-5);
+  min-width: 0;
+}
+.p-stack > .p-card {
+  margin: 0;
+}
+.p-form-grid--spaced {
+  margin-top: var(--sp-5);
+}
+.p-tag--warn {
+  border-color: rgb(226 89 107 / 0.55);
+  color: #f0a2ad;
+}
+/* a short first box and a wide second one: "20:00 | Grid forms", "1st | $250,000" */
+.p-rows__item--pair {
+  grid-template-columns: 2.2rem minmax(0, 7rem) minmax(0, 1fr) auto;
+}
+.p-rows__item--single {
+  grid-template-columns: 2.2rem minmax(0, 1fr) auto;
+}
+@media (max-width: 820px) {
+  .p-rows__item--pair {
+    grid-template-columns: 1.6rem minmax(0, 6rem) minmax(0, 1fr);
+  }
+  .p-rows__item--single {
+    grid-template-columns: 1.6rem minmax(0, 1fr);
+  }
+  .p-rows__item--pair .p-rowtools,
+  .p-rows__item--single .p-rowtools {
+    grid-column: 2 / -1;
+    justify-self: end;
+  }
+}
+
+/* the chat bot's name and picture */
+.p-bot {
+  display: grid;
+  gap: var(--sp-4);
+}

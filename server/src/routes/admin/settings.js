@@ -2,11 +2,11 @@ import { Router } from 'express'
 
 import { HttpError } from '../../middleware/errors.js'
 import { validateBody } from '../../middleware/validate.js'
-import { MEDIA_SLOTS, readSections, SECTION_KEYS, Settings } from '../../models/Settings.js'
+import { MEDIA_SLOTS, readChatBot, readSections, SECTION_KEYS, Settings } from '../../models/Settings.js'
 import { audit } from '../../services/audit.js'
 import { findFile } from '../../services/media.js'
 import { requireRole } from '../../middleware/auth.js'
-import { settingsMediaSchema, settingsSecuritySchema, settingsSiteSchema } from '../../validation/schemas.js'
+import { settingsChatBotSchema, settingsMediaSchema, settingsSecuritySchema, settingsSiteSchema } from '../../validation/schemas.js'
 
 const router = Router()
 
@@ -28,7 +28,31 @@ const siteState = (settings) => ({
 
 router.get('/', async (req, res) => {
   const settings = await getSettings()
-  res.json({ slots: MEDIA_SLOTS, media: settings.media, ...siteState(settings), security: securityState(settings) })
+  res.json({
+    slots: MEDIA_SLOTS,
+    media: settings.media,
+    ...siteState(settings),
+    chatBot: readChatBot(settings),
+    security: securityState(settings),
+  })
+})
+
+/** The chat assistant's name and picture. The picture must be an image from the media library. */
+router.put('/chat-bot', validateBody(settingsChatBotSchema), async (req, res) => {
+  const { name, avatar } = req.body
+  if (avatar) {
+    const file = await findFile(avatar)
+    if (!file) throw new HttpError(400, 'That picture is not in the media library.')
+    if (file.kind !== 'image') throw new HttpError(400, 'The bot needs a picture, not a video.')
+  }
+  const settings = await getSettings()
+  const before = readChatBot(settings)
+  settings.chatBot = { name, avatar: avatar ?? null }
+  settings.markModified('chatBot')
+  await settings.save()
+  const changes = [name !== before.name && `name ${before.name} → ${name}`, avatar !== before.avatar && (avatar ? 'new picture' : 'picture removed')].filter(Boolean)
+  if (changes.length) await audit(req, 'settings.chat_bot', 'chat', changes.join(', '))
+  res.json({ chatBot: readChatBot(settings) })
 })
 
 /** Sections on/off and maintenance mode. Each change is written to the audit log. */

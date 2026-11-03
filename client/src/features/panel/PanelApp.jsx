@@ -12,6 +12,7 @@ import TwoFactor from './screens/TwoFactor'
 import Dashboard from './screens/Dashboard'
 import { GangEditor, GangList } from './screens/Gangs'
 import { ClubEditor, ClubList } from './screens/Clubs'
+import { EventEditor, EventList } from './screens/Events'
 import Chat from './screens/Chat'
 import Login from './screens/Login'
 import { MediaLibrary, SiteMedia, StoryMedia } from './screens/MediaScreens'
@@ -39,6 +40,7 @@ const NAV = [
       { to: '/panel/gangs', label: 'Gangs & players' },
       { to: '/panel/wars', label: 'Wars' },
       { to: '/panel/clubs', label: 'Clubs' },
+      { to: '/panel/events', label: 'Events' },
       { to: '/panel/tdm', label: 'TDM leaderboard' },
       { to: '/panel/staff', label: 'Staff' },
       { to: '/panel/rules', label: 'Rules' },
@@ -233,6 +235,8 @@ function Shell() {
           <Route path="wars" element={<Wars />} />
           <Route path="clubs" element={<ClubList />} />
           <Route path="clubs/:id" element={<ClubEditor />} />
+          <Route path="events" element={<EventList />} />
+          <Route path="events/:id" element={<EventEditor />} />
           <Route path="tdm" element={<Tdm />} />
           <Route path="staff" element={<Staff />} />
           <Route path="rules" element={<Rules />} />

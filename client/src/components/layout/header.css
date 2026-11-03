@@ -352,6 +352,21 @@
   }
 }
 
+/* Laptops and landscape tablets (960–1200px): seven menu items, the community icon, Apply
+   and the music button only fit with tighter spacing — otherwise Apply runs off the edge. */
+@media (min-width: 60rem) and (max-width: 75rem) {
+  .site-nav,
+  .site-nav__list {
+    gap: clamp(0.6rem, 1.15vw, 1rem);
+  }
+  .site-nav__link {
+    letter-spacing: 0.07em;
+  }
+  .site-header__brand {
+    font-size: 1rem;
+  }
+}
+
 /* ---- Music button: sits at the right edge, next to the menu button on phones ---- */
 .site-header__brand {
   margin-right: auto;

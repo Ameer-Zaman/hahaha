@@ -19,6 +19,8 @@ const ClubsPage = lazy(() => import('../features/clubs/ClubsPage'))
 const DhadhasPage = lazy(() => import('../features/dhadhas/DhadhasPage'))
 const StoryPage = lazy(() => import('../features/story/StoryPage'))
 const LeaderboardPage = lazy(() => import('../features/leaderboard/LeaderboardPage'))
+const EventsPage = lazy(() => import('../features/events/EventsPage'))
+const EventPage = lazy(() => import('../features/events/EventPage'))
 const NotFoundPage = lazy(() => import('../features/notfound/NotFoundPage'))
 // The admin panel is its own chunk: visitors never download it.
 const PanelApp = lazy(() => import('../features/panel/PanelApp'))
@@ -37,6 +39,8 @@ export default function App() {
         <Route path="clubs" element={<Section to="/clubs"><ClubsPage /></Section>} />
         <Route path="dhadhas" element={<Section to="/dhadhas"><DhadhasPage /></Section>} />
         <Route path="story" element={<Section to="/story"><StoryPage /></Section>} />
+        <Route path="events" element={<Section to="/events"><EventsPage /></Section>} />
+        <Route path="events/:slug" element={<Section to="/events"><EventPage /></Section>} />
         <Route path="leaderboard" element={<Section to="/leaderboard"><LeaderboardPage /></Section>} />
         <Route path="rules" element={<Section to="/rules"><RulesPage /></Section>} />
         {/* old /apply links: straight on to the Discord invite (or home if it isn't set yet) */}
