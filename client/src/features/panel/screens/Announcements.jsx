@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { formatWhen } from '../format'
 import { useAction, useResource } from '../hooks'
 import { adminApi } from '../panelApi'
-import { ConfirmButton, ErrorNote, Loading, PageHead, Panel, SelectField, Switch, TextField } from '../ui'
+import { ConfirmButton, ErrorNote, ListTable, Loading, PageHead, Panel, SelectField, Switch, TextField } from '../ui'
 
 const TONES = [
   { value: 'news', label: 'News — an ordinary update' },
@@ -78,7 +78,7 @@ export function AnnouncementList() {
         {items.length === 0 ? (
           <p className="p-note">Nothing posted yet. The first one you publish appears on the website within a minute.</p>
         ) : (
-          <table className="p-table">
+          <ListTable>
             <thead>
               <tr>
                 <th>Title</th>
@@ -122,7 +122,7 @@ export function AnnouncementList() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </ListTable>
         )}
       </Panel>
     </>

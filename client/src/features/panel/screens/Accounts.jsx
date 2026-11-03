@@ -4,7 +4,7 @@ import { useAuth } from '../authContext'
 import { adminApi, authApi } from '../panelApi'
 import { formatWhen } from '../format'
 import { useAction, useResource } from '../hooks'
-import { ConfirmButton, ErrorNote, Loading, PageHead, Panel, SelectField, TextField } from '../ui'
+import { ConfirmButton, ErrorNote, ListTable, Loading, PageHead, Panel, SelectField, TextField } from '../ui'
 import TwoFactor from './TwoFactor'
 
 const ROLE_LABEL = { admin: 'Admin', superadmin: 'Super Admin' }
@@ -107,7 +107,7 @@ export function Accounts() {
       )}
 
       <div className="p-table-wrap">
-        <table className="p-table">
+        <ListTable>
           <thead>
             <tr>
               <th scope="col">Name</th>
@@ -181,7 +181,7 @@ export function Accounts() {
               )
             })}
           </tbody>
-        </table>
+        </ListTable>
       </div>
 
       {reset && (
@@ -228,7 +228,7 @@ export function AuditLog() {
     <>
       <PageHead title="Audit log" sub="Every sign-in and every change made through the panel. Entries can't be edited or removed." />
       <div className="p-table-wrap">
-        <table className="p-table p-table--dense">
+        <ListTable className="p-table--dense">
           <thead>
             <tr>
               <th scope="col">When</th>
@@ -252,7 +252,7 @@ export function AuditLog() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </ListTable>
       </div>
       {data.next && (
         <button type="button" className="pbtn pbtn--ghost" onClick={more} disabled={busy}>

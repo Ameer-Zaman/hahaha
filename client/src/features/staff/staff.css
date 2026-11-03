@@ -84,6 +84,11 @@
   gap: 0.3rem;
   padding: var(--sp-5);
 }
+/* a one-word name or role (a gamer tag) wraps instead of running off the card */
+.staff-card__text > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 
 .staff-card__role {
   font-family: var(--font-mono);
@@ -340,6 +345,7 @@
   margin-top: var(--sp-3);
 }
 .social-links__link {
+  position: relative;
   display: grid;
   place-items: center;
   width: 36px;
@@ -353,6 +359,12 @@
     transform 0.25s var(--ease-out),
     border-color 0.25s var(--ease-out),
     box-shadow 0.25s var(--ease-out);
+}
+.social-links__link::after {
+  content: '';
+  position: absolute;
+  inset: -5px; /* a 46px round tap area around the 36px icon */
+  border-radius: 50%;
 }
 .social-links__link:hover,
 .social-links__link:focus-visible {

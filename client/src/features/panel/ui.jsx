@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useState } from 'react'
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 
 import { ToastContext } from './hooks'
 
@@ -27,6 +27,40 @@ export function ToastProvider({ children }) {
 }
 
 /* ---------------------------------------------------------------- layout */
+
+/* ------------------------------------------------------------- list table */
+
+/**
+ * A list table (gangs, wars, accounts…) that becomes one card per row on phones.
+ * Each cell is given its column heading as data-label, so a card can say what every value
+ * is once the heading row is out of sight. The Edit/Delete cell gets no label.
+ */
+export function ListTable({ className = '', children }) {
+  const ref = useRef(null)
+  useLayoutEffect(() => {
+    const table = ref.current
+    if (!table) return
+    const heads = [...table.querySelectorAll(':scope > thead > tr > th')].map((th) => {
+      const hidden = th.querySelector('.p-sr-only')
+      const text = th.textContent.trim()
+      return hidden && hidden.textContent.trim() === text ? '' : text // a heading only screen readers see
+    })
+    for (const row of table.querySelectorAll(':scope > tbody > tr')) {
+      let col = 0
+      for (const cell of row.children) {
+        const label = cell.colSpan > 1 || cell.classList.contains('p-actions-cell') ? '' : (heads[col] ?? '')
+        if (label) cell.dataset.label = label
+        else cell.removeAttribute('data-label')
+        col += cell.colSpan || 1
+      }
+    }
+  })
+  return (
+    <table ref={ref} className={`p-table p-table--stack ${className}`.trim()}>
+      {children}
+    </table>
+  )
+}
 
 export function PageHead({ title, sub, children }) {
   return (

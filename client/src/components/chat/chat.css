@@ -8,6 +8,13 @@
   z-index: 95;
   font-family: var(--font-sans);
   color: #f4efe6;
+  transition: opacity 0.2s ease, visibility 0s linear 0s;
+}
+/* out of the way while the phone menu is open: it would sit on top of the menu's links */
+:root[data-menu-open] .chatw {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0s linear 0.15s;
 }
 
 /* the button */

@@ -166,7 +166,7 @@
 
 .reel-card__category {
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   letter-spacing: 0.32em;
   text-transform: uppercase;
@@ -194,7 +194,8 @@
 
 .reel-card__credits > div {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* minmax(0, …): a one-word territory wraps instead of pushing the row off the card */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: baseline;
   gap: var(--sp-3);
   padding: 0.3rem 0.25rem;
@@ -520,7 +521,7 @@
 
 .hud__label {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   letter-spacing: 0.28em;
   text-transform: uppercase;
@@ -668,6 +669,54 @@
 }
 .reel.is-loop .reel__track {
   will-change: filter;
+}
+
+/* The card sits in the space BELOW the fixed header (and the announcement strip, when one is
+   pinned): sized to fit it and centred in it, so nothing on the card hides under the header.
+   The cards either side still peek in above and below. */
+.reel {
+  --card-h: min(calc(85svh - var(--gap)), calc(100svh - var(--top-chrome) - 1.5rem));
+}
+.reel.is-loop .reel__slot {
+  top: calc(50% + var(--top-chrome) / 2);
+}
+
+/* Phones held sideways: barely 400px of height, so the card goes two-up — name and credits
+   on the left, Explore on the right — and drops what the counter already says. */
+@media (max-height: 500px) and (orientation: landscape) {
+  /* (.reel prefix: the topline's own display rule comes later in this file) */
+  .reel .reel-card__topline {
+    display: none;
+  }
+  .reel-card__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    align-items: end;
+    gap: var(--sp-5);
+    /* room on the right for the chat button, which sits over the card's corner here */
+    padding: 1rem 4.75rem 1rem 1.5rem;
+  }
+  .reel-card__left,
+  .reel-card__right {
+    grid-column: auto;
+  }
+  .reel-card__right {
+    align-items: flex-end;
+  }
+  .reel-card__titleblock {
+    gap: var(--sp-2);
+  }
+  .reel-card__title {
+    font-size: clamp(1.75rem, 10svh, 3rem);
+  }
+  .reel-card__credits > div {
+    padding-block: 0.15rem;
+    font-size: 0.9375rem;
+  }
+  /* "File 01 / 05" — the counter in the corner already shows it */
+  .reel-card__credits > div:last-child {
+    display: none;
+  }
 }
 
 /* top-left credit block */

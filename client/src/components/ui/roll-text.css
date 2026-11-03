@@ -1,15 +1,22 @@
 .roll {
   display: inline-block;
+  max-width: 100%;
 }
 
 .roll__words {
   display: inline-flex;
   flex-wrap: wrap;
   column-gap: 0.22em;
+  max-width: 100%;
 }
 
+/* A word stays whole and moves to the next line when it does not fit — unless the word on
+   its own is wider than the line (a one-word gang name in a big title on a phone): then it
+   breaks between letters instead of running off the card. */
 .roll__word {
   display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   white-space: nowrap;
 }
 

@@ -122,11 +122,11 @@
 /* Face text scales with the card, but never below a size that can be read on a phone. */
 .club-face__corner b {
   font-weight: 400;
-  font-size: max(11px, calc(var(--card-w) * 0.075));
+  font-size: max(12px, calc(var(--card-w) * 0.075));
 }
 .club-face__corner i {
   font-style: normal;
-  font-size: max(11px, calc(var(--card-w) * 0.08));
+  font-size: max(12px, calc(var(--card-w) * 0.08));
 }
 .club-face__corner--tl {
   top: 2.5%;
@@ -141,6 +141,8 @@
   position: absolute;
   inset: 12% 10%;
   display: grid;
+  /* one column exactly as wide as the card: a long one-word name or owner wraps inside it */
+  grid-template-columns: minmax(0, 1fr);
   align-content: center;
   justify-items: center;
   gap: calc(var(--card-w) * 0.025);
@@ -157,7 +159,7 @@
 .club-face__type {
   margin: 0;
   font-family: var(--font-mono);
-  font-size: max(11px, calc(var(--card-w) * 0.05));
+  font-size: max(12px, calc(var(--card-w) * 0.05));
   letter-spacing: 0.2em;
   text-transform: uppercase;
   /* bronze, not gold-deep: gold-deep is about 3:1 on the ivory face, too faint at this size */
@@ -177,7 +179,7 @@
 .club-face__soon {
   margin: 0;
   font-family: var(--font-mono);
-  font-size: max(11px, calc(var(--card-w) * 0.046));
+  font-size: max(12px, calc(var(--card-w) * 0.046));
   letter-spacing: 0.1em;
   text-wrap: balance;
   text-transform: uppercase;
@@ -188,11 +190,12 @@
   margin: 0;
   max-width: 90%;
   font-family: var(--font-mono);
-  font-size: max(11px, calc(var(--card-w) * 0.04));
+  font-size: max(12px, calc(var(--card-w) * 0.04));
   line-height: 1.3;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   text-wrap: balance;
+  overflow-wrap: anywhere;
   color: rgb(17 17 17 / 0.6);
 }
 
@@ -280,6 +283,19 @@
   }
   .club-face__body {
     inset: 11% 9%;
+  }
+}
+/* the smallest phones (cards about 140px wide): a long name, a two-word type and an owner
+   with a location need the room, so the suit symbol shrinks and the type label tightens */
+@media (max-width: 22.5rem) {
+  .club-face__suit {
+    font-size: calc(var(--card-w) * 0.24);
+  }
+  .club-face__emblem {
+    width: 40%;
+  }
+  .club-face__type {
+    letter-spacing: 0.1em;
   }
 }
 @media (min-width: 600px) and (max-width: 900px) {

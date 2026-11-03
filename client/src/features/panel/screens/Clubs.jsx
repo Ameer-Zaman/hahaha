@@ -5,7 +5,7 @@ import { MediaField, Thumb } from '../mediaKit'
 import { adminApi } from '../panelApi'
 import { slugify } from '../format'
 import { useAction, useResource } from '../hooks'
-import { ConfirmButton, Empty, ErrorNote, Loading, PageHead, Panel, TextField } from '../ui'
+import { ConfirmButton, Empty, ErrorNote, ListTable, Loading, PageHead, Panel, TextField } from '../ui'
 
 /* ------------------------------------------------------------------ list */
 
@@ -27,7 +27,7 @@ export function ClubList() {
       )}
       {clubs?.length > 0 && (
         <div className="p-table-wrap">
-          <table className="p-table">
+          <ListTable>
             <thead>
               <tr>
                 <th scope="col">#</th>
@@ -61,7 +61,7 @@ export function ClubList() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </ListTable>
         </div>
       )}
     </>

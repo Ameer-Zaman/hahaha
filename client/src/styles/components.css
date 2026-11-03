@@ -177,6 +177,21 @@
   width: 3rem;
 }
 
+/* The smallest phones (320–360px): a long label such as "Start your application" must not
+   push past the screen edge, so big buttons step down a size there. */
+@media (max-width: 22.5rem) {
+  .btn--large {
+    padding-inline: 1.25rem;
+    font-size: 1.0625rem;
+  }
+  .btn--large:has(.btn__arrow) {
+    padding-right: 0.4rem;
+  }
+  .btn--large .btn__arrow {
+    width: 2.6rem;
+  }
+}
+
 /* five "heat" stars above the big gold buttons, lighting up one after another on hover */
 .btn--primary.btn--large::after {
   content: '★★★★★' / '';

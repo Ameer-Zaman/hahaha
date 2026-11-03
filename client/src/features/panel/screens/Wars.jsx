@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { adminApi } from '../panelApi'
 import { formatDay } from '../format'
 import { useAction, useResource } from '../hooks'
-import { ConfirmButton, Empty, ErrorNote, Loading, PageHead, Panel, SelectField, TextField } from '../ui'
+import { ConfirmButton, Empty, ErrorNote, ListTable, Loading, PageHead, Panel, SelectField, TextField } from '../ui'
 
 const today = () => new Date().toISOString().slice(0, 10)
 const blank = () => ({ date: today(), a: '', b: '', winner: 'draw', result: '' })
@@ -104,7 +104,7 @@ export default function Wars() {
           <p className="p-text">No wars logged yet.</p>
         ) : (
           <div className="p-table-wrap">
-            <table className="p-table">
+            <ListTable>
               <thead>
                 <tr>
                   <th scope="col">Date</th>
@@ -134,7 +134,7 @@ export default function Wars() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </ListTable>
           </div>
         )}
       </Panel>

@@ -3,7 +3,7 @@ import { useRef, useState } from 'react'
 import { formatWhen } from '../format'
 import { useAction, useResource } from '../hooks'
 import { adminApi } from '../panelApi'
-import { ErrorNote, Loading, PageHead, Panel, TextField } from '../ui'
+import { ErrorNote, ListTable, Loading, PageHead, Panel, TextField } from '../ui'
 
 /**
  * Download everything as one file, and put it back if an edit goes wrong.
@@ -105,7 +105,7 @@ export default function Backup() {
               {preview.takenBy ? ` by ${preview.takenBy}` : ''}. Restoring replaces each part below with what the file holds —
               anything added since is removed.
             </p>
-            <table className="p-table">
+            <ListTable>
               <thead>
                 <tr>
                   <th>Part</th>
@@ -125,7 +125,7 @@ export default function Backup() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </ListTable>
 
             <TextField
               label="Type RESTORE to confirm"

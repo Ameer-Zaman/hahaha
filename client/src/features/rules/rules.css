@@ -51,6 +51,7 @@
 .rules-index__link {
   display: flex;
   gap: var(--sp-3);
+  min-height: 44px;
   padding-block: var(--sp-2);
   color: var(--fg-muted);
   text-decoration: none;

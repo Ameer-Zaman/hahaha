@@ -53,6 +53,7 @@
 .site-header__brand {
   display: inline-flex;
   align-items: center;
+  min-height: 44px;
   gap: var(--sp-3);
   font-family: var(--font-display);
   font-size: 1.125rem;
@@ -140,6 +141,7 @@
 .site-header__toggle {
   display: inline-grid;
   place-items: center;
+  flex: none; /* never squeezed below 44px by the brand beside it */
   width: 2.75rem;
   height: 2.75rem;
   margin-right: calc(-1 * var(--sp-2));
@@ -300,7 +302,32 @@
   font-family: var(--font-mono);
   font-size: var(--fs-2xs);
   letter-spacing: 0.12em;
-  color: rgb(244 239 230 / 0.3);
+  color: rgb(244 239 230 / 0.55); /* 0.3 was about 2.3:1 on the menu's black */
+}
+
+/* phones held sideways: very little height, so the links go two-up and smaller */
+@media (max-height: 500px) and (orientation: landscape) {
+  .mobile-menu__inner {
+    padding-block: var(--sp-3) var(--sp-4);
+  }
+  .mobile-menu__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start; /* an opened Factions group grows without stretching its neighbour */
+    column-gap: var(--sp-6);
+  }
+  .mobile-menu__link {
+    padding-block: 0.7rem;
+    font-size: 1.5rem;
+  }
+  .mobile-menu__foot {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    padding-top: var(--sp-5);
+  }
+  .mobile-menu__small {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

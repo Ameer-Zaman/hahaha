@@ -14,6 +14,7 @@
 .site-footer__name {
   display: inline-flex;
   align-items: center;
+  min-height: 44px;
   gap: var(--sp-2);
   font-family: var(--font-display);
   font-size: 1.4rem;

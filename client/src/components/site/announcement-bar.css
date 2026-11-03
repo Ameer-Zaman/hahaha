@@ -45,6 +45,7 @@
   color: var(--fg-muted);
 }
 .abar__link {
+  position: relative;
   flex: none;
   padding: 0.3rem 0.75rem;
   border: 1px solid rgb(var(--rgb-gold) / 0.5);
@@ -57,6 +58,12 @@
   text-decoration: none;
   white-space: nowrap;
 }
+/* the pill stays slim; its tap area is 44px tall */
+.abar__link::after {
+  content: '';
+  position: absolute;
+  inset: -7px -2px;
+}
 .abar__link:hover {
   background: rgb(var(--rgb-gold) / 0.12);
 }
@@ -64,8 +71,9 @@
   flex: none;
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
+  margin: -6px -6px -6px 0; /* a 44px target that still sits where the 32px one did */
   border: 0;
   border-radius: 50%;
   background: none;

@@ -5,7 +5,7 @@ import { MediaField, Thumb } from '../mediaKit'
 import { adminApi } from '../panelApi'
 import { move, slugify } from '../format'
 import { useAction, useResource, useToast } from '../hooks'
-import { ConfirmButton, Empty, ErrorNote, Loading, PageHead, Panel, Switch, TextField } from '../ui'
+import { ConfirmButton, Empty, ErrorNote, ListTable, Loading, PageHead, Panel, Switch, TextField } from '../ui'
 import { BulkImportDialog, GangImportDialog } from './ImportPlayers'
 
 /* ------------------------------------------------------------------ list */
@@ -47,7 +47,7 @@ export function GangList() {
       )}
       {gangs?.length > 0 && (
         <div className="p-table-wrap">
-          <table className="p-table">
+          <ListTable>
             <thead>
               <tr>
                 <th scope="col">#</th>
@@ -85,7 +85,7 @@ export function GangList() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </ListTable>
         </div>
       )}
     </>

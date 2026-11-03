@@ -66,6 +66,8 @@ export default function SiteHeader({ tone = 'dark' }) {
     const focusables = menu?.querySelectorAll('a, button')
     focusables?.[0]?.focus()
     document.body.style.overflow = 'hidden'
+    // lets other floating things (the chat button) step aside while the menu is open
+    document.documentElement.dataset.menuOpen = ''
 
     const onKey = (event) => {
       if (event.key === 'Escape') {
@@ -87,6 +89,7 @@ export default function SiteHeader({ tone = 'dark' }) {
     document.addEventListener('keydown', onKey)
     return () => {
       document.body.style.overflow = ''
+      delete document.documentElement.dataset.menuOpen
       document.removeEventListener('keydown', onKey)
     }
   }, [open])
