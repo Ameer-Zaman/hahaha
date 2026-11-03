@@ -124,19 +124,19 @@
 .hub__trigger {
   display: grid;
   place-items: center;
-  width: 3.25rem;
-  height: 3.25rem;
+  width: 2.75rem; /* a 44px tap target, but no visible circle */
+  height: 2.75rem;
   padding: 0;
-  border: 1px solid rgb(var(--rgb-gold) / 0.3);
+  border: 0;
   border-radius: 50%;
-  background: rgb(var(--rgb-gold) / 0.05);
+  background: none;
   cursor: pointer;
-  transition: border-color var(--dur-base) var(--ease-out), background-color var(--dur-base) var(--ease-out);
+  opacity: 0.85;
+  transition: opacity var(--dur-base) var(--ease-out);
 }
 .hub__trigger:hover,
 .hub.is-open .hub__trigger {
-  border-color: var(--c-gold);
-  background: rgb(var(--rgb-gold) / 0.12);
+  opacity: 1;
 }
 .hub__trigger:focus-visible {
   outline: 2px solid var(--focus);
@@ -164,8 +164,8 @@
   transform: none;
 }
 .hub__spot svg {
-  width: 1.2rem;
-  height: 1.2rem;
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 /* the drop-down: see-through, the links one under another */

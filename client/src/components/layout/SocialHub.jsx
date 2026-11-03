@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom'
 
 import SocialIcon from '../ui/SocialIcon'
 
-const CYCLE_MS = 1900
+const CYCLE_MS = 3900
 const motionOk = () => typeof window === 'undefined' || !window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 /**
