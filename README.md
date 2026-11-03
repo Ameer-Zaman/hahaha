@@ -184,7 +184,7 @@ The bot lives in the API server, so it's only online while the server is awake. 
 
 ## Community links
 
-**Panel → Sections & maintenance → Community links**: add the server's Discord, YouTube, TikTok, Instagram, Twitch, Kick, X or Facebook (up to 12), in the order you want them. In the header they sit behind one round button that opens a small drop-down with your logo in the middle and the links on a ring around it; the footer and the phone menu show them as small round logos. Each link must be an https address on that platform's own site, and every change is in the audit log. Until links are saved here, the site uses the Discord invite in `client/src/config/site.js`. (The Apply button always uses that invite.)
+**Panel → Sections & maintenance → Community links**: add the server's Discord, YouTube, TikTok, Instagram, Twitch, Kick, X or Facebook (up to 12), in the order you want them. In the header they are one small round button — your logo in the middle with the links' logos slowly circling it — that drops down a see-through list of the links, one under another; the footer and the phone menu show them as small round logos. Each link must be an https address on that platform's own site, and every change is in the audit log. Until links are saved here, the site uses the Discord invite in `client/src/config/site.js`. (The Apply button always uses that invite.)
 
 ## Events
 

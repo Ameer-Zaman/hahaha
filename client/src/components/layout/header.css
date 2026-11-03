@@ -115,186 +115,184 @@
   border-left: var(--hairline) solid rgba(255, 255, 255, 0.15);
 }
 
-/* ---- Community hub: one small button; the links drop down on a ring around the mark ---- */
+/* ---- Community hub ----
+   The button is a tiny platform: the server's mark in the middle, the links' logos slowly
+   circling it. Clicking drops down a plain see-through list, the links one under another. */
 .hub {
-  --hub-size: 13.5rem; /* the orbit */
-  --hub-r: 4.9rem; /* how far the logos sit from the middle */
   position: relative;
 }
 .hub__trigger {
   display: grid;
   place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border: 1px solid rgb(var(--rgb-gold) / 0.35);
+  width: 3.25rem;
+  height: 3.25rem;
+  padding: 0;
+  border: 1px solid rgb(var(--rgb-gold) / 0.3);
   border-radius: 50%;
-  background: rgb(var(--rgb-gold) / 0.06);
-  color: var(--c-gold-light);
+  background: rgb(var(--rgb-gold) / 0.05);
   cursor: pointer;
-  transition: border-color var(--dur-base) var(--ease-out), background-color var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+  transition: border-color var(--dur-base) var(--ease-out), background-color var(--dur-base) var(--ease-out);
 }
 .hub__trigger:hover,
 .hub.is-open .hub__trigger {
   border-color: var(--c-gold);
-  background: rgb(var(--rgb-gold) / 0.14);
+  background: rgb(var(--rgb-gold) / 0.12);
 }
 .hub__trigger:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 3px;
 }
-.hub__trigger svg {
-  width: 1.35rem;
-  height: 1.35rem;
-  fill: currentColor;
-  transition: transform 0.6s var(--ease-out);
-}
-.hub__trigger-orbit {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.2;
-  opacity: 0.55;
-}
-.hub.is-open .hub__trigger svg {
-  transform: rotate(120deg);
-}
 
-.hub__panel {
-  position: absolute;
-  top: calc(100% + 0.85rem);
-  left: 50%;
-  z-index: 5;
-  display: grid;
-  justify-items: center;
-  gap: 0.35rem;
-  padding: 0.9rem 0.9rem 0.75rem;
-  border: 1px solid rgb(var(--rgb-gold) / 0.22);
-  border-radius: 24px;
-  background: rgb(8 9 12 / 0.96);
-  box-shadow: 0 28px 60px -24px #000;
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  opacity: 0;
-  visibility: hidden;
-  transform: translate(-50%, -8px);
-  transition: opacity 0.2s var(--ease-out), transform 0.25s var(--ease-out), visibility 0s linear 0.25s;
-}
-/* the little notch pointing up at the button */
-.hub__panel::before {
-  content: '';
-  position: absolute;
-  top: -6px;
-  left: 50%;
-  width: 11px;
-  height: 11px;
-  border-top: 1px solid rgb(var(--rgb-gold) / 0.22);
-  border-left: 1px solid rgb(var(--rgb-gold) / 0.22);
-  background: rgb(8 9 12 / 0.96);
-  transform: translateX(-50%) rotate(45deg);
-}
-.hub.is-open .hub__panel {
-  opacity: 1;
-  visibility: visible;
-  transform: translate(-50%, 0);
-  transition: opacity 0.2s var(--ease-out), transform 0.3s var(--ease-out), visibility 0s;
-}
-
-.hub__orbit {
+.hub__mini {
+  --r: 1.05rem; /* how far the logos circle from the middle */
   position: relative;
-  width: var(--hub-size);
-  height: var(--hub-size);
+  width: 100%;
+  height: 100%;
 }
-/* the ring the logos sit on */
-.hub__ring {
-  position: absolute;
-  inset: calc(50% - var(--hub-r));
-  border: 1px dashed rgb(var(--rgb-gold) / 0.28);
-  border-radius: 50%;
-  transition: transform 0.9s var(--ease-out);
-  transform: rotate(-40deg) scale(0.6);
-}
-.hub.is-open .hub__ring {
-  transform: none;
-}
-/* the platform in the middle: the server's mark */
-.hub__core {
+.hub__mini-core {
   position: absolute;
   top: 50%;
   left: 50%;
   display: grid;
   place-items: center;
-  width: 3.6rem;
-  height: 3.6rem;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 35%, rgb(var(--rgb-gold) / 0.22), rgb(var(--rgb-gold) / 0.05) 70%);
-  box-shadow: 0 0 0 1px rgb(var(--rgb-gold) / 0.45), 0 0 30px -6px rgb(var(--rgb-gold) / 0.55);
+  width: 1rem;
+  height: 1rem;
   color: var(--c-gold);
   transform: translate(-50%, -50%);
 }
-.hub__core svg {
-  width: 1.8rem;
-  height: 1.8rem;
+.hub__mini-core svg {
+  width: 100%;
+  height: 100%;
 }
-.hub__list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+/* the whole ring turns; each logo turns back the other way so it stays upright */
+.hub__mini-orbit {
+  position: absolute;
+  inset: 0;
+  animation: hub-orbit 14s linear infinite;
 }
-/* each logo starts at the middle and moves out to its place on the ring */
-.hub__item {
-  --a: calc(360deg / var(--n) * var(--i) - 90deg);
+.hub__trigger:hover .hub__mini-orbit,
+.hub.is-open .hub__mini-orbit {
+  animation-play-state: paused;
+}
+.hub__mini-item {
+  --a: calc(360deg / var(--n) * var(--i));
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 2.75rem;
-  height: 2.75rem;
-  margin: -1.375rem 0 0 -1.375rem;
-  opacity: 0;
-  transform: rotate(var(--a)) translateX(0) rotate(calc(-1 * var(--a))) scale(0.4);
-  transition: transform 0.18s var(--ease-out), opacity 0.15s ease;
+  width: 0.95rem;
+  height: 0.95rem;
+  margin: -0.475rem 0 0 -0.475rem;
+  transform: rotate(var(--a)) translateY(calc(-1 * var(--r))) rotate(calc(-1 * var(--a)));
 }
-.hub.is-open .hub__item {
-  opacity: 1;
-  transform: rotate(var(--a)) translateX(var(--hub-r)) rotate(calc(-1 * var(--a))) scale(1);
-  transition:
-    transform 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) calc(60ms + var(--i) * 45ms),
-    opacity 0.25s ease calc(60ms + var(--i) * 45ms);
-}
-.hub__link {
+.hub__mini-logo {
   display: grid;
   place-items: center;
   width: 100%;
   height: 100%;
-  border: 1px solid rgb(var(--rgb-ivory) / 0.14);
   border-radius: 50%;
-  background: #111317;
-  transition: border-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+  background: #0d0f13;
+  box-shadow: 0 0 0 1px rgb(var(--rgb-ivory) / 0.14);
+  animation: hub-orbit 14s linear infinite reverse;
+}
+.hub__trigger:hover .hub__mini-logo,
+.hub.is-open .hub__mini-logo {
+  animation-play-state: paused;
+}
+.hub__mini-logo svg {
+  width: 0.62rem;
+  height: 0.62rem;
+}
+@keyframes hub-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* the drop-down: see-through, the links one under another */
+.hub__panel {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: 50%;
+  z-index: 5;
+  min-width: 12rem;
+  padding: 0.4rem;
+  border: 1px solid rgb(var(--rgb-ivory) / 0.12);
+  border-radius: 16px;
+  background: rgb(10 11 14 / 0.55);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: 0 20px 44px -24px rgb(0 0 0 / 0.9);
+  transform: translateX(50%);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.18s ease, visibility 0s linear 0.3s;
+}
+.hub.is-open .hub__panel {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.18s ease, visibility 0s;
+}
+.hub__list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* each link drops in after the one above it */
+.hub__item {
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.hub.is-open .hub__item {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.25s ease calc(var(--i) * 55ms),
+    transform 0.3s var(--ease-out) calc(var(--i) * 55ms);
+}
+.hub__link {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 2.75rem;
+  padding: 0 0.9rem 0 0.5rem;
+  border-radius: 10px;
+  color: var(--fg);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color var(--dur-fast) var(--ease-out);
 }
 .hub__link:hover,
 .hub__link:focus-visible {
-  border-color: var(--c-gold);
-  box-shadow: 0 0 18px -4px rgb(var(--rgb-gold) / 0.6);
-  transform: scale(1.12);
+  background: rgb(var(--rgb-ivory) / 0.08);
 }
 .hub__link:focus-visible {
   outline: 2px solid var(--focus);
-  outline-offset: 2px;
+  outline-offset: -2px;
 }
-.hub__caption {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: var(--fs-2xs);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--fg-muted);
+.hub__logo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.35);
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hub__mini-orbit,
+  .hub__mini-logo {
+    animation: none;
+  }
   .hub__panel,
   .hub.is-open .hub__panel,
   .hub__item,
-  .hub.is-open .hub__item,
-  .hub__ring,
-  .hub__trigger svg {
+  .hub.is-open .hub__item {
     transition: none;
   }
 }
