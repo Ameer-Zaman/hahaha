@@ -249,21 +249,29 @@ Opening the homepage shows a loading screen (the name, a gold progress bar and a
 
 ## Story page videos
 
-The Story page (`/story`) is a long cinematic scroll in the style of the GTA VI site. Its videos and pictures can be set in **Panel → Story media** (each chapter's big scene, its two small cards and its quote scene — a video, an image, or both); empty places use the files below. Its full-screen **scene videos scrub with the scroll**: scrolling moves the video forward and back. Smooth scrubbing needs a keyframe in every few frames, so encode scene videos like this (1080p, no audio):
+The Story page (`/story`) reads as an article: three chapters, each with its writing on one
+side and its pictures on the other, with a line from the city between them. The pictures can
+be set in **Panel → Story media** (each chapter's main picture and its two smaller ones — a
+video, an image, or both); empty places use the files below.
+
+Videos loop quietly while they are on screen, so ordinary encoding is fine (1080p, no audio):
 
 ```bash
-ffmpeg -i in.mp4 -vf scale=1920:-2 -c:v libx264 -preset veryfast -crf 24 -g 6 -keyint_min 6 -pix_fmt yuv420p -movflags +faststart -an city.mp4
+ffmpeg -i in.mp4 -vf scale=1920:-2 -c:v libx264 -preset veryfast -crf 24 -pix_fmt yuv420p -movflags +faststart -an city.mp4
 ```
 
-Keep scene clips short (5–15 s) and under ~25 MB. Drop them into `client/public/assets/video/story/` with these names:
+Keep clips short (5–15 s) and under ~25 MB. Drop them into
+`client/public/assets/video/story/` with these names:
 
-| Scene | File |
+| Chapter | Files |
 | --- | --- |
-| Chapter one: The City | `city.mp4`, cards `city-a.mp4`, `city-b.mp4`, quote `quote-1.mp4` |
-| Chapter two: The Streets | `streets.mp4`, cards `streets-a.mp4`, `streets-b.mp4`, quote `quote-2.mp4` |
-| Chapter three: After Dark | `night.mp4`, cards `night-a.mp4`, `night-b.mp4` |
+| Chapter one: The City | `city.mp4`, `city-a.mp4`, `city-b.mp4` |
+| Chapter two: The Streets | `streets.mp4`, `streets-a.mp4`, `streets-b.mp4` |
+| Chapter three: After Dark | `night.mp4`, `night-a.mp4`, `night-b.mp4` |
 
-Card videos simply loop while on screen, so normal encoding is fine for them. Missing files show the illustrated skyline instead. The text, the file names and the number of chapters are all in `client/src/content/story.js`. The copy there is a draft: rewrite it freely.
+Missing files show the illustrated skyline instead. The text, the file names and the number
+of chapters are all in `client/src/content/story.js`. The copy there is a draft: rewrite it
+freely.
 
 ## Website content without the panel
 

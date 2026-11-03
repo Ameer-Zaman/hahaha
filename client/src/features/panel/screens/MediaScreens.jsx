@@ -95,18 +95,18 @@ const SLOTS = [
 
 /* Story page: each place has a video and an image (the video plays; the image shows while it loads, or alone) */
 const STORY_CHAPTERS = [
-  { key: 'City', name: 'Chapter one · The City', file: 'city', quote: true },
-  { key: 'Streets', name: 'Chapter two · The Streets', file: 'streets', quote: true },
-  { key: 'Night', name: 'Chapter three · After Dark', file: 'night', quote: false },
+  { key: 'City', name: 'Chapter one · The City', file: 'city' },
+  { key: 'Streets', name: 'Chapter two · The Streets', file: 'streets' },
+  { key: 'Night', name: 'Chapter three · After Dark', file: 'night' },
 ]
+// The quotes between the chapters are words on their own, so they take no picture.
 const STORY_PLACES = [
-  { key: 'Scene', label: 'Big scene (moves with the scroll)', file: (f) => f },
-  { key: 'CardA', label: 'Small card 1', file: (f) => `${f}-a` },
-  { key: 'CardB', label: 'Small card 2', file: (f) => `${f}-b` },
-  { key: 'Quote', label: 'Quote scene (after the chapter)', file: (f) => `quote-${f === 'city' ? 1 : 2}` },
+  { key: 'Scene', label: 'Main picture', file: (f) => f },
+  { key: 'CardA', label: 'Small picture 1', file: (f) => `${f}-a` },
+  { key: 'CardB', label: 'Small picture 2', file: (f) => `${f}-b` },
 ]
 const STORY_SLOTS = STORY_CHAPTERS.flatMap((ch) =>
-  STORY_PLACES.filter((p) => p.key !== 'Quote' || ch.quote).flatMap((p) => [
+  STORY_PLACES.flatMap((p) => [
     {
       group: ch.name,
       slot: `story${ch.key}${p.key}Video`,
@@ -133,7 +133,7 @@ export function StoryMedia() {
     <MediaSlotsScreen
       slots={STORY_SLOTS}
       title="Story media"
-      sub="Videos and pictures for each chapter of the Story page. Each place takes a video, an image, or both (the image shows while the video loads). Big scenes move with the scroll: export those videos with frequent keyframes (see README → Story page videos)."
+      sub="Videos and pictures for each chapter of the Story page. Each place takes a video, an image, or both (the image shows while the video loads). Videos play quietly on a loop while they are on screen."
     />
   )
 }

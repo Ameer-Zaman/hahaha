@@ -17,9 +17,13 @@ export const MEDIA_SLOTS = [
  * it loads), or the image alone. Names: story<Chapter><Place><Video|Image>, e.g. storyCitySceneVideo.
  * The chapters match client/src/content/story.js.
  */
+/**
+ * The places on the Story page that can show a picture or a video. The quotes between the
+ * chapters are words on their own — they carry no picture, so they take no slot.
+ */
 const STORY_PLACES = {
-  City: ['Scene', 'CardA', 'CardB', 'Quote'],
-  Streets: ['Scene', 'CardA', 'CardB', 'Quote'],
+  City: ['Scene', 'CardA', 'CardB'],
+  Streets: ['Scene', 'CardA', 'CardB'],
   Night: ['Scene', 'CardA', 'CardB'],
 }
 export const STORY_SLOTS = Object.entries(STORY_PLACES).flatMap(([chapter, places]) =>
