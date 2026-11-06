@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import Plate from '../../../components/media/Plate'
-import { formatFileNumber } from '../gangsModel'
+import { gangTheme } from '../gangsModel'
+
+const playersText = (n) => (n === 0 ? 'No players listed yet' : n === 1 ? '1 player' : `${n} players`)
 
 /**
  * "Choose a gang": a drawer hidden off the left edge of the screen. Only a small arrow tab
@@ -60,15 +62,30 @@ export default function GangPicker({ files, active, onPick }) {
         <ul ref={listRef} className="gpick__list" role="list" aria-label="Gangs" onKeyDown={onListKey}>
           {files.map((file, i) => (
             <li key={file.key}>
-              <button type="button" className={`gpick__item ${i === active ? 'is-current' : ''}`} aria-current={i === active} onClick={() => pick(i)}>
+              <button
+                type="button"
+                className={`gpick__item ${i === active ? 'is-current' : ''}`}
+                style={gangTheme(file.color)}
+                aria-current={i === active}
+                onClick={() => pick(i)}
+              >
                 <span className="gpick__thumb" aria-hidden="true">
                   <Plate image={file.emblem ?? file.image} seed={file.scene.seed} horizon={file.scene.horizon} />
                 </span>
                 <span className="gpick__text">
                   <span className="gpick__name">{file.title}</span>
                   <span className="gpick__meta">
-                    {formatFileNumber(file.number)} · {file.type}
-                    {file.members.length > 0 ? ` · ${file.members.length} players` : ''}
+                    <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+                      <circle cx="8" cy="5.2" r="2.7" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                      <path
+                        d="M2.8 14c.6-2.7 2.6-4.2 5.2-4.2s4.6 1.5 5.2 4.2"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    {playersText(file.members.length)}
                   </span>
                 </span>
               </button>
@@ -89,7 +106,9 @@ export default function GangPicker({ files, active, onPick }) {
         <svg className="gpick__arrow" viewBox="0 0 10 16" width="10" height="16" aria-hidden="true">
           <path d="M2 2l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <span className="gpick__tabtext" aria-hidden="true">Gangs</span>
+        <span className="gpick__tabtext" aria-hidden="true">
+          Gangs
+        </span>
       </button>
     </div>,
     document.body,
