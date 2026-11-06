@@ -1797,3 +1797,76 @@
     justify-self: end;
   }
 }
+
+/* Gang editor: name colour (picker, code, quick swatches and a live preview of the name) */
+.p-gcolor {
+  display: grid;
+  gap: 0.75rem;
+}
+.p-gcolor__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+.p-gcolor__picker {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgb(244 239 230 / 0.2);
+  border-radius: 10px;
+  background: none;
+  cursor: pointer;
+}
+.p-gcolor__picker::-webkit-color-swatch-wrapper {
+  padding: 4px;
+}
+.p-gcolor__picker::-webkit-color-swatch {
+  border: 0;
+  border-radius: 6px;
+}
+.p-gcolor__hex {
+  width: 8.5rem;
+  font-family: var(--font-mono);
+  text-transform: lowercase;
+}
+.p-gcolor__swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.p-gcolor__swatch {
+  width: 32px;
+  height: 32px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: var(--sw);
+  box-shadow: inset 0 0 0 2px rgb(0 0 0 / 0.35);
+  cursor: pointer;
+  transition: transform 150ms ease;
+}
+.p-gcolor__swatch:hover {
+  transform: scale(1.08);
+}
+.p-gcolor__swatch.is-on {
+  border-color: #f4efe6;
+}
+.p-gcolor__preview {
+  margin: 0;
+  padding: 0.9rem 1.1rem;
+  border-radius: 12px;
+  background: radial-gradient(120% 140% at 0% 100%, color-mix(in oklab, var(--gang) 22%, transparent), transparent 60%), #0b0c10;
+  overflow-wrap: anywhere;
+}
+.p-gcolor__preview span {
+  font-family: 'Big Shoulders Display', var(--font-display);
+  font-weight: 900;
+  font-size: clamp(1.8rem, 1.2rem + 2vw, 2.6rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--gang) 40%, white) 0%, var(--gang) 55%, color-mix(in oklab, var(--gang) 55%, black) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(3px 3px 0 color-mix(in oklab, var(--gang) 30%, black));
+}

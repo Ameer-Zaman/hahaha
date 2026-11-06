@@ -1,3 +1,5 @@
+import '@fontsource/big-shoulders-display/latin-900'
+
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
@@ -5,7 +7,7 @@ import { MediaField, Thumb } from '../mediaKit'
 import { adminApi } from '../panelApi'
 import { move, slugify } from '../format'
 import { useAction, useResource, useToast } from '../hooks'
-import { ConfirmButton, Empty, ErrorNote, ListTable, Loading, PageHead, Panel, Switch, TextField } from '../ui'
+import { ConfirmButton, Empty, ErrorNote, Field, ListTable, Loading, PageHead, Panel, Switch, TextField } from '../ui'
 import { BulkImportDialog, GangImportDialog } from './ImportPlayers'
 
 /* ------------------------------------------------------------------ list */
@@ -92,6 +94,83 @@ export function GangList() {
   )
 }
 
+/* ---------------------------------------------------------------- colour */
+
+const SITE_GOLD = '#e3b55a'
+const PRESETS = [
+  ['#e3b55a', 'Gold'],
+  ['#d4343c', 'Red'],
+  ['#8e44c9', 'Purple'],
+  ['#2fa65a', 'Green'],
+  ['#f2c230', 'Yellow'],
+  ['#2f7fd8', 'Blue'],
+  ['#ef7a22', 'Orange'],
+  ['#1fb5b0', 'Teal'],
+  ['#e85aa6', 'Pink'],
+  ['#e9e4da', 'White'],
+]
+
+/** The gang's colour: shades its name on the Gangs page and its own page. Empty = the site's gold. */
+function GangColorField({ name, value, onChange }) {
+  const shown = /^#[0-9a-f]{6}$/i.test(value) ? value.toLowerCase() : SITE_GOLD // half-typed codes preview as gold
+  return (
+    <Field
+      label="Name colour"
+      wide
+      hint="Shades the gang's name on the Gangs page and its own page. Leave on site gold if the gang has no colour."
+    >
+      {(id) => (
+        <div className="p-gcolor">
+          <div className="p-gcolor__row">
+            <input
+              id={id}
+              type="color"
+              className="p-gcolor__picker"
+              value={shown}
+              onChange={(e) => onChange(e.target.value.toLowerCase())}
+              aria-describedby={`${id}-preview`}
+            />
+            <input
+              className="p-input p-gcolor__hex"
+              value={value}
+              placeholder={SITE_GOLD}
+              maxLength={7}
+              spellCheck={false}
+              aria-label="Colour code"
+              onChange={(e) => {
+                const v = e.target.value.trim()
+                onChange(v && !v.startsWith('#') ? `#${v}` : v)
+              }}
+            />
+            {value && (
+              <button type="button" className="pbtn pbtn--ghost pbtn--sm" onClick={() => onChange('')}>
+                Use site gold
+              </button>
+            )}
+          </div>
+          <div className="p-gcolor__swatches" role="group" aria-label="Quick colours">
+            {PRESETS.map(([hex, label]) => (
+              <button
+                key={hex}
+                type="button"
+                className={`p-gcolor__swatch ${shown === hex ? 'is-on' : ''}`}
+                style={{ '--sw': hex }}
+                onClick={() => onChange(hex === SITE_GOLD ? '' : hex)}
+                aria-label={label}
+                aria-pressed={shown === hex}
+                title={label}
+              />
+            ))}
+          </div>
+          <p id={`${id}-preview`} className="p-gcolor__preview" style={{ '--gang': shown }}>
+            <span>{name || 'Gang name'}</span>
+          </p>
+        </div>
+      )}
+    </Field>
+  )
+}
+
 /* ---------------------------------------------------------------- editor */
 
 const EMPTY = {
@@ -101,6 +180,9 @@ const EMPTY = {
   established: '',
   territory: '',
   leader: '',
+  coLeaders: '',
+  igl: '',
+  color: '',
   headline: '',
   description: '',
   image: null,
@@ -170,7 +252,10 @@ function GangForm({ initial, isNew }) {
     )
     // an older API (before suspensions) quietly drops the date — say so instead of looking saved
     if (result && body.suspendedUntil && !('suspendedUntil' in result.gang)) {
-      toast('The suspension was not saved: the server is out of date. Redeploy the API on Render (Manual Deploy), then save again.', 'error')
+      toast(
+        'The suspension was not saved: the server is out of date. Redeploy the API on Render (Manual Deploy), then save again.',
+        'error',
+      )
     }
     if (result) {
       if (isNew) navigate(`/panel/gangs/${result.gang._id}`, { replace: true })
@@ -219,9 +304,23 @@ function GangForm({ initial, isNew }) {
               maxLength={60}
             />
             <TextField label="Type" value={form.type} onChange={set('type')} maxLength={40} placeholder="Gang, Cartel, MC…" />
-            <TextField label="Established" value={form.established} onChange={set('established')} maxLength={40} placeholder="e.g. 2026" />
-            <TextField label="Territory" value={form.territory} onChange={set('territory')} maxLength={60} />
             <TextField label="Leader" value={form.leader} onChange={set('leader')} maxLength={60} />
+            <TextField
+              label="Co-leaders"
+              hint="Separate names with commas."
+              value={form.coLeaders}
+              onChange={set('coLeaders')}
+              maxLength={160}
+              placeholder="e.g. Name One, Name Two"
+            />
+            <TextField
+              label="IGL"
+              hint="In-game leader — calls the shots in fights."
+              value={form.igl}
+              onChange={set('igl')}
+              maxLength={60}
+            />
+            <GangColorField name={form.name} value={form.color} onChange={set('color')} />
             <TextField label="Headline" value={form.headline} onChange={set('headline')} maxLength={160} wide />
             <TextField label="Description" value={form.description} onChange={set('description')} maxLength={2000} multiline rows={5} />
             <TextField

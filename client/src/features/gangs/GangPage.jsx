@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
+import '@fontsource/big-shoulders-display/latin-900'
+
 import Plate from '../../components/media/Plate'
 import GangsLoading from './components/GangsLoading'
 import RollText from '../../components/ui/RollText'
 import Arrow from '../../components/ui/Arrow'
 import usePageTitle from '../../hooks/usePageTitle'
 import { gsap, MOTION_OK, ScrollTrigger, useGSAP } from '../../lib/gsap'
-import { formatFileNumber, useGangFiles } from './gangsModel'
+import { formatFileNumber, PENDING, useGangFiles } from './gangsModel'
 import CardVideo from './components/CardVideo'
 import './gangs.css'
 import './gang-page.css'
@@ -99,7 +101,8 @@ function GangDetail({ file, prev, next, total }) {
   useEffect(() => {
     if (total < 2) return undefined
     const onKey = (e) => {
-      if (open || e.altKey || e.ctrlKey || e.metaKey || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable) return
+      if (open || e.altKey || e.ctrlKey || e.metaKey || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable)
+        return
       if (e.key === 'ArrowLeft') navigate(`/gangs/${prev.slug}`)
       if (e.key === 'ArrowRight') navigate(`/gangs/${next.slug}`)
     }
@@ -113,7 +116,15 @@ function GangDetail({ file, prev, next, total }) {
       mm.add(MOTION_OK, () => {
         gsap.from('.gx-hero__plate', { scale: 1.1, duration: 2.2, ease: 'power2.out' })
         gsap.from('.gx-hero__copy > *', { y: 24, opacity: 0, duration: 0.9, stagger: 0.08, delay: 0.15, ease: 'power3.out' })
-        gsap.from('.gx-summary > *', { y: 18, opacity: 0, duration: 0.7, stagger: 0.07, delay: 0.45, ease: 'power3.out', clearProps: 'transform,opacity' })
+        gsap.from('.gx-summary > *', {
+          y: 18,
+          opacity: 0,
+          duration: 0.7,
+          stagger: 0.07,
+          delay: 0.45,
+          ease: 'power3.out',
+          clearProps: 'transform,opacity',
+        })
         // the numbers count up and the win-rate ring draws as the stats come into view
         ScrollTrigger.create({
           trigger: '.gx-stats',
@@ -125,7 +136,11 @@ function GangDetail({ file, prev, next, total }) {
               const state = { v: 0 }
               gsap.to(state, { v: to, duration: 1.4, ease: 'power3.out', onUpdate: () => (el.textContent = Math.round(state.v)) })
             })
-            gsap.fromTo('.gx-ring__value', { strokeDashoffset: 100 }, { strokeDashoffset: 100 - winRate, duration: 1.6, ease: 'power3.out' })
+            gsap.fromTo(
+              '.gx-ring__value',
+              { strokeDashoffset: 100 },
+              { strokeDashoffset: 100 - winRate, duration: 1.6, ease: 'power3.out' },
+            )
           },
         })
         gsap.to('.gx-hero__plate', {
@@ -140,7 +155,7 @@ function GangDetail({ file, prev, next, total }) {
   )
 
   return (
-    <div ref={root} className={`gx gx--${accent}`}>
+    <div ref={root} className={`gx gx--${accent}`} style={file.color ? { '--gang': file.color } : undefined}>
       <header className="gx-hero">
         <div className="gx-hero__media" aria-hidden="true">
           <Plate className="gx-hero__plate" image={file.image} seed={file.scene.seed} horizon={file.scene.horizon} priority>
@@ -165,7 +180,7 @@ function GangDetail({ file, prev, next, total }) {
               <span className="gx-dot" aria-hidden="true" />
               {file.type} · File {formatFileNumber(file.number)} of {formatFileNumber(total)}
             </p>
-            <h1 className="gx-hero__title">
+            <h1 className="gx-hero__title gang-name">
               <RollText text={file.title} rolled={rolled} />
             </h1>
             {file.headline && <p className="gx-hero__line">“{file.headline}”</p>}
@@ -180,12 +195,24 @@ function GangDetail({ file, prev, next, total }) {
             <dd>{file.leader}</dd>
           </div>
           <div>
-            <dt>Territory</dt>
-            <dd>{file.territory}</dd>
+            <dt>{file.coLeaders.length === 1 ? 'Co-leader' : 'Co-leaders'}</dt>
+            <dd>
+              {file.coLeaders.length === 0 ? (
+                PENDING
+              ) : (
+                <ul role="list" className="gx-facts__names">
+                  {file.coLeaders.map((n) => (
+                    <li key={n}>{n}</li>
+                  ))}
+                </ul>
+              )}
+            </dd>
           </div>
           <div>
-            <dt>Established</dt>
-            <dd>{file.established}</dd>
+            <dt>
+              IGL <small className="gx-facts__note">In-game leader</small>
+            </dt>
+            <dd>{file.igl}</dd>
           </div>
         </dl>
 
@@ -265,7 +292,6 @@ function GangDetail({ file, prev, next, total }) {
             </span>
           </button>
         </div>
-
       </div>
 
       <Popup open={open === 'wars'} onClose={() => setOpen(null)} title="War record" subtitle={file.title} icon={Icon.swords}>
@@ -298,7 +324,9 @@ function GangDetail({ file, prev, next, total }) {
 
       <Popup open={open === 'players'} onClose={() => setOpen(null)} title="Players" subtitle={file.title} icon={Icon.users}>
         {file.members.length === 0 ? (
-          <p className="gx-empty">{file.reserved ? 'This file is sealed until the administration confirms the gang.' : 'Roster not published yet.'}</p>
+          <p className="gx-empty">
+            {file.reserved ? 'This file is sealed until the administration confirms the gang.' : 'Roster not published yet.'}
+          </p>
         ) : (
           <Paged items={file.members.map((m, i) => ({ ...m, n: i + 1 }))} label="players">
             {(member) => {
@@ -374,7 +402,13 @@ function Paged({ items, label, children }) {
             «
           </button>
           {Array.from({ length: pages }, (_, i) => (
-            <button key={i} type="button" className={i === current ? 'is-current' : ''} aria-current={i === current ? 'page' : undefined} onClick={() => setPage(i)}>
+            <button
+              key={i}
+              type="button"
+              className={i === current ? 'is-current' : ''}
+              aria-current={i === current ? 'page' : undefined}
+              onClick={() => setPage(i)}
+            >
               {i + 1}
             </button>
           ))}

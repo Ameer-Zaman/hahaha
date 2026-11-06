@@ -133,12 +133,12 @@
   rotate: 45deg;
 }
 .gx-hero__title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(3.4rem, 1rem + 9vw, 9.5rem);
-  font-weight: 400;
-  line-height: 0.88;
-  text-transform: uppercase;
+  font-size: clamp(3.6rem, 1rem + 9.5vw, 10.5rem);
+}
+/* the dot by "Gang · File" picks up the gang's colour too */
+.gx[style*='--gang'] .gx-hero__label .gx-dot {
+  background: var(--gang);
+  box-shadow: 0 0 0.6em var(--gang);
 }
 .gx-hero__line {
   margin: 0;
@@ -184,6 +184,18 @@
   text-transform: uppercase;
   min-width: 0;
   overflow-wrap: anywhere; /* a one-word territory or leader name wraps */
+}
+.gx-facts__note {
+  margin-left: 0.4em;
+  letter-spacing: 0.12em;
+  opacity: 0.75;
+}
+.gx-facts__names {
+  display: grid;
+  gap: 0.15em;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 .gx-facts dd small {
   font-family: var(--font-mono);

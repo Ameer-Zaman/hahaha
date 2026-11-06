@@ -22,10 +22,7 @@ router.use((req, res, next) => {
 })
 
 router.get('/gangs', async (req, res) => {
-  const [gangs, wars] = await Promise.all([
-    Gang.find().sort({ order: 1, createdAt: 1 }).lean(),
-    War.find().sort({ date: -1 }).lean(),
-  ])
+  const [gangs, wars] = await Promise.all([Gang.find().sort({ order: 1, createdAt: 1 }).lean(), War.find().sort({ date: -1 }).lean()])
   const slugById = new Map(gangs.map((g) => [String(g._id), g.slug]))
   const mediaUrl = await resolveMediaUrls(gangs.flatMap((g) => [g.image, g.emblem, g.video]))
   res.json({
@@ -36,6 +33,12 @@ router.get('/gangs', async (req, res) => {
       established: g.established || undefined,
       territory: g.territory || undefined,
       leader: g.leader || undefined,
+      coLeaders: (g.coLeaders || '')
+        .split(',')
+        .map((n) => n.trim())
+        .filter(Boolean),
+      igl: g.igl || undefined,
+      color: /^#[0-9a-f]{6}$/i.test(g.color || '') ? g.color : null,
       suspendedUntil: g.suspendedUntil ? new Date(g.suspendedUntil).toISOString() : null,
       headline: g.headline || '',
       description: g.description || '',
@@ -129,9 +132,14 @@ function publicEvent(e, mediaUrl, now) {
 
 router.get('/events', async (req, res) => {
   const now = new Date()
-  const all = await Event.find({ status: { $in: ['published', 'cancelled'] } }).sort({ startsAt: 1 }).lean()
+  const all = await Event.find({ status: { $in: ['published', 'cancelled'] } })
+    .sort({ startsAt: 1 })
+    .lean()
   const ahead = all.filter((e) => endOf(e) > now)
-  const past = all.filter((e) => endOf(e) <= now).reverse().slice(0, PAST_SHOWN)
+  const past = all
+    .filter((e) => endOf(e) <= now)
+    .reverse()
+    .slice(0, PAST_SHOWN)
   const shown = [...ahead, ...past]
   const mediaUrl = await resolveMediaUrls(shown.map((e) => e.image))
   res.json({ events: shown.map((e) => publicEvent(e, mediaUrl, now)) })

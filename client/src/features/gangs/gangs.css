@@ -157,36 +157,58 @@
 }
 
 .reel-card__title {
-  /* the gang's name alone, in an engraved Roman serif — gold on the dark plate, like a crest */
-  --roll-h: 1.08em;
-  font-family: var(--font-serif);
-  font-weight: 700;
-  font-size: clamp(2.4rem, 1.1rem + 4vw, 5.75rem);
-  line-height: 1.08;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--c-gold-light);
-  filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.55)) drop-shadow(0 14px 28px rgb(0 0 0 / 0.6));
+  font-size: clamp(3rem, 1.2rem + 5vw, 7.5rem);
   max-width: 100%;
-  overflow-wrap: anywhere;
 }
 
-/* gold leaf: the gradient sits on each letter (the letters roll, so the parent can't clip it) */
-.reel-card__title .roll__in > span {
-  background: linear-gradient(180deg, #fbefc9 0%, var(--c-gold-light) 38%, var(--c-gold) 70%, #9c7a2c 100%);
+/*
+ * The gang's name (reel cards and the gang's own page): a tall, heavy condensed face, filled
+ * with the gang's colour from a light tint at the top to a deep shade at the foot, standing on
+ * a hard offset shadow in its darkest shade, with a soft glow in its colour behind.
+ * --gang comes from Panel → Gangs → Name colour; without one it's the site's gold.
+ */
+.gang-name {
+  --g: var(--gang, var(--c-gold));
+  --gang-tint: color-mix(in oklab, var(--g) 42%, white);
+  --gang-deep: color-mix(in oklab, var(--g) 58%, black);
+  --gang-shadow: color-mix(in oklab, var(--g) 28%, black);
+  --roll-h: 0.9em;
+  margin: 0;
+  font-family: var(--font-crew);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  color: var(--g);
+  overflow-wrap: anywhere;
+  filter: drop-shadow(0.05em 0.05em 0 var(--gang-shadow)) drop-shadow(0 0 0.45em color-mix(in oklab, var(--g) 35%, transparent))
+    drop-shadow(0 0.2em 0.4em rgb(0 0 0 / 0.55));
+}
+
+/* the fill sits on each letter (the letters roll, so the heading itself can't clip it) */
+.gang-name .roll__in > span {
+  background: linear-gradient(180deg, var(--gang-tint) 0%, var(--g) 52%, var(--gang-deep) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* a thin gold rule under the name */
-.reel-card__title::after {
+/* a short bar in the gang's colour under the name, cut at a slant */
+.gang-name::after {
   content: '';
   display: block;
-  width: min(9rem, 40%);
-  height: 1px;
-  margin-top: 0.9rem;
-  background: linear-gradient(90deg, var(--c-gold), transparent);
+  width: clamp(3rem, 18%, 6rem);
+  height: 0.09em;
+  min-height: 3px;
+  max-height: 7px;
+  margin-top: 0.22em;
+  background: linear-gradient(90deg, var(--gang-tint), var(--g));
+  clip-path: polygon(0 0, 100% 0, calc(100% - 0.4em) 100%, 0 100%);
+}
+
+/* the card's colour also tints its backdrop a little, so each gang feels like its own */
+.reel-card[style*='--gang'] .reel-card__tint {
+  background: radial-gradient(90% 70% at 15% 90%, color-mix(in oklab, var(--gang) 30%, transparent), transparent 65%);
 }
 
 /* Explore: a glowing map marker (gold ring, pulsing halo, chevron core) with its label */
@@ -610,10 +632,7 @@
     align-items: flex-end;
   }
   .reel-card__title {
-    font-size: clamp(1.6rem, 9svh, 2.6rem);
-  }
-  .reel-card__title::after {
-    margin-top: 0.5rem;
+    font-size: clamp(2rem, 11svh, 3.2rem);
   }
 }
 

@@ -1,7 +1,11 @@
 import { z } from 'zod'
 
 const text = (max) => z.string().trim().max(max)
-const mediaId = z.string().regex(/^[a-f0-9]{24}$/, 'invalid media id').nullable().optional()
+const mediaId = z
+  .string()
+  .regex(/^[a-f0-9]{24}$/, 'invalid media id')
+  .nullable()
+  .optional()
 const objectId = z.string().regex(/^[a-f0-9]{24}$/, 'invalid id')
 const slug = z
   .string()
@@ -39,9 +43,7 @@ export const twoFactorCodeSchema = z.object({ code: secondFactor })
  * `z.null()` has to come first: `z.coerce.date()` happily turns null into 1970, which made
  * an empty start and finish look like two equal dates and fail the check below.
  */
-const when = z
-  .preprocess((v) => (v === '' || v === undefined ? null : v), z.union([z.null(), z.coerce.date()]))
-  .default(null)
+const when = z.preprocess((v) => (v === '' || v === undefined ? null : v), z.union([z.null(), z.coerce.date()])).default(null)
 
 export const announcementSchema = z
   .object({
@@ -54,7 +56,15 @@ export const announcementSchema = z
     endsAt: when,
     // only ordinary links: a javascript: address in a headline is a way to run code
     linkUrl: z
-      .union([z.string().trim().url().max(500).refine((u) => /^https?:\/\//i.test(u), 'use a http:// or https:// address'), z.literal('')])
+      .union([
+        z
+          .string()
+          .trim()
+          .url()
+          .max(500)
+          .refine((u) => /^https?:\/\//i.test(u), 'use a http:// or https:// address'),
+        z.literal(''),
+      ])
       .optional()
       .default(''),
     linkLabel: text(60).optional().default(''),
@@ -66,7 +76,15 @@ export const announcementSchema = z
 
 /** A web address people can safely be sent to: http(s) only, never javascript: or data:. */
 const webLink = z
-  .union([z.string().trim().url().max(500).refine((u) => /^https?:\/\//i.test(u), 'use a http:// or https:// address'), z.literal('')])
+  .union([
+    z
+      .string()
+      .trim()
+      .url()
+      .max(500)
+      .refine((u) => /^https?:\/\//i.test(u), 'use a http:// or https:// address'),
+    z.literal(''),
+  ])
   .optional()
   .default('')
 
@@ -141,6 +159,15 @@ export const gangSchema = z.object({
   established: text(40).optional().default(''),
   territory: text(60).optional().default(''),
   leader: text(60).optional().default(''),
+  coLeaders: text(160).optional().default(''),
+  igl: text(60).optional().default(''),
+  color: z
+    .string()
+    .trim()
+    .regex(/^(#[0-9a-fA-F]{6})?$/, 'Colour must look like #e3b55a')
+    .transform((v) => v.toLowerCase())
+    .optional()
+    .default(''),
   suspendedUntil: when,
   headline: text(160).optional().default(''),
   description: text(2000).optional().default(''),
@@ -268,7 +295,12 @@ export const staffStatusSchema = z.object({
   onDuty: z.boolean(),
 })
 
-const ruleId = z.string().trim().min(1).max(60).regex(/^[a-z0-9-]+$/, 'use lowercase letters, numbers and dashes')
+const ruleId = z
+  .string()
+  .trim()
+  .min(1)
+  .max(60)
+  .regex(/^[a-z0-9-]+$/, 'use lowercase letters, numbers and dashes')
 
 export const ruleBookSchema = z.object({
   categories: z
@@ -277,9 +309,7 @@ export const ruleBookSchema = z.object({
         id: ruleId,
         title: text(80).min(1),
         summary: text(240).optional().default(''),
-        rules: z
-          .array(z.object({ id: ruleId, title: text(120).min(1), text: text(2000).min(1) }))
-          .max(100),
+        rules: z.array(z.object({ id: ruleId, title: text(120).min(1), text: text(2000).min(1) })).max(100),
       }),
     )
     .max(40),
@@ -287,7 +317,9 @@ export const ruleBookSchema = z.object({
 
 export const settingsSiteSchema = z
   .object({
-    sections: z.partialRecord(z.enum(['story', 'staff', 'gangs', 'clubs', 'dhadhas', 'events', 'leaderboard', 'rules', 'chat']), z.boolean()).optional(),
+    sections: z
+      .partialRecord(z.enum(['story', 'staff', 'gangs', 'clubs', 'dhadhas', 'events', 'leaderboard', 'rules', 'chat']), z.boolean())
+      .optional(),
     maintenance: z
       .object({
         on: z.boolean(),
@@ -309,7 +341,13 @@ export const cloudUploadSchema = z.object({
 })
 
 export const settingsMediaSchema = z.object({
-  media: z.record(z.string(), z.string().regex(/^[a-f0-9]{24}$/).nullable()),
+  media: z.record(
+    z.string(),
+    z
+      .string()
+      .regex(/^[a-f0-9]{24}$/)
+      .nullable(),
+  ),
 })
 
 /* ---- website chat ---- */

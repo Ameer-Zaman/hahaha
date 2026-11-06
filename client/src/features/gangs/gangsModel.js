@@ -21,7 +21,7 @@ const SCENES = [
   { seed: 7, horizon: 0.66, tint: 'crimson' },
 ]
 
-const PENDING = 'To be confirmed'
+export const PENDING = 'To be confirmed'
 
 export const formatFileNumber = (n, width = 2) => String(n).padStart(width, '0')
 
@@ -48,6 +48,9 @@ export function getArchiveFiles({ gangs, wars, demo } = STATIC) {
       territory: gang.territory ?? PENDING,
       leader: gang.leader ?? PENDING,
       suspendedUntil: gang.suspendedUntil ?? null,
+      coLeaders: Array.isArray(gang.coLeaders) ? gang.coLeaders : [],
+      igl: gang.igl ?? PENDING,
+      color: /^#[0-9a-f]{6}$/i.test(gang.color ?? '') ? gang.color : null,
       headline: gang.headline ?? '',
       description: gang.description ?? '',
       image: gang.image ?? slotImage(index),
@@ -74,6 +77,9 @@ export function getArchiveFiles({ gangs, wars, demo } = STATIC) {
       territory: PENDING,
       leader: PENDING,
       suspendedUntil: null,
+      coLeaders: [],
+      igl: PENDING,
+      color: null,
       headline: 'A family yet to be confirmed by the administration.',
       description: '',
       image: slotImage(index),

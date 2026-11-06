@@ -1,4 +1,4 @@
-import '@fontsource/cinzel/latin-700.css'
+import '@fontsource/big-shoulders-display/latin-900'
 
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -65,6 +65,7 @@ export default function ReelCard({ file, active }) {
     <article
       className={`reel-card reel-card--${file.scene.tint} ${active ? 'is-active' : ''} ${file.reserved ? 'is-reserved' : ''}`}
       aria-labelledby={`gang-${file.slug}-title`}
+      style={file.color ? { '--gang': file.color } : undefined}
       data-reel-card
     >
       <div className="reel-card__frame">
@@ -86,7 +87,7 @@ export default function ReelCard({ file, active }) {
             </div>
           )}
           <div className="reel-card__left">
-            <h2 id={`gang-${file.slug}-title`} className="reel-card__title">
+            <h2 id={`gang-${file.slug}-title`} className="reel-card__title gang-name">
               <RollText text={file.title} rolled={active} />
             </h2>
           </div>

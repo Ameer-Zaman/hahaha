@@ -17,6 +17,12 @@ const gangSchema = new mongoose.Schema(
     established: { type: String, trim: true, default: '' },
     territory: { type: String, trim: true, default: '' },
     leader: { type: String, trim: true, default: '' },
+    /** Co-leaders' names, comma separated as typed in the panel. */
+    coLeaders: { type: String, trim: true, default: '' },
+    /** In-game leader (shot caller in fights). */
+    igl: { type: String, trim: true, default: '' },
+    /** The gang's colour (#rrggbb) for its name and accents; '' = the site's gold. */
+    color: { type: String, trim: true, default: '' },
     /** When set and in the future, the gang is suspended until this moment. null = active. */
     suspendedUntil: { type: Date, default: null },
     headline: { type: String, trim: true, default: '' },
