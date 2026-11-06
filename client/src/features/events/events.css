@@ -544,6 +544,7 @@
   width: min(52rem, calc(100vw - 2rem));
   max-width: none;
   max-height: min(52rem, calc(100svh - 2rem));
+  overflow-wrap: break-word;
   padding: 0;
   border: 1px solid rgb(var(--rgb-gold) / 0.22);
   border-radius: 22px;
@@ -551,6 +552,9 @@
   color: var(--fg);
   box-shadow: 0 50px 120px -30px #000, 0 0 0 1px rgb(0 0 0 / 0.6);
   overflow: hidden;
+}
+.evd:focus {
+  outline: none;
 }
 .evd::backdrop {
   background: rgb(0 0 0 / 0.72);
@@ -575,6 +579,7 @@
   }
 }
 .evd__panel {
+  position: relative;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   max-height: inherit;
@@ -683,11 +688,10 @@
 .evd__facts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
-  gap: 1px;
   margin: 0;
   border: 1px solid rgb(var(--rgb-ivory) / 0.1);
   border-radius: 14px;
-  background: rgb(var(--rgb-ivory) / 0.1);
+  background: #0f0f12;
   overflow: hidden;
 }
 .evd__facts > div {
@@ -696,7 +700,8 @@
   gap: 0.35rem;
   min-width: 0;
   padding: var(--sp-4);
-  background: #0f0f12;
+  /* hairlines between the boxes; the ones on the outer edge are clipped away */
+  box-shadow: 1px 1px 0 rgb(var(--rgb-ivory) / 0.1);
 }
 .evd__facts dt {
   font-family: var(--font-mono);
@@ -782,6 +787,53 @@
 }
 .evd__missing .evd__close {
   background: none;
+}
+
+/* wide screens: a landscape pop-up — the picture down the left with the date and state on
+   it; the details scroll on the right, with the buttons at their foot */
+@media (min-width: 60rem) {
+  .evd {
+    width: min(76rem, calc(100vw - 4rem));
+    height: min(46rem, calc(100svh - 4rem));
+    max-height: none;
+  }
+  .evd__panel--event {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'media scroll'
+      'media foot';
+    height: 100%;
+    max-height: none;
+  }
+  .evd__panel--event .evd__media {
+    grid-area: media;
+    height: auto;
+    border-right: 1px solid rgb(var(--rgb-ivory) / 0.08);
+  }
+  .evd__panel--event .evd__shade {
+    background:
+      linear-gradient(180deg, rgb(0 0 0 / 0.25) 0%, transparent 40%, rgb(11 11 13 / 0.85) 88%, #0b0b0d 100%),
+      linear-gradient(90deg, transparent 70%, rgb(11 11 13 / 0.5));
+  }
+  .evd__panel--event .evd__tag {
+    bottom: var(--sp-6);
+    left: var(--sp-6);
+  }
+  .evd__panel--event .evd__scroll {
+    grid-area: scroll;
+  }
+  .evd__panel--event .evd__body {
+    padding: var(--sp-7) var(--sp-7) var(--sp-7) var(--sp-6);
+    padding-right: calc(var(--sp-7) + 2rem); /* clear of the × */
+  }
+  .evd__panel--event .evd__foot {
+    grid-area: foot;
+    padding-inline: var(--sp-6) var(--sp-7);
+  }
+  .evd__panel--event .evd__title {
+    font-size: clamp(2.4rem, 1.4rem + 2vw, 3.6rem);
+  }
 }
 
 /* phones: a sheet that rises from the bottom and fills most of the screen */

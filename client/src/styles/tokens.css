@@ -49,7 +49,7 @@
   /* ---- Typography ---- */
   --font-display: 'Anton', 'Impact', 'Arial Narrow Bold', sans-serif;
   --font-crew: 'Big Shoulders Display', 'Anton', 'Arial Narrow Bold', sans-serif;
-  --font-sans: 'Archivo Variable', 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: 'Barlow', 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'Space Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
   --fs-2xs: 0.75rem; /* 12px floor for the smallest labels */

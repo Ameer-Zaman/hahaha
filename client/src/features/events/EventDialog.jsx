@@ -20,6 +20,7 @@ export default function EventDialog({ open, event, slug, now, onClose }) {
     if (!dialog) return undefined
     if (open && !dialog.open) {
       dialog.showModal()
+      dialog.focus() // start on the pop-up itself, not with a focus ring on its × button
       const prev = document.documentElement.style.overflow
       document.documentElement.style.overflow = 'hidden'
       return () => {
@@ -35,6 +36,7 @@ export default function EventDialog({ open, event, slug, now, onClose }) {
     <dialog
       ref={ref}
       className="evd"
+      tabIndex={-1}
       aria-labelledby="evd-title"
       onCancel={(e) => {
         e.preventDefault() // Esc: close through the address, so Back works as expected
@@ -108,12 +110,12 @@ function Details({ event: e, now, onClose }) {
   const empty = paragraphs.length === 0 && e.schedule.length === 0 && e.requirements.length === 0 && e.prizes.length === 0
 
   return (
-    <div className="evd__panel">
+    <div className="evd__panel evd__panel--event">
+      <CloseButton onClose={onClose} />
       {/* the picture, with the date and where things stand laid over it */}
       <header className="evd__media">
         <Plate image={e.image} seed={seedFor(e.id)} horizon={0.7} />
         <span className="evd__shade" aria-hidden="true" />
-        <CloseButton onClose={onClose} />
         <div className="evd__tag">
           <DateBadge date={e.startsAt} className="ev-date--lg" />
           <p className="ev-meta">
