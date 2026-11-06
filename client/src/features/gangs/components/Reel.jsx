@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 
-import Odometer from '../../../components/ui/Odometer'
 import { gsap } from '../../../lib/gsap'
-import { formatFileNumber } from '../gangsModel'
 import GangPicker from './GangPicker'
 import ReelCard from './ReelCard'
 
@@ -81,7 +79,10 @@ export default function Reel({ files }) {
 
     // Arrival: a fast, blurred spin through the reel that eases out onto the first gang
     // (or straight onto the gang we came back to).
-    const startAt = Math.max(0, files.findIndex((f) => f.slug === focusSlug))
+    const startAt = Math.max(
+      0,
+      files.findIndex((f) => f.slug === focusSlug),
+    )
     if (focusSlug) {
       m.pos = m.target = startAt
     } else {
@@ -286,11 +287,7 @@ export default function Reel({ files }) {
   }
 
   return (
-    <section
-      ref={root}
-      className={`reel ${reduced ? 'is-static' : 'is-loop'}`}
-      aria-labelledby="gangs-title"
-    >
+    <section ref={root} className={`reel ${reduced ? 'is-static' : 'is-loop'}`} aria-labelledby="gangs-title">
       <h1 id="gangs-title" className="visually-hidden">
         Gangs of the city
       </h1>
@@ -305,23 +302,8 @@ export default function Reel({ files }) {
         </div>
       )}
 
-      {/* Corner ticket: the gang counter, and the dropdown to choose a gang */}
-      <div className="reel__hud">
-        {count > 1 && <GangPicker files={files} active={active} onPick={goTo} />}
-        {/* HUD counter: a slanted black plate with the gang number and one pip per gang */}
-        <div className="hud" role="group" aria-label="Gang counter">
-          <span className="hud__label">Gang file</span>
-          <span className="hud__count">
-            <Odometer value={active + 1} width={2} className="hud__odo" label="Gang" />
-            <span className="hud__of">/{formatFileNumber(count)}</span>
-          </span>
-          <span className="hud__pips" aria-hidden="true">
-            {files.map((file, i) => (
-              <i key={file.key} className={i === active ? 'is-on' : ''} />
-            ))}
-          </span>
-        </div>
-      </div>
+      {/* Corner: the dropdown to choose a gang */}
+      <div className="reel__hud">{count > 1 && <GangPicker files={files} active={active} onPick={goTo} />}</div>
 
       <div ref={stage} className="reel__stage">
         <div ref={trackRef} className="reel__track">
@@ -334,7 +316,7 @@ export default function Reel({ files }) {
               className="reel__slot"
               onFocusCapture={() => onFocusCard(i)}
             >
-              <ReelCard file={file} active={i === active} total={count} />
+              <ReelCard file={file} active={i === active} />
             </div>
           ))}
         </div>

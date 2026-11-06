@@ -17,6 +17,8 @@ const gangSchema = new mongoose.Schema(
     established: { type: String, trim: true, default: '' },
     territory: { type: String, trim: true, default: '' },
     leader: { type: String, trim: true, default: '' },
+    /** When set and in the future, the gang is suspended until this moment. null = active. */
+    suspendedUntil: { type: Date, default: null },
     headline: { type: String, trim: true, default: '' },
     description: { type: String, trim: true, default: '' },
     /** GridFS media ids (strings) for the backdrop and emblem. */

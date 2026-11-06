@@ -41,9 +41,7 @@ export function GangList() {
         />
       )}
       {gangs?.length === 0 && (
-        <Empty>
-          No gangs yet. Until you add one, the website keeps showing its demo gangs (clearly marked “Demo data”).
-        </Empty>
+        <Empty>No gangs yet. Until you add one, the website keeps showing its demo gangs (clearly marked “Demo data”).</Empty>
       )}
       {gangs?.length > 0 && (
         <div className="p-table-wrap">
@@ -55,7 +53,9 @@ export function GangList() {
                 <th scope="col">Territory</th>
                 <th scope="col">Players</th>
                 <th scope="col">Address</th>
-                <th scope="col"><span className="p-sr-only">Edit</span></th>
+                <th scope="col">
+                  <span className="p-sr-only">Edit</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -108,7 +108,17 @@ const EMPTY = {
   video: null,
   verified: true,
   order: 0,
+  suspendedUntil: '',
   members: [],
+}
+
+/** An ISO date as a datetime-local value in the admin's own time zone. */
+function forInput(value) {
+  if (!value) return ''
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return ''
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 export function GangEditor() {
@@ -127,6 +137,7 @@ export function GangEditor() {
 function pick(gang) {
   const out = {}
   for (const key of Object.keys(EMPTY)) out[key] = gang[key] ?? EMPTY[key]
+  out.suspendedUntil = forInput(gang.suspendedUntil)
   out.members = (gang.members ?? []).map(({ name, role, since }) => ({ name, role: role ?? 'Member', since: since ?? '' }))
   return out
 }
@@ -140,8 +151,7 @@ function GangForm({ initial, isNew }) {
   const [importOpen, setImportOpen] = useState(false)
   const set = (key) => (value) => setForm((f) => ({ ...f, [key]: value }))
 
-  const setName = (name) =>
-    setForm((f) => ({ ...f, name, slug: slugTouched ? f.slug : slugify(name) }))
+  const setName = (name) => setForm((f) => ({ ...f, name, slug: slugTouched ? f.slug : slugify(name) }))
 
   const setMember = (index, key, value) =>
     setForm((f) => ({ ...f, members: f.members.map((m, i) => (i === index ? { ...m, [key]: value } : m)) }))
@@ -151,6 +161,7 @@ function GangForm({ initial, isNew }) {
     const body = {
       ...form,
       order: Number(form.order) || 0,
+      suspendedUntil: form.suspendedUntil ? new Date(form.suspendedUntil).toISOString() : null,
       members: form.members.filter((m) => m.name.trim()),
     }
     const result = await run(
@@ -170,7 +181,14 @@ function GangForm({ initial, isNew }) {
 
   return (
     <form onSubmit={save}>
-      <PageHead title={isNew ? 'New gang' : form.name || 'Gang'} sub={<Link to="/panel/gangs" className="p-link">← All gangs</Link>}>
+      <PageHead
+        title={isNew ? 'New gang' : form.name || 'Gang'}
+        sub={
+          <Link to="/panel/gangs" className="p-link">
+            ← All gangs
+          </Link>
+        }
+      >
         {!isNew && (
           <a className="pbtn pbtn--ghost" href={`/gangs/${initial.slug}`} target="_blank" rel="noreferrer">
             View on site
@@ -213,8 +231,26 @@ function GangForm({ initial, isNew }) {
             />
             <div className="p-field">
               <span className="p-field__label">Status</span>
-              <Switch checked={form.verified} onChange={set('verified')} label={form.verified ? 'Confirmed by the administration' : 'Not confirmed yet'} />
+              <Switch
+                checked={form.verified}
+                onChange={set('verified')}
+                label={form.verified ? 'Confirmed by the administration' : 'Not confirmed yet'}
+              />
             </div>
+            <TextField
+              label="Suspended until"
+              type="datetime-local"
+              hint="Leave empty for an active gang. Until this time the Gangs page shows Suspended with a countdown, then Active again by itself."
+              value={form.suspendedUntil}
+              onChange={set('suspendedUntil')}
+            />
+            {form.suspendedUntil && (
+              <div className="p-row">
+                <button type="button" className="pbtn pbtn--ghost" onClick={() => set('suspendedUntil')('')}>
+                  Lift suspension
+                </button>
+              </div>
+            )}
           </div>
         </Panel>
 
@@ -274,9 +310,30 @@ function GangForm({ initial, isNew }) {
             {form.members.map((m, i) => (
               <li key={i} className="p-rows__item p-rows__item--member">
                 <span className="p-rows__num">{i + 1}</span>
-                <input className="p-input" aria-label={`Player ${i + 1} name`} placeholder="Character name" value={m.name} maxLength={60} onChange={(e) => setMember(i, 'name', e.target.value)} />
-                <input className="p-input" aria-label={`Player ${i + 1} role`} placeholder="Role" value={m.role} maxLength={40} onChange={(e) => setMember(i, 'role', e.target.value)} />
-                <input className="p-input" aria-label={`Player ${i + 1} member since`} placeholder="Since" value={m.since} maxLength={20} onChange={(e) => setMember(i, 'since', e.target.value)} />
+                <input
+                  className="p-input"
+                  aria-label={`Player ${i + 1} name`}
+                  placeholder="Character name"
+                  value={m.name}
+                  maxLength={60}
+                  onChange={(e) => setMember(i, 'name', e.target.value)}
+                />
+                <input
+                  className="p-input"
+                  aria-label={`Player ${i + 1} role`}
+                  placeholder="Role"
+                  value={m.role}
+                  maxLength={40}
+                  onChange={(e) => setMember(i, 'role', e.target.value)}
+                />
+                <input
+                  className="p-input"
+                  aria-label={`Player ${i + 1} member since`}
+                  placeholder="Since"
+                  value={m.since}
+                  maxLength={20}
+                  onChange={(e) => setMember(i, 'since', e.target.value)}
+                />
                 <RowTools
                   index={i}
                   count={form.members.length}
@@ -309,7 +366,13 @@ export function RowTools({ index, count, label, onMove, onRemove }) {
       <button type="button" className="p-icon-btn" onClick={() => onMove(-1)} disabled={index === 0} aria-label={`Move ${label} up`}>
         ↑
       </button>
-      <button type="button" className="p-icon-btn" onClick={() => onMove(1)} disabled={index === count - 1} aria-label={`Move ${label} down`}>
+      <button
+        type="button"
+        className="p-icon-btn"
+        onClick={() => onMove(1)}
+        disabled={index === count - 1}
+        aria-label={`Move ${label} down`}
+      >
         ↓
       </button>
       <button type="button" className="p-icon-btn p-icon-btn--danger" onClick={onRemove} aria-label={`Remove ${label}`}>

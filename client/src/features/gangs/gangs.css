@@ -156,63 +156,37 @@
   min-width: 0;
 }
 
-/* Left bottom: category, rolling title, credits */
-.reel-card__titleblock {
-  display: grid;
-  justify-items: center;
-  gap: var(--sp-3);
-  text-align: center;
-}
-
-.reel-card__category {
-  font-family: var(--font-mono);
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-}
-
 .reel-card__title {
-  --roll-h: 0.92em;
-  font-family: var(--font-display);
-  font-size: clamp(3rem, 1.4rem + 4.6vw, 7rem);
-  line-height: 0.92;
+  /* the gang's name alone, in an engraved Roman serif — gold on the dark plate, like a crest */
+  --roll-h: 1.08em;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: clamp(2.4rem, 1.1rem + 4vw, 5.75rem);
+  line-height: 1.08;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  letter-spacing: 0;
+  color: var(--c-gold-light);
+  filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.55)) drop-shadow(0 14px 28px rgb(0 0 0 / 0.6));
   max-width: 100%;
-}
-
-.reel-card__title .roll__words {
-  justify-content: center;
-}
-
-.reel-card__credits {
-  width: 100%;
-  max-width: 23rem;
-  border-top: 1.5px solid rgb(244 239 230 / 0.85);
-}
-
-.reel-card__credits > div {
-  display: grid;
-  /* minmax(0, …): a one-word territory wraps instead of pushing the row off the card */
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: baseline;
-  gap: var(--sp-3);
-  padding: 0.3rem 0.25rem;
-  border-bottom: 1.5px solid rgb(244 239 230 / 0.85);
-  font-family: var(--font-display);
-  font-size: 1.0625rem;
-  line-height: 1.1;
-  text-transform: uppercase;
-}
-
-.reel-card__credits dt {
-  text-align: left;
-}
-
-.reel-card__credits dd {
-  text-align: right;
   overflow-wrap: anywhere;
+}
+
+/* gold leaf: the gradient sits on each letter (the letters roll, so the parent can't clip it) */
+.reel-card__title .roll__in > span {
+  background: linear-gradient(180deg, #fbefc9 0%, var(--c-gold-light) 38%, var(--c-gold) 70%, #9c7a2c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* a thin gold rule under the name */
+.reel-card__title::after {
+  content: '';
+  display: block;
+  width: min(9rem, 40%);
+  height: 1px;
+  margin-top: 0.9rem;
+  background: linear-gradient(90deg, var(--c-gold), transparent);
 }
 
 /* Explore: a glowing map marker (gold ring, pulsing halo, chevron core) with its label */
@@ -494,77 +468,6 @@
   }
 }
 
-/* HUD counter: slanted black plate, gold edge and hard gold shadow, like the site's buttons */
-.hud {
-  position: absolute;
-  top: 0.4rem;
-  right: clamp(1rem, 2.5vw, 2.25rem);
-  isolation: isolate;
-  display: grid;
-  gap: 0.35rem;
-  padding: 0.7rem 1.3rem 0.75rem 1.5rem;
-  color: #f4efe6;
-  pointer-events: auto;
-}
-
-.hud::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  transform: skewX(-12deg);
-  background: linear-gradient(160deg, #15171d, #07080b);
-  border: 2px solid var(--c-gold);
-  border-radius: 3px;
-  box-shadow: 6px 6px 0 rgb(var(--rgb-gold) / 0.35), 0 18px 36px -18px rgb(0 0 0 / 0.9);
-}
-
-.hud__label {
-  font-family: var(--font-mono);
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: var(--c-gold-light);
-}
-
-.hud__count {
-  display: flex;
-  align-items: baseline;
-  gap: 0.3rem;
-  font-style: oblique 10deg;
-}
-
-.hud__odo {
-  font-family: var(--font-display);
-  font-size: clamp(2.25rem, 1.7rem + 1.4vw, 3.1rem);
-  color: var(--c-gold);
-}
-
-.hud__of {
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  color: rgb(244 239 230 / 0.6);
-}
-
-.hud__pips {
-  display: flex;
-  gap: 4px;
-}
-
-.hud__pips i {
-  width: 14px;
-  height: 4px;
-  transform: skewX(-20deg);
-  background: rgb(244 239 230 / 0.2);
-  transition: background-color 300ms var(--ease-out), box-shadow 300ms var(--ease-out);
-}
-
-.hud__pips i.is-on {
-  background: var(--c-gold);
-  box-shadow: 0 0 8px rgb(var(--rgb-gold) / 0.7);
-}
-
 /* ---------- phones and narrow tablets ---------- */
 @media (max-width: 59.99rem) {
   .reel {
@@ -592,17 +495,14 @@
     align-items: center;
   }
 
-  .hud {
-    padding: 0.5rem 0.9rem 0.55rem 1.1rem;
+  /* status across the top of the card, on one line */
+  .reel .reel-card__topline {
+    left: 1.25rem;
+    right: 1.25rem;
+    top: 1.5rem;
+    width: auto;
   }
 
-  .hud__odo {
-    font-size: 1.9rem;
-  }
-
-  .hud__pips i {
-    width: 10px;
-  }
 }
 
 /* "Demo data" tag on the made-up sample gangs */
@@ -681,11 +581,17 @@
   top: calc(50% + var(--top-chrome) / 2);
 }
 
-/* Phones held sideways: barely 400px of height, so the card goes two-up — name and credits
-   on the left, Explore on the right — and drops what the counter already says. */
+/* Phones held sideways: barely 400px of height, so the card goes two-up — status and name
+   on the left, Explore on the right. */
 @media (max-height: 500px) and (orientation: landscape) {
-  /* (.reel prefix: the topline's own display rule comes later in this file) */
+  /* (.reel prefix: the topline's own rules come later in this file) */
   .reel .reel-card__topline {
+    top: 1rem;
+    left: 1.5rem;
+    width: auto;
+    justify-items: start;
+  }
+  .reel .reel-card__emblem {
     display: none;
   }
   .reel-card__body {
@@ -703,53 +609,88 @@
   .reel-card__right {
     align-items: flex-end;
   }
-  .reel-card__titleblock {
-    gap: var(--sp-2);
-  }
   .reel-card__title {
-    font-size: clamp(1.75rem, 10svh, 3rem);
+    font-size: clamp(1.6rem, 9svh, 2.6rem);
   }
-  .reel-card__credits > div {
-    padding-block: 0.15rem;
-    font-size: 0.9375rem;
-  }
-  /* "File 01 / 05" — the counter in the corner already shows it */
-  .reel-card__credits > div:last-child {
-    display: none;
+  .reel-card__title::after {
+    margin-top: 0.5rem;
   }
 }
 
-/* top-left credit block */
+/* top-left: the gang's status and emblem */
 .reel-card__topline {
   position: absolute;
   top: clamp(1.75rem, 3.6vw, 3.75rem);
   left: clamp(1.75rem, 3.6vw, 3.75rem);
   width: min(25rem, 30%);
   display: grid;
-  justify-items: center;
+  justify-items: start;
   gap: 0.35rem;
-  text-align: center;
   will-change: transform;
-}
-.reel-card__year {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(1.6rem, 1rem + 1.4vw, 2.4rem);
-  line-height: 1;
-  text-transform: uppercase;
-}
-.reel-card__turf {
-  margin: 0;
-  max-width: 14rem;
-  font-family: var(--font-display);
-  font-size: clamp(0.85rem, 0.7rem + 0.35vw, 1.05rem);
-  line-height: 1.1;
-  text-transform: uppercase;
 }
 .reel-card__emblem {
   width: clamp(2.5rem, 4vw, 3.5rem);
   height: auto;
   margin-top: 0.4rem;
+}
+
+/* Active / Suspended pill: a see-through dark plate, a status dot, and the time left */
+.gang-status {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.6rem;
+  margin: 0;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid rgb(244 239 230 / 0.18);
+  border-radius: 999px;
+  background: rgb(8 9 12 / 0.55);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: #f4efe6;
+}
+.gang-status__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 10px currentColor;
+}
+.gang-status--active .gang-status__dot {
+  color: #4ccf8a;
+}
+.gang-status--suspended {
+  border-color: rgb(226 89 107 / 0.55);
+  color: #ffb3bd;
+}
+.gang-status--suspended .gang-status__dot {
+  color: #e2596b;
+  animation: gang-status-pulse 1.6s ease-in-out infinite;
+}
+.gang-status__left {
+  white-space: nowrap;
+  padding-left: 0.6rem;
+  border-left: 1px solid rgb(244 239 230 / 0.25);
+  color: #f4efe6;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+@keyframes gang-status-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gang-status--suspended .gang-status__dot {
+    animation: none;
+  }
 }
 .reel-card__left {
   will-change: transform;

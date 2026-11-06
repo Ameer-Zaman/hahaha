@@ -36,6 +36,7 @@ router.get('/gangs', async (req, res) => {
       established: g.established || undefined,
       territory: g.territory || undefined,
       leader: g.leader || undefined,
+      suspendedUntil: g.suspendedUntil ? new Date(g.suspendedUntil).toISOString() : null,
       headline: g.headline || '',
       description: g.description || '',
       image: mediaUrl(g.image),

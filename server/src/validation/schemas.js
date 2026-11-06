@@ -141,6 +141,7 @@ export const gangSchema = z.object({
   established: text(40).optional().default(''),
   territory: text(60).optional().default(''),
   leader: text(60).optional().default(''),
+  suspendedUntil: when,
   headline: text(160).optional().default(''),
   description: text(2000).optional().default(''),
   image: mediaId,
