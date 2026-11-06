@@ -142,3 +142,52 @@ function getRecord(gangId, wars, nameOf) {
     draws: list.filter((w) => w.outcome === 'draw').length,
   }
 }
+
+/* ------------------------------------------------------------------ colour */
+
+const hexRgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
+const toHex = (rgb) =>
+  `#${rgb
+    .map((v) =>
+      Math.round(Math.min(255, Math.max(0, v)))
+        .toString(16)
+        .padStart(2, '0'),
+    )
+    .join('')}`
+const mix = (rgb, to, t) => rgb.map((v, i) => v + (to[i] - v) * t)
+const luminance = ([r, g, b]) => {
+  const c = [r, g, b].map((v) => {
+    const s = v / 255
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
+  })
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+}
+
+/**
+ * The CSS variables that re-colour a gang's card and page in the gang's own colour (set in
+ * Panel → Gangs → Name colour). It swaps the site's gold tokens inside that card/page, so
+ * every accent — buttons, markers, rings, chips, lines, focus outlines — follows the colour.
+ * Fills are lifted until dark text on them stays readable; text accents are lifted further
+ * so they read on the black background. No colour → undefined (stays gold).
+ */
+export function gangTheme(hex) {
+  if (!/^#[0-9a-f]{6}$/i.test(hex ?? '')) return undefined
+  const base = hexRgb(hex)
+  let fill = base
+  for (let t = 0.1; luminance(fill) < 0.3 && t <= 0.8; t += 0.1) fill = mix(base, [255, 255, 255], t)
+  const light = mix(fill, [255, 255, 255], 0.55)
+  const deep = mix(base, [0, 0, 0], 0.35)
+  const rgb = fill.map(Math.round).join(' ')
+  return {
+    '--gang': hex,
+    '--c-gold': toHex(fill),
+    '--c-gold-light': toHex(light),
+    '--c-gold-deep': toHex(deep),
+    '--rgb-gold': rgb,
+    '--accent': toHex(light),
+    '--accent-fill': toHex(fill),
+    '--focus': toHex(light),
+    '--gx-accent': toHex(fill),
+    '--gx-accent-rgb': rgb,
+  }
+}

@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 
 import Plate from '../../../components/media/Plate'
 import RollText from '../../../components/ui/RollText'
+import { gangTheme } from '../gangsModel'
 import CardVideo from './CardVideo'
 
 /** Time left as "3d 04h 12m", "04h 12m 09s" or "12m 09s" — finer as the end gets closer. */
@@ -65,7 +66,7 @@ export default function ReelCard({ file, active }) {
     <article
       className={`reel-card reel-card--${file.scene.tint} ${active ? 'is-active' : ''} ${file.reserved ? 'is-reserved' : ''}`}
       aria-labelledby={`gang-${file.slug}-title`}
-      style={file.color ? { '--gang': file.color } : undefined}
+      style={gangTheme(file.color)}
       data-reel-card
     >
       <div className="reel-card__frame">

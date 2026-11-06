@@ -9,7 +9,7 @@ import RollText from '../../components/ui/RollText'
 import Arrow from '../../components/ui/Arrow'
 import usePageTitle from '../../hooks/usePageTitle'
 import { gsap, MOTION_OK, ScrollTrigger, useGSAP } from '../../lib/gsap'
-import { formatFileNumber, PENDING, useGangFiles } from './gangsModel'
+import { formatFileNumber, gangTheme, PENDING, useGangFiles } from './gangsModel'
 import CardVideo from './components/CardVideo'
 import './gangs.css'
 import './gang-page.css'
@@ -152,7 +152,7 @@ function GangDetail({ file, prev, next, total }) {
   )
 
   return (
-    <div ref={root} className={`gx gx--${accent}`} style={file.color ? { '--gang': file.color } : undefined}>
+    <div ref={root} className={`gx gx--${accent}`} style={gangTheme(file.color)}>
       <header className="gx-hero">
         <div className="gx-hero__media" aria-hidden="true">
           <Plate className="gx-hero__plate" image={file.image} seed={file.scene.seed} horizon={file.scene.horizon} priority>
