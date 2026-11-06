@@ -91,10 +91,7 @@ export default function LeaderboardPage() {
 
 const TDM_COLUMNS = [
   { key: 'kills', label: 'Kills' },
-  { key: 'deaths', label: 'Deaths' },
   { key: 'ratio', label: 'K/D', format: (r) => formatKd(r.kills, r.deaths) },
-  { key: 'wins', label: 'Wins', optional: true },
-  { key: 'matches', label: 'Matches', optional: true },
 ]
 
 function TdmBoard() {
@@ -111,15 +108,22 @@ function TdmBoard() {
     )
   }
 
-  // optional columns only appear when someone has a number in them
-  const columns = TDM_COLUMNS.filter((c) => !c.optional || ranked.some((r) => r[c.key] > 0))
+  const columns = TDM_COLUMNS
   const q = query.trim().toLowerCase()
   const shown = q ? ranked.filter((r) => r.name.toLowerCase().includes(q)) : ranked
 
   return (
     <div className="reveal-stagger">
-      <BoardMeta season={entry.data?.season} updatedAt={entry.data?.updatedAt} count={ranked.length} noun="player" />
-      {!q && <Podium rows={ranked.slice(0, 3)} rankedRows={ranked} stat={(r) => `${r.kills} kills · ${formatKd(r.kills, r.deaths)} K/D`} />}
+      {!q && (
+        <Podium
+          rows={ranked.slice(0, 3)}
+          rankedRows={ranked}
+          stats={(r) => [
+            { label: 'Kills', value: r.kills },
+            { label: 'K/D', value: formatKd(r.kills, r.deaths) },
+          ]}
+        />
+      )}
       <div className="lb-tools">
         <label className="lb-search">
           <span className="visually-hidden">Find a player</span>
@@ -327,7 +331,6 @@ function formatWarDate(value) {
 function BoardSkeleton({ label, podium = true }) {
   return (
     <SkeletonGroup label={label}>
-      <Skeleton w="14rem" h="1rem" style={{ marginBottom: 'var(--sp-6)' }} />
       {podium && (
         <div className="lb-podium lb-podium--skeleton">
           {[2, 1, 3].map((p) => (
@@ -350,35 +353,21 @@ function BoardSkeleton({ label, podium = true }) {
   )
 }
 
-function BoardMeta({ season, updatedAt, count, noun }) {
-  return (
-    <p className="lb-meta">
-      {season && <span className="lb-meta__season">{season}</span>}
-      <span>
-        {count} {noun}
-        {count === 1 ? '' : 's'}
-      </span>
-      {updatedAt && (
-        <span>
-          Updated{' '}
-          <time dateTime={updatedAt}>
-            {new Date(updatedAt).toLocaleDateString([], {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-            })}
-          </time>
-        </span>
-      )}
-    </p>
-  )
-}
-
 const MEDAL = ['gold', 'silver', 'bronze']
 const PLACE = ['1st', '2nd', '3rd']
 
-/** Top three as cards: second, first, third on wide screens; first to third on phones. */
-function Podium({ rows, stat, link, rankedRows = rows }) {
+const CROWN = (
+  <svg viewBox="0 0 24 16" width="26" height="18" aria-hidden="true" className="lb-podium__crown">
+    <path d="M2 14h20l1.5-11-6.5 5L12 1 7 8 .5 3z" fill="currentColor" />
+  </svg>
+)
+
+/**
+ * The top three as trophy cards: second, first, third on wide screens (first raised, with a
+ * crown); first to third on phones. Each card: a metal medal with the place, the name, and
+ * its numbers on a strip along the bottom.
+ */
+function Podium({ rows, stats, link, rankedRows = rows }) {
   if (rows.length === 0) return null
   return (
     <ol className="lb-podium" aria-label="Top three">
@@ -389,18 +378,25 @@ function Podium({ rows, stat, link, rankedRows = rows }) {
         const place = PLACE[r.rank - 1] ?? `${r.rank}th`
         const body = (
           <>
-            <span className="lb-podium__rank" aria-hidden="true">
-              {r.rank}
+            <span className="lb-podium__top">
+              {r.rank === 1 && CROWN}
+              <span className="lb-podium__medal" aria-hidden="true">
+                <span>{r.rank}</span>
+              </span>
+              <span className="lb-podium__place">
+                {joint && <span className="lb-podium__joint">Joint</span>}
+                {place}
+              </span>
             </span>
-            <span className="lb-podium__place">
-              {joint && <span className="lb-podium__joint">Joint</span>}
-              {place}
+            <span className="lb-podium__name">{r.name}</span>
+            <span className="lb-podium__stats">
+              {stats(r).map((s) => (
+                <span key={s.label} className="lb-podium__stat">
+                  <b>{s.value}</b>
+                  <small>{s.label}</small>
+                </span>
+              ))}
             </span>
-            <span className="lb-podium__who">
-              <Emblem src={r.emblem} name={r.name} className="lb-podium__emblem" />
-              <span className="lb-podium__name">{r.name}</span>
-            </span>
-            <span className="lb-podium__stat">{stat(r)}</span>
           </>
         )
         return (
