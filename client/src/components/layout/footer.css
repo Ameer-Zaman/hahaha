@@ -1,4 +1,4 @@
-/* Compact footer: one row of links, then one line of small print */
+/* Compact footer: the name and community links, then one line of small print */
 .site-footer {
   padding-block: var(--sp-8) var(--sp-6);
   border-top: var(--hairline) solid var(--rule);
@@ -8,6 +8,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: var(--sp-5) var(--sp-7);
 }
 
@@ -30,43 +31,13 @@
   color: var(--c-gold);
 }
 
-.site-footer__nav {
-  flex: 1;
-}
-.site-footer__nav ul {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0 var(--sp-6);
-}
-.site-footer__nav a {
-  display: inline-block;
-  padding-block: 0.6rem; /* comfortable tap target */
-  font-size: 1rem;
-  text-decoration: none;
-  color: var(--fg);
-  opacity: 0.75;
-  transition: color var(--dur-base) var(--ease-out), opacity var(--dur-base) var(--ease-out);
-}
-.site-footer__nav a:hover,
-.site-footer__nav a:focus-visible {
-  color: var(--accent);
-  opacity: 1;
-}
-
 .site-footer__end {
   display: flex;
-  flex-wrap: wrap; /* any number of community links: the logos wrap, Apply moves under them */
+  flex-wrap: wrap; /* any number of community links: the logos wrap */
   align-items: center;
   gap: var(--sp-4) var(--sp-5);
   min-width: 0;
 }
-.site-footer__apply {
-  min-height: 2.9rem;
-  padding-inline: 1.4rem;
-  font-size: 0.95rem;
-}
-
 /* social icons: the real logos, in their brand colours */
 .site-footer__socials {
   display: flex;
@@ -117,14 +88,6 @@
 @media (max-width: 47.99rem) {
   .site-footer__row {
     justify-content: space-between;
-  }
-  .site-footer__nav {
-    order: 3;
-    flex-basis: 100%;
-  }
-  .site-footer__nav ul {
-    justify-content: flex-start;
-    gap: 0 var(--sp-4);
   }
   .site-footer__base .site-footer__status {
     margin-left: 0;

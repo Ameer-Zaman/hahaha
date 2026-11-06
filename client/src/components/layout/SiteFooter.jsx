@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom'
 
-import { applyLink, site } from '../../config/site'
-import { useCommunityLinks, useNavigation } from '../../lib/siteSettings'
-import ApplyLink from '../ui/ApplyLink'
+import { site } from '../../config/site'
+import { useCommunityLinks } from '../../lib/siteSettings'
 import { BrandIcon } from '../ui/BrandIcons'
 import { SOCIAL_PLATFORMS } from '../ui/socialPlatforms'
 import BrandMark from '../ui/BrandMark'
@@ -10,11 +9,10 @@ import './footer.css'
 
 const YEAR = new Date().getFullYear()
 
-/** A compact footer: the name, the page links in one row, community links + Apply, and the small print. */
+/** A compact footer: the name, the community links, and the small print. */
 export default function SiteFooter() {
   // community links from the panel (or config/site.js until it has saved some), with their real logos
   const socials = useCommunityLinks().map((link) => ({ ...link, platform: SOCIAL_PLATFORMS.find((p) => p.id === link.id) }))
-  const { links: navigation } = useNavigation()
 
   return (
     <footer className="site-footer theme-black">
@@ -24,18 +22,8 @@ export default function SiteFooter() {
           {site.name}
         </Link>
 
-        <nav className="site-footer__nav" aria-label="Footer">
-          <ul role="list">
-            {navigation.map((item) => (
-              <li key={item.to}>
-                <Link to={item.to}>{item.label}</Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <div className="site-footer__end">
-          {socials.length > 0 && (
+        {socials.length > 0 && (
+          <div className="site-footer__end">
             <ul role="list" className="site-footer__socials">
               {socials.map((link, i) => (
                 <li key={`${link.id}-${i}`}>
@@ -53,9 +41,8 @@ export default function SiteFooter() {
                 </li>
               ))}
             </ul>
-          )}
-          <ApplyLink className="btn btn--primary btn--small site-footer__apply">{applyLink.label}</ApplyLink>
-        </div>
+          </div>
+        )}
       </div>
 
       <div className="container site-footer__base">
