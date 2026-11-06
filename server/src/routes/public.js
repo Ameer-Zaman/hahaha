@@ -183,8 +183,17 @@ router.get('/tdm', async (req, res) => {
 
 router.get('/rules', async (req, res) => {
   const book = await RuleBook.findOne({ key: 'main' }).lean()
-  if (!book?.published) return res.json({ status: 'draft', categories: null, lastUpdated: null })
-  res.json({ status: 'published', categories: book.published, lastUpdated: book.publishedAt })
+  if (!book?.published) return res.json({ status: 'draft', categories: null, extras: null, lastUpdated: null })
+  const x = book.publishedExtras ?? {}
+  res.json({
+    status: 'published',
+    categories: book.published.map((c) => ({
+      ...c,
+      rules: c.rules.map((r) => ({ id: r.id, title: r.title, text: r.text, level: r.level ?? 'standard', penalty: r.penalty ?? '' })),
+    })),
+    extras: { notice: x.notice ?? '', penalties: x.penalties ?? [], appeals: x.appeals ?? '', glossary: x.glossary ?? [] },
+    lastUpdated: book.publishedAt,
+  })
 })
 
 router.get('/site', async (req, res) => {

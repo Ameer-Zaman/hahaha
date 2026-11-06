@@ -309,10 +309,37 @@ export const ruleBookSchema = z.object({
         id: ruleId,
         title: text(80).min(1),
         summary: text(240).optional().default(''),
-        rules: z.array(z.object({ id: ruleId, title: text(120).min(1), text: text(2000).min(1) })).max(100),
+        rules: z
+          .array(
+            z.object({
+              id: ruleId,
+              title: text(120).min(1),
+              text: text(2000).min(1),
+              level: z.enum(['standard', 'serious', 'zero']).optional().default('standard'),
+              penalty: text(160).optional().default(''),
+            }),
+          )
+          .max(100),
       }),
     )
     .max(40),
+  extras: z
+    .object({
+      notice: text(600).optional().default(''),
+      penalties: z
+        .array(z.object({ title: text(60).min(1), text: text(300).optional().default('') }))
+        .max(8)
+        .optional()
+        .default([]),
+      appeals: text(1200).optional().default(''),
+      glossary: z
+        .array(z.object({ term: text(40).min(1), meaning: text(300).min(1) }))
+        .max(40)
+        .optional()
+        .default([]),
+    })
+    .optional()
+    .default({ notice: '', penalties: [], appeals: '', glossary: [] }),
 })
 
 export const settingsSiteSchema = z

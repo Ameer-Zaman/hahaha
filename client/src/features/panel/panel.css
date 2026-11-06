@@ -1870,3 +1870,15 @@
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(3px 3px 0 color-mix(in oklab, var(--gang) 30%, black));
 }
+
+/* Rules: a rule's importance and penalty, side by side under its text */
+.p-rules__meta {
+  display: grid;
+  grid-template-columns: minmax(9rem, 12rem) minmax(0, 1fr);
+  gap: 0.5rem;
+}
+@media (max-width: 40rem) {
+  .p-rules__meta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
