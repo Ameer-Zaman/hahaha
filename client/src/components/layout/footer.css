@@ -68,6 +68,7 @@
 .site-footer__base {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: var(--sp-2) var(--sp-6);
   margin-top: var(--sp-7);
   padding-top: var(--sp-5);
