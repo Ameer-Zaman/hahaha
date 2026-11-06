@@ -168,6 +168,10 @@ function GangForm({ initial, isNew }) {
       () => (isNew ? adminApi.post('/gangs', body) : adminApi.put(`/gangs/${initial._id}`, body)),
       isNew ? 'Gang created' : 'Gang saved',
     )
+    // an older API (before suspensions) quietly drops the date — say so instead of looking saved
+    if (result && body.suspendedUntil && !('suspendedUntil' in result.gang)) {
+      toast('The suspension was not saved: the server is out of date. Redeploy the API on Render (Manual Deploy), then save again.', 'error')
+    }
     if (result) {
       if (isNew) navigate(`/panel/gangs/${result.gang._id}`, { replace: true })
       else setForm(pick(result.gang))
