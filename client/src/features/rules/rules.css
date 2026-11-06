@@ -231,21 +231,13 @@
   overflow-wrap: anywhere;
 }
 
-/* ---- tools: search and the "important only" switch, kept in reach while reading ---- */
+/* ---- tools: search and the "important only" switch, above the rules ---- */
 .rules-tools {
-  position: sticky;
-  top: var(--top-chrome);
-  z-index: 5;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--sp-3) var(--sp-4);
-  margin: 0 calc(-1 * var(--sp-3)) var(--sp-7);
-  padding: var(--sp-3);
-  border-bottom: 1px solid rgb(var(--rgb-ivory) / 0.08);
-  background: rgb(0 0 0 / 0.82);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  margin: 0 0 var(--sp-7);
 }
 .rules-search {
   flex: 1 1 18rem;
@@ -422,9 +414,9 @@
   }
   .rules-index {
     position: sticky;
-    top: calc(var(--top-chrome) + 5.5rem); /* below the search bar */
+    top: calc(var(--top-chrome) + var(--sp-6));
     align-self: start;
-    max-height: calc(100svh - var(--top-chrome) - 7rem);
+    max-height: calc(100svh - var(--top-chrome) - var(--sp-8));
     overflow-y: auto;
   }
   .rules-index__mobile {
@@ -444,7 +436,7 @@
 }
 .rule-cat,
 .rules-extra {
-  scroll-margin-top: calc(var(--top-chrome) + 6rem);
+  scroll-margin-top: calc(var(--top-chrome) + var(--sp-5));
 }
 .rule-cat__head {
   display: grid;
@@ -487,7 +479,7 @@
   border-left: 3px solid rgb(var(--rgb-ivory) / 0.18);
   border-radius: 4px 12px 12px 4px;
   background: rgb(var(--rgb-ivory) / 0.02);
-  scroll-margin-top: calc(var(--top-chrome) + 6rem);
+  scroll-margin-top: calc(var(--top-chrome) + var(--sp-5));
   transition: background-color var(--dur-base) var(--ease-out);
 }
 .rule--serious {
