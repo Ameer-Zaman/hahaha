@@ -355,7 +355,13 @@ export function createFluid(canvas) {
       const palette = smokePalette() // gold, or the colour the current page asked for
       if (colorTick % 18 === 0) colorIndex = (colorIndex + 1) % palette.length
       const c = palette[colorIndex % palette.length]
-      splat(pointer.x, pointer.y, pointer.dx * SPLAT_FORCE, pointer.dy * SPLAT_FORCE, c.map((v) => v * INTENSITY))
+      splat(
+        pointer.x,
+        pointer.y,
+        pointer.dx * SPLAT_FORCE,
+        pointer.dy * SPLAT_FORCE,
+        c.map((v) => v * INTENSITY),
+      )
     }
     step(dt)
     render()
