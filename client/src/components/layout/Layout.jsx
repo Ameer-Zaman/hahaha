@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 
 import AnnouncementBar from '../site/AnnouncementBar'
@@ -20,6 +20,8 @@ const LIGHT_TOP = []
 
 /** Full-screen pages with no footer (the Gangs reel loops endlessly instead of ending). */
 const NO_FOOTER = ['/gangs']
+/** Paths that are the same page with a pop-up open (moving between them keeps the scroll). */
+const OVERLAY_ROUTES = [/^\/events(\/[^/]+)?\/?$/]
 
 export default function Layout() {
   const { pathname, hash, key } = useLocation()
@@ -46,7 +48,14 @@ export default function Layout() {
 
   // New page (or a link to the page you're on): jump straight to the top — or to the anchor
   // once it exists (pages load in on demand) — and let ScrollTrigger re-measure.
+  const prevPath = useRef(pathname)
   useLayoutEffect(() => {
+    // opening or closing a pop-up that has its own address (an event's details over the
+    // events list) isn't a new page: stay where you are
+    const from = prevPath.current
+    prevPath.current = pathname
+    if (from !== pathname && OVERLAY_ROUTES.some((re) => re.test(from) && re.test(pathname))) return undefined
+
     const top = () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     let frame = 0
     let tries = 0

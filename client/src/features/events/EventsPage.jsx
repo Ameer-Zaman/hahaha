@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import Plate from '../../components/media/Plate'
 import Arrow from '../../components/ui/Arrow'
@@ -9,10 +9,13 @@ import { Skeleton, SkeletonGroup } from '../../components/ui/Skeleton'
 import usePageTitle from '../../hooks/usePageTitle'
 import { usePublic } from '../../lib/publicData'
 import { useCommunityLinks } from '../../lib/siteSettings'
+import EventDialog from './EventDialog'
 import { dateTile, formatDay, groupEvents, seedFor, STATE_LABEL, timeRange, untilText, useNow } from './eventsModel'
 import './events.css'
 
 const WEEK = 7 * 86400_000
+/** Links to an event open its pop-up over the list (see EventDialog). */
+const OPEN = { fromList: true }
 
 /**
  * Events — a feed of what the server is hosting. The featured (or next) event is the
@@ -22,9 +25,17 @@ const WEEK = 7 * 86400_000
  */
 export default function EventsPage() {
   const DISCORD = useCommunityLinks().find((l) => l.id === 'discord')?.url
-  usePageTitle('Events')
   const entry = usePublic('/events')
   const now = useNow()
+
+  // /events/<event> opens that event's details in a pop-up over this list
+  const { slug } = useParams()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const listed = slug && entry.status === 'ok' ? (entry.data?.events ?? []).find((e) => e.id === slug) : null
+  usePageTitle(slug ? (listed?.title ?? 'Event') : 'Events')
+  // opened from the list: step back to it (so the browser's Back also closes it); a shared link: go to the list
+  const close = () => (location.state?.fromList ? navigate(-1) : navigate('/events', { replace: true }))
 
   return (
     <>
@@ -49,6 +60,8 @@ export default function EventsPage() {
           {entry.status === 'ok' && <Feed events={entry.data?.events ?? []} now={now} />}
         </div>
       </div>
+
+      <EventDialog open={Boolean(slug) && entry.status !== 'loading'} event={listed} slug={slug} now={now} onClose={close} />
     </>
   )
 }
@@ -197,7 +210,9 @@ function Spotlight({ event: e, now }) {
             <StateBadge event={e} now={now} />
           </p>
           <h2 id={`spot-${e.id}`} className="ev-spot__title">
-            <Link to={`/events/${e.id}`}>{e.title}</Link>
+            <Link to={`/events/${e.id}`} state={OPEN}>
+              {e.title}
+            </Link>
           </h2>
           <p className="ev-spot__when">
             {formatDay(e.startsAt)} · {timeRange(e)}
@@ -205,7 +220,7 @@ function Spotlight({ event: e, now }) {
           </p>
           {e.summary && <p className="ev-spot__summary">{e.summary}</p>}
           <div className="ev-spot__actions">
-            <Link to={`/events/${e.id}`} className="btn btn--primary">
+            <Link to={`/events/${e.id}`} state={OPEN} className="btn btn--primary">
               Event details <Arrow />
             </Link>
             {e.signup && (
@@ -225,6 +240,7 @@ function PosterCard({ event: e, now, small = false }) {
   return (
     <Link
       to={`/events/${e.id}`}
+      state={OPEN}
       className={`ev-card ${small ? 'ev-card--small' : ''} ${e.state === 'cancelled' ? 'is-cancelled' : ''} ${e.state === 'ended' ? 'is-ended' : ''}`}
     >
       <span className="ev-card__media" aria-hidden="true">
