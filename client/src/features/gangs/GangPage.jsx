@@ -17,8 +17,11 @@ import './gang-page.css'
 const OUTCOME = {
   win: { label: 'Won', short: 'W' },
   loss: { label: 'Lost', short: 'L' },
-  draw: { label: 'Drawn', short: 'D' },
+  draw: { label: 'No winner', short: '–' },
 }
+
+/** A fact the admin hasn't filled in reads as "Not announced yet", quietly, not as a value. */
+const shown = (value) => (!value || value === PENDING ? <span className="gx-facts__none">Not announced yet</span> : value)
 
 function formatDate(value) {
   if (!value) return '—'
@@ -87,7 +90,6 @@ function GangDetail({ file, prev, next, total }) {
   const [open, setOpen] = useState(null) // 'wars' | 'players' | null
   const { record } = file
   const played = record.wars.length
-  const winRate = played ? Math.round((record.wins / played) * 100) : 0
   const form = record.wars.slice(0, 5).reverse() // the last five, oldest → newest
   const accent = { gold: 'gold', blue: 'blue', crimson: 'crimson' }[file.scene.tint] ?? 'gold'
 
@@ -125,7 +127,7 @@ function GangDetail({ file, prev, next, total }) {
           ease: 'power3.out',
           clearProps: 'transform,opacity',
         })
-        // the numbers count up and the win-rate ring draws as the stats come into view
+        // the numbers count up as the stats come into view
         ScrollTrigger.create({
           trigger: '.gx-stats',
           start: 'top 90%',
@@ -136,11 +138,6 @@ function GangDetail({ file, prev, next, total }) {
               const state = { v: 0 }
               gsap.to(state, { v: to, duration: 1.4, ease: 'power3.out', onUpdate: () => (el.textContent = Math.round(state.v)) })
             })
-            gsap.fromTo(
-              '.gx-ring__value',
-              { strokeDashoffset: 100 },
-              { strokeDashoffset: 100 - winRate, duration: 1.6, ease: 'power3.out' },
-            )
           },
         })
         gsap.to('.gx-hero__plate', {
@@ -192,13 +189,13 @@ function GangDetail({ file, prev, next, total }) {
         <dl className="gx-facts">
           <div>
             <dt>Leader</dt>
-            <dd>{file.leader}</dd>
+            <dd>{shown(file.leader)}</dd>
           </div>
           <div>
             <dt>{file.coLeaders.length === 1 ? 'Co-leader' : 'Co-leaders'}</dt>
             <dd>
               {file.coLeaders.length === 0 ? (
-                PENDING
+                shown(PENDING)
               ) : (
                 <ul role="list" className="gx-facts__names">
                   {file.coLeaders.map((n) => (
@@ -212,25 +209,13 @@ function GangDetail({ file, prev, next, total }) {
             <dt>
               IGL <small className="gx-facts__note">In-game leader</small>
             </dt>
-            <dd>{file.igl}</dd>
+            <dd>{shown(file.igl)}</dd>
           </div>
         </dl>
 
         {!file.reserved && file.description && <p className="gx-about">{file.description}</p>}
 
         <section className="gx-stats" aria-label="At a glance">
-          <div className="gx-stat gx-stat--ring">
-            <svg className="gx-ring" viewBox="0 0 40 40" aria-hidden="true">
-              <circle className="gx-ring__track" cx="20" cy="20" r="15.9" pathLength="100" />
-              <circle className="gx-ring__value" cx="20" cy="20" r="15.9" pathLength="100" style={{ strokeDashoffset: 100 - winRate }} />
-            </svg>
-            <div>
-              <p className="gx-stat__value">
-                <span data-count={winRate}>{winRate}</span>%
-              </p>
-              <p className="gx-stat__label">Win rate</p>
-            </div>
-          </div>
           <div className="gx-stat">
             <p className="gx-stat__value">
               <span data-count={played}>{played}</span>

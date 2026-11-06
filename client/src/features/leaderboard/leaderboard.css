@@ -564,7 +564,8 @@
    ========================================================= */
 .wb-totals {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 32rem;
   margin: 0 0 var(--sp-6);
   border-block: 1px solid rgb(var(--rgb-ivory) / 0.1);
 }
@@ -680,75 +681,31 @@
   background: rgb(var(--rgb-ivory) / 0.45);
 }
 
-.wb__record {
+/* wins, losses and wars: one number per column, big and easy to compare down the table */
+.wb .wb__num {
+  width: 5rem;
   white-space: nowrap;
+  text-align: center;
 }
-.wb__wld {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.2rem;
+.wb td.wb__num {
   font-family: var(--font-mono);
-  font-size: var(--fs-md);
+  font-size: var(--fs-lg);
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
-.wb__wld b {
-  font-weight: 700;
+.wb thead .wb__num .lb-sort {
+  margin-inline: auto;
 }
-.wb__wld .is-win {
+.wb td.wb__num--win {
   color: var(--c-gold-light);
 }
-.wb__wld .is-loss {
+.wb td.wb__num--loss {
   color: var(--c-crimson);
 }
-.wb__wld i {
-  font-style: normal;
-  color: rgb(var(--rgb-ivory) / 0.3);
-}
-.wb__played {
-  display: block;
-  margin-top: 0.2rem;
-  font-family: var(--font-mono);
-  font-size: var(--fs-2xs);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.wb td.wb__num--played {
+  font-size: var(--fs-md);
+  font-weight: 400;
   color: var(--fg-muted);
-}
-
-.wb__rate {
-  min-width: 11rem;
-}
-.wb-bal {
-  display: grid;
-  grid-template-columns: 3.2rem minmax(0, 1fr);
-  align-items: center;
-  gap: var(--sp-3);
-}
-.wb-bal__num {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-}
-/* the record as one bar: wins, then draws, then losses — the number beside it is the message */
-.wb-bal__bar {
-  display: flex;
-  gap: 2px;
-  height: 6px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgb(var(--rgb-ivory) / 0.08);
-}
-.wb-bal__seg {
-  flex-basis: 0;
-  min-width: 3px;
-}
-.wb-bal__seg--win {
-  background: var(--c-gold);
-}
-.wb-bal__seg--draw {
-  background: rgb(var(--rgb-ivory) / 0.35);
-}
-.wb-bal__seg--loss {
-  background: var(--c-crimson);
 }
 .wb__form {
   white-space: nowrap;
@@ -791,11 +748,10 @@
   }
   .wb tbody tr {
     display: grid;
-    grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+    grid-template-columns: 2.5rem auto auto auto minmax(0, 1fr);
     grid-template-areas:
-      'rank gang gang'
-      '.    rec  form'
-      '.    rate rate';
+      'rank gang gang gang gang'
+      '.    win  loss wars form';
     align-items: center;
     gap: var(--sp-2) var(--sp-3);
     padding: var(--sp-4) var(--sp-2) var(--sp-4) 0;
@@ -811,24 +767,35 @@
   .wb tbody .wb__gang {
     grid-area: gang;
   }
-  .wb tbody .wb__record {
-    grid-area: rec;
-    display: flex;
-    flex-wrap: wrap; /* "4 wars" drops under the record rather than into the form pills */
+  /* the numbers sit on the second line, each with a small label: W 4 · L 1 · WARS 5 */
+  .wb tbody .wb__num {
+    display: inline-flex;
     align-items: baseline;
-    gap: 0 var(--sp-3);
-    min-width: 0;
+    gap: 0.35rem;
+    width: auto;
+    padding-right: var(--sp-3);
+    font-size: var(--fs-md);
   }
-  .wb__played {
-    margin: 0;
+  .wb tbody .wb__num::before {
+    content: attr(data-label);
+    font-size: var(--fs-2xs);
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+  .wb tbody .wb__num--win {
+    grid-area: win;
+  }
+  .wb tbody .wb__num--loss {
+    grid-area: loss;
+  }
+  .wb tbody .wb__num--played {
+    grid-area: wars;
   }
   .wb tbody .wb__form {
     grid-area: form;
     justify-self: end;
-  }
-  .wb tbody .wb__rate {
-    grid-area: rate;
-    min-width: 0;
   }
   .wb__last {
     padding-left: 0;

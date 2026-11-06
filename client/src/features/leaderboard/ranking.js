@@ -2,8 +2,8 @@
  * Leaderboard ranking rules (kept in one place so the page and the panel agree).
  *
  * TDM  — per player: most kills, then best K/D, then most wins, then name.
- * War  — per gang, from the war records: most wins, then best win rate, then fewest losses,
- *        then most wars played, then name. Win rate counts draws as played, not won.
+ * War  — per gang, from the war records: most wins, then fewest losses, then most wars
+ *        played, then name. (Wars without a winner count as played, nothing else.)
  * Players / gangs with identical stats share a rank (1, 2, 2, 4 …).
  */
 
@@ -56,15 +56,17 @@ export function rankWars(files = []) {
         wins,
         losses,
         draws,
-        winRate: played ? wins / played : 0,
         // newest last, so the row reads left → right in time
-        form: wars.slice(0, 5).map((w) => w.outcome).reverse(),
+        form: wars
+          .slice(0, 5)
+          .map((w) => w.outcome)
+          .reverse(),
         last: wars[0] ?? null,
       }
     })
   return withRanks(
     rows,
-    (a, b) => b.wins - a.wins || b.winRate - a.winRate || a.losses - b.losses || b.played - a.played || a.name.localeCompare(b.name),
-    (g) => `${g.wins}|${g.winRate.toFixed(4)}|${g.losses}|${g.played}`,
+    (a, b) => b.wins - a.wins || a.losses - b.losses || b.played - a.played || a.name.localeCompare(b.name),
+    (g) => `${g.wins}|${g.losses}|${g.played}`,
   )
 }

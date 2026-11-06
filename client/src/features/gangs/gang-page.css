@@ -185,6 +185,13 @@
   min-width: 0;
   overflow-wrap: anywhere; /* a one-word territory or leader name wraps */
 }
+.gx-facts__none {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  letter-spacing: 0.06em;
+  text-transform: none;
+  color: rgb(var(--rgb-ivory) / 0.4);
+}
 .gx-facts__note {
   margin-left: 0.4em;
   letter-spacing: 0.12em;
@@ -218,7 +225,7 @@
 /* the analysis: win rate, wars, won, lost, players */
 .gx-stats {
   display: grid;
-  grid-template-columns: 1.6fr repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   position: relative;
   border: 1px solid var(--gx-line);
   border-radius: 14px;
@@ -242,11 +249,6 @@
 .gx-stat + .gx-stat {
   border-left: 1px solid var(--gx-line);
 }
-.gx-stat--ring {
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: var(--sp-4);
-}
 .gx-stat__value {
   margin: 0;
   font-family: var(--font-display);
@@ -268,24 +270,6 @@
 .gx-stat--loss .gx-stat__value {
   color: var(--gx-loss);
 }
-.gx .gx-ring {
-  width: clamp(3.6rem, 6vw, 5rem);
-  height: auto;
-  rotate: -90deg;
-}
-.gx-ring circle {
-  fill: none;
-  stroke-width: 3.2;
-}
-.gx-ring__track {
-  stroke: rgb(var(--rgb-ivory) / 0.1);
-}
-.gx-ring__value {
-  stroke: var(--gx-accent);
-  stroke-linecap: round;
-  stroke-dasharray: 100;
-}
-
 /* recent form */
 .gx-form {
   display: flex;
@@ -792,19 +776,18 @@
 
 /* ---------------- small screens ---------------- */
 @media (max-width: 61.99rem) {
+  /* two by two: Wars · Won / Lost · Players */
   .gx-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .gx-stat--ring {
-    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .gx-stat + .gx-stat {
     border-left: 0;
-    border-top: 1px solid var(--gx-line);
   }
-  .gx-stats .gx-stat:nth-child(3),
-  .gx-stats .gx-stat:nth-child(5) {
+  .gx-stats .gx-stat:nth-child(even) {
     border-left: 1px solid var(--gx-line);
+  }
+  .gx-stats .gx-stat:nth-child(n + 3) {
+    border-top: 1px solid var(--gx-line);
   }
   .gx-facts {
     grid-template-columns: 1fr;

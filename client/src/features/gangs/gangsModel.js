@@ -1,15 +1,5 @@
-import { gangs as realGangs, reservedFileCount, useDemoGangs, wars as realWars } from '../../content/gangs'
-import { demoGangs, demoWars } from '../../content/gangs.demo'
-import { usePublic } from '../../lib/publicData'
-
-// Built-in content: real data in content/gangs.js always wins; the demo only fills in while
-// there is none (and it's switched on). Gangs added in the admin panel replace both.
-const staticDemo = realGangs.length === 0 && useDemoGangs
-const STATIC = {
-  gangs: staticDemo ? demoGangs : realGangs,
-  wars: staticDemo ? demoWars : realWars,
-  demo: staticDemo,
-}
+import { gangs as realGangs, reservedFileCount, wars as realWars } from '../../content/gangs'
+import { loadPublic, usePublic } from '../../lib/publicData'
 
 /** Each file gets its own city scene and tint so the reel never repeats itself. */
 const SCENES = [
@@ -34,7 +24,7 @@ const slotImage = (index) => `/media/gangs/file-${formatFileNumber(index + 1)}.j
  * Keeping this separate means the pages never have to know where the data came from
  * (today a static file, later the API).
  */
-export function getArchiveFiles({ gangs, wars, demo } = STATIC) {
+export function getArchiveFiles({ gangs = [], wars = [], demo = false } = {}) {
   const nameOf = (id) => gangs.find((g) => g.id === id)?.name ?? 'Unknown gang'
   if (gangs.length > 0) {
     return gangs.map((gang, index) => ({
@@ -95,21 +85,37 @@ export function getArchiveFiles({ gangs, wars, demo } = STATIC) {
 }
 
 /**
- * The gang files for the pages: from the API when it has gangs, otherwise the built-in content.
- * `ready` is false only while the first API answer is still on its way (at most a few seconds).
+ * The gang files for the pages, and which situation the page is in:
+ *   state 'loading' — the first API answer is on its way (a few seconds at most)
+ *   state 'ok'      — there are gangs (from the panel, or the built-in content/gangs.js)
+ *   state 'empty'   — the API answered, and no gang has been added yet
+ *   state 'error'   — the API couldn't be reached and there's nothing built in to show
+ * No sample or placeholder gangs are shown: an empty city says so plainly.
  */
 export function useGangFiles() {
   const entry = usePublic('/gangs')
-  const fromApi = entry.status === 'ok' && entry.data?.gangs?.length > 0
-  const source = fromApi ? { gangs: entry.data.gangs, wars: entry.data.wars ?? [], demo: false } : STATIC
+  const apiGangs = entry.status === 'ok' ? (entry.data?.gangs ?? []) : null
+  let state
+  let files = []
+  if (entry.status === 'loading') state = 'loading'
+  else if (apiGangs?.length) {
+    state = 'ok'
+    files = getArchiveFiles({ gangs: apiGangs, wars: entry.data.wars ?? [], demo: false })
+  } else if (STATIC_FILES.length) {
+    state = 'ok'
+    files = STATIC_FILES
+  } else state = apiGangs || entry.status === 'off' ? 'empty' : 'error'
   return {
-    ready: entry.status !== 'loading',
-    source: fromApi ? 'api' : 'static',
-    files: fromApi ? getArchiveFiles(source) : STATIC_FILES,
+    ready: state !== 'loading',
+    state,
+    source: apiGangs?.length ? 'api' : 'static',
+    files,
+    retry: () => loadPublic('/gangs', { force: true }),
   }
 }
 
-const STATIC_FILES = getArchiveFiles(STATIC)
+// only real, confirmed gangs written into content/gangs.js (no demo, no reserved files)
+const STATIC_FILES = realGangs.length ? getArchiveFiles({ gangs: realGangs, wars: realWars, demo: false }) : []
 
 /** The wars a gang took part in, newest first, each seen from that gang's side. */
 function getRecord(gangId, wars, nameOf) {

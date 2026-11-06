@@ -1,12 +1,13 @@
 import { useRef, useState } from 'react'
 
 import ApplyLink from '../../components/ui/ApplyLink'
+import FactionState from '../../components/ui/FactionState'
 import Arrow from '../../components/ui/Arrow'
 import { PageLoader } from '../../components/ui/Skeleton'
 import { clubs as staticClubs, suits } from '../../content/clubs'
 import usePageTitle from '../../hooks/usePageTitle'
 import { gsap, MOTION_OK, ScrollTrigger, useGSAP } from '../../lib/gsap'
-import { usePublic } from '../../lib/publicData'
+import { loadPublic, usePublic } from '../../lib/publicData'
 import CardBack from './CardBack'
 import CardFace from './CardFace'
 import './clubs.css'
@@ -55,6 +56,15 @@ export default function ClubsPage() {
       </div>
     )
   const clubs = entry.status === 'ok' && entry.data?.clubs?.length ? entry.data.clubs : staticClubs
+  // nothing to deal: say whether none have been added yet, or the server couldn't be reached
+  if (clubs.length === 0) {
+    const reached = entry.status === 'ok' || entry.status === 'off'
+    return reached ? (
+      <FactionState kind="empty" faction="clubs" />
+    ) : (
+      <FactionState kind="error" faction="clubs" onRetry={() => loadPublic('/clubs', { force: true })} />
+    )
+  }
   return <ClubsDeck key={clubs.map((c) => c.id).join('|')} clubs={clubs} />
 }
 

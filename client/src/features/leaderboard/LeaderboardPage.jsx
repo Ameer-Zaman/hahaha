@@ -146,9 +146,9 @@ function TdmBoard() {
 /* ------------------------------------------------------------------- War */
 
 /**
- * War standings: one precise row per gang — rank, last result, W–L–D record, a bar that
- * splits the record into wins, draws and losses, and the last five wars. No podium: the
- * top three are marked by their rank badge, so the whole table reads at one level.
+ * War standings: one precise row per gang — rank, last result, wins and losses in their own
+ * columns, wars played and the last five wars. No podium: the top three are marked by their
+ * rank badge, so the whole table reads at one level.
  */
 function WarBoard() {
   const { files, ready } = useGangFiles()
@@ -188,14 +188,6 @@ function WarBoard() {
           <dd>{totals.wars}</dd>
         </div>
         <div>
-          <dt>Decided</dt>
-          <dd>{totals.decided}</dd>
-        </div>
-        <div>
-          <dt>Drawn</dt>
-          <dd>{totals.drawn}</dd>
-        </div>
-        <div>
           <dt>Gangs ranked</dt>
           <dd>{ranked.length}</dd>
         </div>
@@ -228,14 +220,19 @@ function WarBoard() {
             <th scope="col" className="wb__gang">
               Gang
             </th>
-            <th scope="col" className="wb__record" aria-sort={ariaSort('played')} title="Wins – losses – draws">
-              <SortButton active={sort.key === 'played'} dir={sort.dir} onClick={() => toggle('played')}>
-                W–L–D
+            <th scope="col" className="wb__num wb__num--win" aria-sort={ariaSort('wins')} title="Wins">
+              <SortButton active={sort.key === 'wins'} dir={sort.dir} onClick={() => toggle('wins')}>
+                W
               </SortButton>
             </th>
-            <th scope="col" className="wb__rate" aria-sort={ariaSort('winRate')}>
-              <SortButton active={sort.key === 'winRate'} dir={sort.dir} onClick={() => toggle('winRate')}>
-                Win rate
+            <th scope="col" className="wb__num wb__num--loss" aria-sort={ariaSort('losses')} title="Losses">
+              <SortButton active={sort.key === 'losses'} dir={sort.dir} onClick={() => toggle('losses')}>
+                L
+              </SortButton>
+            </th>
+            <th scope="col" className="wb__num wb__num--played" aria-sort={ariaSort('played')} title="Wars played">
+              <SortButton active={sort.key === 'played'} dir={sort.dir} onClick={() => toggle('played')}>
+                Wars
               </SortButton>
             </th>
             <th scope="col" className="wb__form">
@@ -256,20 +253,17 @@ function WarBoard() {
                 </Link>
                 {r.last && <LastWar war={r.last} />}
               </th>
-              <td className="wb__record">
-                <span className="wb__wld" aria-label={`${r.wins} wins, ${r.losses} losses, ${r.draws} draws`}>
-                  <b className="is-win">{r.wins}</b>
-                  <i aria-hidden="true">–</i>
-                  <b className="is-loss">{r.losses}</b>
-                  <i aria-hidden="true">–</i>
-                  <b>{r.draws}</b>
-                </span>
-                <span className="wb__played">
-                  {r.played} war{r.played === 1 ? '' : 's'}
-                </span>
+              <td className="wb__num wb__num--win" data-label="W">
+                <span className="visually-hidden">Wins: </span>
+                {r.wins}
               </td>
-              <td className="wb__rate">
-                <Balance row={r} />
+              <td className="wb__num wb__num--loss" data-label="L">
+                <span className="visually-hidden">Losses: </span>
+                {r.losses}
+              </td>
+              <td className="wb__num wb__num--played" data-label="Wars">
+                <span className="visually-hidden">Wars played: </span>
+                {r.played}
               </td>
               <td className="wb__form">
                 <Form outcomes={r.form} />
@@ -278,24 +272,23 @@ function WarBoard() {
           ))}
         </tbody>
       </table>
-      <p className="lb-note">Ranked by wins, then win rate, then fewest losses. Draws count as played.</p>
+      <p className="lb-note">Ranked by most wins, then fewest losses, then most wars.</p>
     </div>
   )
 }
 
 const WAR_SORTS = [
   { key: 'rank', label: 'Rank' },
-  { key: 'winRate', label: 'Win rate' },
-  { key: 'played', label: 'Most wars' },
+  { key: 'wins', label: 'Wins' },
+  { key: 'losses', label: 'Losses' },
+  { key: 'played', label: 'Wars' },
 ]
 
 /** Every war counted once (each one appears in both gangs' records). */
 function warTotals(files = []) {
   const seen = new Map()
   for (const f of files) for (const w of f.record?.wars ?? []) seen.set(w.id ?? `${w.date}|${w.opponent}|${f.slug}`, w.outcome)
-  const wars = seen.size
-  const drawn = [...seen.values()].filter((o) => o === 'draw').length
-  return { wars, drawn, decided: wars - drawn }
+  return { wars: seen.size }
 }
 
 const LAST_VERB = { win: 'Beat', loss: 'Lost to', draw: 'Drew with' }
@@ -326,21 +319,6 @@ function formatWarDate(value) {
         month: 'short',
         year: 'numeric',
       })
-}
-
-/** Win rate as a number, and the record as one bar split into wins, draws and losses. */
-function Balance({ row }) {
-  const pct = Math.round(row.winRate * 100)
-  return (
-    <span className="wb-bal">
-      <span className="wb-bal__num">{pct}%</span>
-      <span className="wb-bal__bar" aria-hidden="true">
-        {row.wins > 0 && <span className="wb-bal__seg wb-bal__seg--win" style={{ flexGrow: row.wins }} />}
-        {row.draws > 0 && <span className="wb-bal__seg wb-bal__seg--draw" style={{ flexGrow: row.draws }} />}
-        {row.losses > 0 && <span className="wb-bal__seg wb-bal__seg--loss" style={{ flexGrow: row.losses }} />}
-      </span>
-    </span>
-  )
 }
 
 /* ---------------------------------------------------------------- shared */
@@ -531,8 +509,8 @@ function SortButton({ active, dir, onClick, children }) {
   )
 }
 
-const FORM_LABEL = { win: 'W', loss: 'L', draw: 'D' }
-const FORM_TITLE = { win: 'Win', loss: 'Loss', draw: 'Draw' }
+const FORM_LABEL = { win: 'W', loss: 'L', draw: '–' } // a war with no winner: a plain dash
+const FORM_TITLE = { win: 'Win', loss: 'Loss', draw: 'No winner' }
 
 function Form({ outcomes }) {
   return (

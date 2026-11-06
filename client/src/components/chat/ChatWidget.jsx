@@ -17,7 +17,6 @@ import './chat.css'
  * reply shows up in this window. Switch it off in Panel → Sections & maintenance.
  */
 const STORE = 'rameirah:chat'
-const EXAMPLES = ['Can I RDM someone?', 'What is NLR?', 'Is metagaming allowed?']
 
 const readStore = () => {
   try {
@@ -85,8 +84,7 @@ function RulesChat({ bot }) {
   const [openedAt] = useState(() => new Date())
   const [log, setLog] = useState(() => [
     say('bot', {
-      text: 'Ask me anything about the server rules — I’ll find the rule for you. Or pick a topic:',
-      topics: true,
+      text: 'Ask me anything about the server rules — I’ll find the rule for you.',
       greet: true,
     }),
   ])
@@ -207,15 +205,7 @@ function RulesChat({ bot }) {
             text: found.length === 1 ? 'Here’s the rule:' : 'These rules cover it:',
             rules: found.map((f) => ({ rule: f.rule, category: f.category })),
           })
-        : say('bot', { text: 'I couldn’t find a rule about that. Try other words, pick a topic, or ask the staff.', noMatch: true }),
-    )
-  }
-
-  function showTopic(category) {
-    setAsking(false)
-    reply(
-      category.title,
-      say('bot', { text: category.summary || category.title, rules: category.rules.map((rule) => ({ rule, category })), compact: true }),
+        : say('bot', { text: 'I couldn’t find a rule about that. Try other words, or ask the staff.', noMatch: true }),
     )
   }
 
@@ -382,16 +372,6 @@ function RulesChat({ bot }) {
                     </span>
                   )}
 
-                  {m.topics && (
-                    <span className="chatw__chips chatw__chips--inline">
-                      {categories.map((c) => (
-                        <button key={c.id} type="button" className="chatw__chip" onClick={() => showTopic(c)}>
-                          {c.title}
-                        </button>
-                      ))}
-                    </span>
-                  )}
-
                   {m.noMatch && !auth && (
                     <span className="chatw__chips chatw__chips--inline">
                       {canAskStaff ? (
@@ -413,16 +393,6 @@ function RulesChat({ bot }) {
             </li>
           ))}
         </ol>
-
-        {log.length <= 1 && !auth && (
-          <div className="chatw__chips chatw__chips--suggest">
-            {EXAMPLES.map((q) => (
-              <button key={q} type="button" className="chatw__chip chatw__chip--q" onClick={() => ask(q)}>
-                {q}
-              </button>
-            ))}
-          </div>
-        )}
 
         {asking && !auth ? (
           <form className="chatw__ask" onSubmit={startStaff}>

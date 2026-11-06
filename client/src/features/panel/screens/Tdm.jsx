@@ -38,7 +38,9 @@ function TdmForm({ data, setData }) {
 
   const setField = (index, field, value) =>
     setPlayers((list) =>
-      list.map((p, i) => (i === index ? { ...p, [field]: field === 'name' ? value : Math.max(0, Math.min(1_000_000, Math.floor(Number(value) || 0))) } : p)),
+      list.map((p, i) =>
+        i === index ? { ...p, [field]: field === 'name' ? value : Math.max(0, Math.min(1_000_000, Math.floor(Number(value) || 0))) } : p,
+      ),
     )
 
   function runImport(mode) {
@@ -85,7 +87,14 @@ function TdmForm({ data, setData }) {
         actions={data.updatedAt && <span className="p-muted">Last saved {formatWhen(data.updatedAt)}</span>}
       >
         <div className="p-form-grid p-form-grid--narrow">
-          <TextField label="Season / title" value={season} onChange={setSeason} maxLength={60} placeholder="Season 1" hint="Optional. Shown above the board." />
+          <TextField
+            label="Season / title"
+            value={season}
+            onChange={setSeason}
+            maxLength={60}
+            placeholder="Season 1"
+            hint="Optional. Shown above the board."
+          />
         </div>
 
         {players.length === 0 ? (
@@ -125,17 +134,36 @@ function TdmForm({ data, setData }) {
                       </td>
                       {STATS.slice(0, 2).map((f) => (
                         <td key={f}>
-                          <input className="p-input p-input--cell p-input--num" type="number" min={0} value={p[f]} aria-label={`${p.name || `Player ${i + 1}`} ${f}`} onChange={(e) => setField(i, f, e.target.value)} />
+                          <input
+                            className="p-input p-input--cell p-input--num"
+                            type="number"
+                            min={0}
+                            value={p[f]}
+                            aria-label={`${p.name || `Player ${i + 1}`} ${f}`}
+                            onChange={(e) => setField(i, f, e.target.value)}
+                          />
                         </td>
                       ))}
                       <td className="p-num">{formatKd(p.kills, p.deaths)}</td>
                       {STATS.slice(2).map((f) => (
                         <td key={f}>
-                          <input className="p-input p-input--cell p-input--num" type="number" min={0} value={p[f]} aria-label={`${p.name || `Player ${i + 1}`} ${f}`} onChange={(e) => setField(i, f, e.target.value)} />
+                          <input
+                            className="p-input p-input--cell p-input--num"
+                            type="number"
+                            min={0}
+                            value={p[f]}
+                            aria-label={`${p.name || `Player ${i + 1}`} ${f}`}
+                            onChange={(e) => setField(i, f, e.target.value)}
+                          />
                         </td>
                       ))}
                       <td className="p-actions-cell">
-                        <button type="button" className="p-icon-btn p-icon-btn--danger" aria-label={`Remove ${p.name || `player ${i + 1}`}`} onClick={() => setPlayers((list) => list.filter((_, j) => j !== i))}>
+                        <button
+                          type="button"
+                          className="p-icon-btn p-icon-btn--danger"
+                          aria-label={`Remove ${p.name || `player ${i + 1}`}`}
+                          onClick={() => setPlayers((list) => list.filter((_, j) => j !== i))}
+                        >
                           ×
                         </button>
                       </td>
@@ -164,7 +192,15 @@ function TdmForm({ data, setData }) {
             Add player
           </button>
           {players.length > 1 && (
-            <button type="button" className="pbtn pbtn--ghost" onClick={() => setPlayers((list) => rankTdm(list).map(({ name, kills, deaths, wins, matches }) => ({ name, kills, deaths, wins, matches })))}>
+            <button
+              type="button"
+              className="pbtn pbtn--ghost"
+              onClick={() =>
+                setPlayers((list) =>
+                  rankTdm(list).map(({ name, kills, deaths, wins, matches }) => ({ name, kills, deaths, wins, matches })),
+                )
+              }
+            >
               Sort by rank
             </button>
           )}
@@ -172,7 +208,14 @@ function TdmForm({ data, setData }) {
             Save
           </button>
           {dirty && (
-            <button type="button" className="pbtn pbtn--ghost" onClick={() => { setPlayers(data.players.map((p) => ({ ...p }))); setSeason(data.season ?? '') }}>
+            <button
+              type="button"
+              className="pbtn pbtn--ghost"
+              onClick={() => {
+                setPlayers(data.players.map((p) => ({ ...p })))
+                setSeason(data.season ?? '')
+              }}
+            >
               Undo changes
             </button>
           )}
@@ -181,10 +224,21 @@ function TdmForm({ data, setData }) {
 
       <Panel title="Paste results">
         <p className="p-text">
-          Paste from a spreadsheet (CSV: <code>name, kills, deaths, wins, matches</code>) or JSON. <strong>Add / update</strong> keeps the current
-          list and updates players with the same name; <strong>Replace</strong> starts a new board (for example a new season).
+          Paste from a spreadsheet (CSV: <code>name, kills, deaths, wins, matches</code>) or JSON. <strong>Add / update</strong> keeps the
+          current list and updates players with the same name; <strong>Replace</strong> starts a new board (for example a new season).
         </p>
-        <TextField label="Results" value={importText} onChange={(v) => { setImportText(v); setImportNote(null) }} multiline rows={6} placeholder={EXAMPLE} spellCheck={false} />
+        <TextField
+          label="Results"
+          value={importText}
+          onChange={(v) => {
+            setImportText(v)
+            setImportNote(null)
+          }}
+          multiline
+          rows={6}
+          placeholder={EXAMPLE}
+          spellCheck={false}
+        />
         {importNote && (
           <p className={importNote.tone === 'error' ? 'p-form-error' : 'p-form-note'} role="status">
             {importNote.text}
@@ -194,7 +248,12 @@ function TdmForm({ data, setData }) {
           <button type="button" className="pbtn pbtn--gold" disabled={!importText.trim()} onClick={() => runImport('merge')}>
             Add / update
           </button>
-          <ConfirmButton className="pbtn pbtn--ghost" confirmLabel="Click again to replace the list" disabled={!importText.trim()} onConfirm={() => runImport('replace')}>
+          <ConfirmButton
+            className="pbtn pbtn--ghost"
+            confirmLabel="Click again to replace the list"
+            disabled={!importText.trim()}
+            onConfirm={() => runImport('replace')}
+          >
             Replace list
           </ConfirmButton>
           <button type="button" className="pbtn pbtn--ghost p-push" onClick={() => setImportText(EXAMPLE)}>
@@ -205,7 +264,7 @@ function TdmForm({ data, setData }) {
 
       <Panel title="War leaderboard">
         <p className="p-text">
-          Worked out from the war records: wins, losses, draws, win rate and recent form for every gang. To change it, log or edit wars in{' '}
+          Worked out from the war records: wins, losses, wars played and recent form for every gang. To change it, log or edit wars in{' '}
           <Link to="/panel/wars" className="p-link">
             Wars
           </Link>

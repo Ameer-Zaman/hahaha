@@ -1,0 +1,83 @@
+/* Empty / can't-load state for the faction pages (Gangs, Clubs) */
+.fstate {
+  position: relative;
+  display: grid;
+  align-items: center;
+  min-height: calc(100svh - var(--top-chrome, 0px));
+  padding-block: calc(var(--top-chrome, 0px) + var(--sp-8)) var(--sp-9, 6rem);
+  overflow: hidden;
+  isolation: isolate;
+}
+/* the faction's name, huge and hollow behind the message */
+.fstate__word {
+  position: absolute;
+  inset: auto 0 -0.12em;
+  z-index: -1;
+  font-family: var(--font-display);
+  font-size: clamp(7rem, 2rem + 22vw, 22rem);
+  line-height: 0.8;
+  text-align: center;
+  text-transform: uppercase;
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(var(--rgb-gold) / 0.16);
+  pointer-events: none;
+  user-select: none;
+}
+.fstate::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: radial-gradient(60% 50% at 50% 40%, rgb(var(--rgb-gold) / 0.08), transparent 70%);
+}
+.fstate--error::before {
+  background: radial-gradient(60% 50% at 50% 40%, rgb(226 89 107 / 0.08), transparent 70%);
+}
+.fstate__inner {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-4);
+  max-width: 44rem;
+  text-align: center;
+}
+.fstate__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.fstate__dot {
+  width: 7px;
+  height: 7px;
+  rotate: 45deg;
+  background: var(--c-gold);
+}
+.fstate--error .fstate__dot {
+  background: var(--c-crimson);
+}
+.fstate__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 1.2rem + 4vw, 4.5rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+.fstate__body {
+  max-width: 36rem;
+  margin: 0;
+  line-height: 1.65;
+  color: rgb(var(--rgb-ivory) / 0.72);
+}
+.fstate__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+}
