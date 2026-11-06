@@ -80,16 +80,9 @@
 .site-footer__base p {
   margin: 0;
 }
-.site-footer__base .site-footer__status {
-  margin-left: auto;
-  color: var(--accent);
-}
 
 @media (max-width: 47.99rem) {
   .site-footer__row {
     justify-content: space-between;
-  }
-  .site-footer__base .site-footer__status {
-    margin-left: 0;
   }
 }

@@ -49,8 +49,6 @@ export default function SiteFooter() {
         <p>
           © {YEAR} {site.name}
         </p>
-        <p>Not affiliated with Rockstar Games, Take-Two Interactive or Cfx.re.</p>
-        <p className="site-footer__status">{site.launch.isLive ? 'The city is open' : 'Launching soon'}</p>
       </div>
     </footer>
   )
