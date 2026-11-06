@@ -5,6 +5,9 @@
  *
  * createFluid(canvas) → { dispose } or null when the browser can't run it.
  */
+
+import { smokePalette } from './smokeColor'
+
 const SIM_RES = 128 // velocity / pressure grid (the flow)
 const DYE_RES = 512 // the smoke's own resolution
 const PRESSURE_ITERATIONS = 18
@@ -18,12 +21,6 @@ const MAX_STEP = 0.04 // limits a single jump of the mouse, so a flick doesn't f
 const SLEEP_AFTER_MS = 3500
 
 // gold tones, picked in turn so the trail shimmers between them (kept dim: it adds up)
-const PALETTE = [
-  [0.89, 0.71, 0.35],
-  [0.95, 0.81, 0.5],
-  [0.71, 0.52, 0.18],
-  [1.0, 0.9, 0.66],
-]
 const INTENSITY = 0.07
 
 const VERT = `
@@ -97,7 +94,7 @@ const FRAG = {
     }`,
   display: `precision highp float; varying vec2 vUv; uniform sampler2D uTexture;
     void main () {
-      // soft highlights: dense smoke glows warm gold instead of burning to white
+      // soft highlights: dense smoke glows in its colour instead of burning to white
       vec3 c = 1.0 - exp(-texture2D(uTexture, vUv).rgb * 1.6);
       c *= 0.75;
       gl_FragColor = vec4(c, max(c.r, max(c.g, c.b)));
@@ -355,8 +352,9 @@ export function createFluid(canvas) {
     if (pointer.moved) {
       pointer.moved = false
       colorTick += 1
-      if (colorTick % 18 === 0) colorIndex = (colorIndex + 1) % PALETTE.length
-      const c = PALETTE[colorIndex]
+      const palette = smokePalette() // gold, or the colour the current page asked for
+      if (colorTick % 18 === 0) colorIndex = (colorIndex + 1) % palette.length
+      const c = palette[colorIndex % palette.length]
       splat(pointer.x, pointer.y, pointer.dx * SPLAT_FORCE, pointer.dy * SPLAT_FORCE, c.map((v) => v * INTENSITY))
     }
     step(dt)

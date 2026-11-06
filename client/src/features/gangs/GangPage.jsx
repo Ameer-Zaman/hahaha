@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import '@fontsource/big-shoulders-display/latin-900'
 
+import { setSmokeColor } from '../../components/cursor/smokeColor'
 import Plate from '../../components/media/Plate'
 import GangsLoading from './components/GangsLoading'
 import RollText from '../../components/ui/RollText'
@@ -92,6 +93,12 @@ function GangDetail({ file, prev, next, total }) {
   const played = record.wars.length
   const form = record.wars.slice(0, 5).reverse() // the last five, oldest → newest
   const accent = { gold: 'gold', blue: 'blue', crimson: 'crimson' }[file.scene.tint] ?? 'gold'
+
+  // the cursor smoke takes the gang's colour while its page is open, and turns gold again after
+  useEffect(() => {
+    setSmokeColor(gangTheme(file.color)?.['--c-gold'] ?? null)
+    return () => setSmokeColor(null)
+  }, [file.color])
 
   useEffect(() => {
     const id = window.setTimeout(() => setRolled(true), 250)
