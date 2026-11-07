@@ -1,0 +1,160 @@
+/* The notification bell in the header, and its drop-down list of live gang situations */
+.bell {
+  position: relative;
+  flex: none;
+}
+.bell__trigger {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+.bell__trigger:hover,
+.bell.is-open .bell__trigger,
+.bell.has-live .bell__trigger {
+  opacity: 1;
+}
+.bell__trigger:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+/* a live situation: the bell gives a small ring now and then, and a red count */
+.bell.has-live .bell__trigger svg {
+  transform-origin: 50% 15%;
+  animation: bell-ring 4s ease-in-out infinite;
+}
+@keyframes bell-ring {
+  0%,
+  86%,
+  100% {
+    rotate: 0deg;
+  }
+  89% {
+    rotate: 14deg;
+  }
+  92% {
+    rotate: -12deg;
+  }
+  95% {
+    rotate: 7deg;
+  }
+}
+.bell__badge {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.3rem;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  background: #e2384d;
+  box-shadow: 0 0 0 2px #0a0a0a;
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.05rem;
+  text-align: center;
+}
+
+.bell__panel {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: -0.5rem;
+  z-index: 20;
+  display: grid;
+  gap: 0.75rem;
+  width: min(23rem, calc(100vw - 1.5rem));
+  max-height: min(34rem, calc(100svh - var(--top-chrome, 4.5rem) - 1.5rem));
+  padding: 1rem;
+  overflow-y: auto;
+  border: 1px solid rgb(var(--rgb-ivory) / 0.14);
+  border-radius: 4px;
+  background: #0a0a0a;
+  color: var(--fg);
+  box-shadow: 0 24px 50px -20px rgb(0 0 0 / 0.9);
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0s linear 0.18s;
+}
+.bell.is-open .bell__panel {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0s;
+}
+.bell__head {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.bell.has-live .bell__head {
+  color: #ff6b7d;
+}
+.bell__empty {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--fg-muted);
+}
+.bell__list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bell__item {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid rgb(var(--rgb-ivory) / 0.1);
+}
+.bell__item .live__foot {
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* phones: the list drops full-width under the header */
+@media (max-width: 40rem) {
+  .bell {
+    position: static;
+  }
+  .bell__panel {
+    position: fixed;
+    top: calc(var(--top-chrome, 4.5rem) + 0.25rem);
+    left: 0.75rem;
+    right: 0.75rem;
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bell.has-live .bell__trigger svg {
+    animation: none;
+  }
+  .bell__panel {
+    transition: none;
+  }
+}

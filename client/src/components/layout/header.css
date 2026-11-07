@@ -64,6 +64,7 @@
 }
 
 .site-header__mark {
+  flex: none; /* keeps its size when the bell and music button share a narrow phone bar */
   width: 1.75rem;
   height: 1.75rem;
   color: var(--c-gold);
@@ -489,6 +490,9 @@
 .site-header__brand {
   margin-right: auto;
 }
+.site-header__bell {
+  margin-left: auto;
+}
 .site-header__music {
   margin-left: calc(-1 * var(--sp-4));
 }
@@ -672,5 +676,28 @@
   .nav-dd__panel,
   .nav-dd__link {
     transition: none;
+  }
+}
+
+/* small phones: brand, bell, music and menu all fit on one bar */
+@media (max-width: 26rem) {
+  .site-header__bar {
+    gap: 0.25rem;
+  }
+  .site-header__brand {
+    gap: var(--sp-2);
+    font-size: 1rem;
+  }
+  .site-header__mark {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  .site-header__bell .bell__trigger,
+  .site-header__toggle {
+    width: 2.5rem;
+    height: 2.75rem;
+  }
+  .site-header__music {
+    margin-left: 0;
   }
 }

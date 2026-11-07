@@ -14,8 +14,7 @@
   padding: 0;
   list-style: none;
 }
-.live__card,
-.live__tab {
+.live__card {
   pointer-events: auto;
 }
 .live__card {
@@ -184,38 +183,9 @@
   background: #f04a5f;
 }
 .live__watch:focus-visible,
-.live__close:focus-visible,
-.live__tab:focus-visible {
+.live__close:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
-}
-
-/* closed: a small LIVE tab that opens it again */
-.live__tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  min-height: 44px;
-  padding: 0 1rem;
-  border: 1px solid rgb(226 56 77 / 0.55);
-  border-radius: 2px;
-  background: #0a0a0a;
-  color: #ff6b7d;
-  font: inherit;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-.live__count {
-  min-width: 1.3rem;
-  padding: 0 0.3rem;
-  border-radius: 999px;
-  background: #e2384d;
-  color: #fff;
-  letter-spacing: 0;
-  text-align: center;
 }
 
 /* phones: across the bottom, clear of the chat button */
@@ -225,9 +195,6 @@
     right: 0.75rem;
     bottom: calc(max(0.75rem, env(safe-area-inset-bottom)) + 4.5rem);
     width: auto;
-  }
-  .live:has(.live__tab) {
-    right: auto;
   }
 }
 
