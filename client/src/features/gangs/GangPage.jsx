@@ -12,6 +12,7 @@ import usePageTitle from '../../hooks/usePageTitle'
 import { gsap, MOTION_OK, ScrollTrigger, useGSAP } from '../../lib/gsap'
 import { formatFileNumber, gangTheme, PENDING, useGangFiles } from './gangsModel'
 import CardVideo from './components/CardVideo'
+import NeonName from './components/NeonName'
 import './gangs.css'
 import './gang-page.css'
 
@@ -220,9 +221,7 @@ function GangDetail({ file, prev, next, total }) {
               <span className="gx-dot" aria-hidden="true" />
               {file.type} · File {formatFileNumber(file.number)} of {formatFileNumber(total)}
             </p>
-            <h1 className="gx-hero__title neon-name">
-              <span className="neon-name__text">{file.title}</span>
-            </h1>
+            <NeonName as="h1" className="gx-hero__title" text={file.title} />
             {file.headline && <p className="gx-hero__line">“{file.headline}”</p>}
           </div>
         </div>

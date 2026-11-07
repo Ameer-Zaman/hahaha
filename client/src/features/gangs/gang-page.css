@@ -73,12 +73,16 @@
   padding-top: calc(var(--top-chrome) + clamp(1.5rem, 1rem + 2.5vw, 3.75rem));
   padding-bottom: var(--sp-7);
 }
+.gx-hero__inner {
+  grid-template-columns: minmax(0, 1fr);
+}
 .gx-hero__copy {
   align-self: end;
   display: grid;
   justify-items: start;
   gap: var(--sp-4);
-  max-width: 60rem;
+  width: 100%;
+  min-width: 0; /* the one-line name fits this width, never widens it */
 }
 .gx-back {
   justify-self: start;

@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom'
 import Plate from '../../../components/media/Plate'
 import { gangTheme } from '../gangsModel'
 import CardVideo from './CardVideo'
+import NeonName from './NeonName'
 
 /** Time left as "3d 04h 12m", "04h 12m 09s" or "12m 09s" — finer as the end gets closer. */
 function formatLeft(ms) {
@@ -88,9 +89,7 @@ export default function ReelCard({ file, active }) {
             </div>
           )}
           <div className="reel-card__left">
-            <h2 id={`gang-${file.slug}-title`} className="reel-card__title neon-name">
-              <span className="neon-name__text">{file.title}</span>
-            </h2>
+            <NeonName id={`gang-${file.slug}-title`} className="reel-card__title" text={file.title} />
           </div>
 
           <div className="reel-card__right">

@@ -172,12 +172,14 @@
   padding: 0.1em 0.25em 0.15em 0.14em;
   font-weight: 400;
   line-height: 1;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 .neon-name__text {
   display: inline-block;
   font-family: 'Mr Dafoe', 'Brush Script MT', cursive;
-  font-size: 1.1em;
+  /* --fit (set by NeonName) shrinks a long name so it stays on one line */
+  font-size: calc(var(--neon-size, 1.1em) * var(--fit, 1));
+  white-space: nowrap;
   letter-spacing: 0.01em;
   text-transform: none;
   color: var(--g-core);
@@ -192,8 +194,14 @@
     0 0 0.8em color-mix(in oklab, var(--g) 45%, transparent);
 }
 /* script runs smaller than block capitals: a bigger size on the cards */
-.reel-card__title .neon-name__text {
-  font-size: 1.45em;
+.reel-card__title {
+  --neon-size: 1.45em;
+}
+/* the name may run under the empty middle of the card, not only its left column */
+@media (min-width: 60rem) and (min-height: 501px) {
+  .reel-card__body .reel-card__left {
+    grid-column: 1 / 3;
+  }
 }
 /* in the reel the sign is off on the cards peeking in, and switches on when its gang arrives */
 .reel.is-loop .reel-card .neon-name__text {
