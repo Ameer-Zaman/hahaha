@@ -74,6 +74,29 @@ export default function ChatWidget() {
   return <RulesChat bot={chatBot} />
 }
 
+// "hi", "thanks", "bye" … answered right here, not searched for in the rules (nor sent to the AI)
+const HELLO = /^(hi+|hey+|hello+|helo|hai|yo|sup|wassup|what'?s up|hola|namaste|salam|good (morning|afternoon|evening|night))\b/i
+const THANKS = /^(thanks?|thank you|thx|ty|tysm|ok(ay)?|cool|nice|great|got it)\b/i
+const BYE = /^(bye+|goodbye|cya|see (you|ya)|gn)\b/i
+// words that can follow a greeting without making it a question ("hi there", "thanks bro")
+const FILLER = new Set('there bro bruh guys all everyone man mate dude sir team bot again friend buddy so much a lot you very'.split(' '))
+function smallTalk(text, botName = '') {
+  const t = text
+    .toLowerCase()
+    .replace(/[!.?,🙂😊👋]+/gu, ' ')
+    .trim()
+  const only = (re) => {
+    const m = re.exec(t)
+    if (!m) return false
+    const rest = t.slice(m[0].length).split(/\s+/).filter(Boolean)
+    return rest.every((w) => FILLER.has(w) || w === botName.toLowerCase())
+  }
+  if (only(HELLO)) return 'Hey! 👋 Ask me anything about the server rules — like “can I rob a store?” or “what is NLR?”'
+  if (only(THANKS)) return 'Anytime! Ask if anything else about the rules is unclear.'
+  if (only(BYE)) return 'See you in the city! 👋'
+  return ''
+}
+
 let nextId = 1
 const say = (from, extra) => ({ id: nextId++, from, ...extra })
 
@@ -213,6 +236,11 @@ function RulesChat({ bot }) {
     setError('')
     setAsking(false)
     setLastQuestion(q)
+    const small = smallTalk(q, bot.name)
+    if (small) {
+      reply(q, say('bot', { text: small }))
+      return
+    }
     if (!aiUp) {
       reply(q, searchAnswer(q))
       return
