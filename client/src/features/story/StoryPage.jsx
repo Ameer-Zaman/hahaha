@@ -15,28 +15,6 @@ import './story.css'
 /** 1 → "01". The numerals are set like a magazine's, so they need the leading zero. */
 const num = (i) => String(i + 1).padStart(2, '0')
 
-/* -------------------------------------------------------------- contents */
-
-/** A contents strip under the title: where the page goes, and a way to jump there. */
-function Contents({ story }) {
-  return (
-    <nav className="sidx" aria-label="Chapters">
-      <ol className="sidx__list">
-        {story.map((ch, i) => (
-          <li key={ch.id} className="sidx__item">
-            <a className="sidx__link" href={`#ch-${ch.id}`}>
-              <span className="sidx__n" aria-hidden="true">
-                {num(i)}
-              </span>
-              <span className="sidx__name">{ch.title}</span>
-            </a>
-          </li>
-        ))}
-      </ol>
-    </nav>
-  )
-}
-
 /* -------------------------------------------------------------- chapter */
 
 /**
@@ -181,7 +159,6 @@ export default function StoryPage() {
             Story
           </h1>
           <p className="lede">{storyIntro.tagline}</p>
-          <Contents story={story} />
         </div>
       </ParallaxScope>
 

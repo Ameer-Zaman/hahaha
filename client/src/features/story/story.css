@@ -17,46 +17,6 @@
   border-top: 1px solid rgb(var(--rgb-gold) / 0.14);
 }
 
-/* ---------- contents ---------- */
-.sidx {
-  margin-top: clamp(2rem, 1.5rem + 2vw, 3.5rem);
-  border-top: 1px solid rgb(var(--rgb-gold) / 0.2);
-}
-.sidx__list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 clamp(1.5rem, 0.5rem + 3vw, 4rem);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.sidx__link {
-  display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-  /* 44px+ target without a visible box */
-  padding-block: 0.85rem;
-  color: var(--fg-muted);
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  text-decoration: none;
-  transition: color var(--dur-fast) var(--ease-out);
-}
-.sidx__link:hover,
-.sidx__link:focus-visible {
-  color: var(--c-gold-light);
-}
-.sidx__link:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 3px;
-}
-.sidx__n {
-  color: var(--c-gold);
-  font-size: var(--fs-2xs);
-}
-
 /* ---------- scene media (shared with LoopMedia) ---------- */
 .loop {
   position: absolute;
@@ -317,15 +277,11 @@
   .sc__body {
     max-width: none;
   }
-  .sidx__list {
-    gap: 0 var(--sp-5);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .scrub__video,
-  .sc__link,
-  .sidx__link {
+  .sc__link {
     transition: none;
   }
 }
