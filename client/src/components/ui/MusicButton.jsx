@@ -2,7 +2,7 @@ import { toggleMusic, useMusic } from '../../lib/music'
 import { media } from '../../config/site'
 import './music-button.css'
 
-/** Header control for the background music: three gold bars that dance while it plays. */
+/** Header control for the background music: a thin line that waves while it plays and lies flat when it's off. */
 export default function MusicButton({ className = '' }) {
   const { playing } = useMusic()
   if (!media.music) return null
@@ -15,12 +15,11 @@ export default function MusicButton({ className = '' }) {
       title={playing ? 'Music on' : 'Music off'}
       onClick={toggleMusic}
     >
-      <span className="music-btn__bars" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-        <i />
-      </span>
+      <svg className="music-btn__wave" viewBox="0 0 24 12" width="24" height="12" aria-hidden="true">
+        <g className="music-btn__amp">
+          <path className="music-btn__line" d="M0 6 Q3 1 6 6 T12 6 T18 6 T24 6 T30 6 T36 6 T42 6 T48 6" />
+        </g>
+      </svg>
     </button>
   )
 }
