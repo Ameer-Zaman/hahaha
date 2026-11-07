@@ -380,3 +380,21 @@ export const settingsMediaSchema = z.object({
 /* ---- website chat ---- */
 export const chatStartSchema = z.object({ name: text(30).min(1, 'Enter a name'), text: text(600).min(1, 'Write your question') })
 export const chatMessageSchema = z.object({ text: text(600).min(1, 'Write a message') })
+
+/** Panel → Live: a live gang situation with its stream link. */
+export const liveAlertSchema = z
+  .object({
+    gangA: z.string().trim().toLowerCase().min(1, 'choose the first gang').max(80),
+    gangB: z.string().trim().toLowerCase().min(1, 'choose the second gang').max(80),
+    title: text(80).optional().default(''),
+    url: z
+      .string()
+      .trim()
+      .url('paste the full link to the stream')
+      .max(500)
+      .refine((u) => /^https?:\/\//i.test(u), 'use a http:// or https:// address'),
+    note: text(200).optional().default(''),
+    /** How long it stays up unless ended earlier, in minutes (15 min to 12 hours). */
+    minutes: z.coerce.number().int().min(15).max(720).default(120),
+  })
+  .refine((v) => v.gangA !== v.gangB, { message: 'pick two different gangs', path: ['gangB'] })

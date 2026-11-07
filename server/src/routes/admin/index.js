@@ -11,6 +11,7 @@ import { Staff } from '../../models/Staff.js'
 import { War } from '../../models/War.js'
 import { AuditLog } from '../../models/AuditLog.js'
 import announcements from './announcements.js'
+import live from './live.js'
 import auditRoutes from './audit.js'
 import backup from './backup.js'
 import chat from './chat.js'
@@ -78,13 +79,16 @@ router.get('/overview', staffRoles, async (req, res) => {
     staff: staffCount,
     staffOnline: online,
     maintenance: Boolean(site?.maintenance?.on),
-    sectionsOff: Object.entries(site?.sections ?? {}).filter(([, on]) => on === false).map(([key]) => key),
+    sectionsOff: Object.entries(site?.sections ?? {})
+      .filter(([, on]) => on === false)
+      .map(([key]) => key),
     rules: { published: Boolean(book?.published), publishedAt: book?.publishedAt ?? null, draftSections: book?.draft?.length ?? 0 },
     recent: recent.map(({ _id, actor, ...e }) => ({ id: String(_id), ...e })),
   })
 })
 
 router.use('/announcements', staffRoles, announcements)
+router.use('/live', staffRoles, live)
 router.use('/gangs', staffRoles, gangs)
 router.use('/clubs', staffRoles, clubs)
 router.use('/events', staffRoles, events)

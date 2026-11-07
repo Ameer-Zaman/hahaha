@@ -14,6 +14,7 @@ import { GangEditor, GangList } from './screens/Gangs'
 import { ClubEditor, ClubList } from './screens/Clubs'
 import { EventEditor, EventList } from './screens/Events'
 import Chat from './screens/Chat'
+import Live from './screens/Live'
 import Login from './screens/Login'
 import { MediaLibrary, SiteMedia, StoryMedia } from './screens/MediaScreens'
 import Rules from './screens/Rules'
@@ -30,6 +31,7 @@ const NAV = [
     group: 'Website',
     items: [
       { to: '/panel/site', label: 'Sections & maintenance' },
+      { to: '/panel/live', label: 'Live now' },
       { to: '/panel/announcements', label: 'Announcements' },
       { to: '/panel/chat', label: 'Rules help chat' },
     ],
@@ -247,6 +249,7 @@ function Shell() {
           <Route path="announcements" element={<AnnouncementList />} />
           <Route path="announcements/:id" element={<AnnouncementEditor />} />
           <Route path="chat" element={<Chat />} />
+          <Route path="live" element={<Live />} />
           <Route path="account" element={<Account />} />
           {isSuper && <Route path="accounts" element={<Accounts />} />}
           {isSuper && <Route path="backup" element={<Backup />} />}

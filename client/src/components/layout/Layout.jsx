@@ -8,6 +8,7 @@ import ScrollProgress from './ScrollProgress'
 import TopProgress from '../ui/TopProgress'
 import FluidCursor from '../cursor/FluidCursor'
 import ChatWidget from '../chat/ChatWidget'
+import LiveNotice from '../live/LiveNotice'
 import { setIntroActive, shouldShowIntro } from '../../lib/intro'
 import WelcomeGate from '../intro/WelcomeGate'
 import LoadingScreen from '../intro/LoadingScreen'
@@ -108,6 +109,7 @@ export default function Layout() {
       </main>
       {!NO_FOOTER.includes(pathname) && <SiteFooter />}
       <FluidCursor />
+      <LiveNotice />
       <ChatWidget />
       {showGate && <WelcomeGate paused={showLoader && !loaderLeaving} onDone={() => setShowGate(false)} />}
       {showLoader && <LoadingScreen onLeave={() => setLoaderLeaving(true)} onDone={() => setShowLoader(false)} />}

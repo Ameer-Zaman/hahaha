@@ -4,6 +4,7 @@ import { Announcement, isLive } from '../models/Announcement.js'
 import { Club } from '../models/Club.js'
 import { endOf, Event, eventState } from '../models/Event.js'
 import { Gang } from '../models/Gang.js'
+import { LiveAlert } from '../models/LiveAlert.js'
 import { RuleBook } from '../models/RuleBook.js'
 import { MEDIA_SLOTS, readChatBot, readSections, readSocials, Settings } from '../models/Settings.js'
 import { Staff } from '../models/Staff.js'
@@ -58,6 +59,45 @@ router.get('/gangs', async (req, res) => {
         result: w.result,
       })),
   })
+})
+
+/**
+ * Live gang situations happening right now (Panel → Live): both gangs with their name,
+ * colour and emblem, the stream link, and when it ends. Ended or expired ones never leave
+ * the server. Short cache so a new one shows within about half a minute.
+ */
+router.get('/live', async (req, res) => {
+  res.set('Cache-Control', 'public, max-age=20')
+  const now = new Date()
+  const items = await LiveAlert.find({ endedAt: null, endsAt: { $gt: now } })
+    .sort({ createdAt: -1 })
+    .limit(5)
+    .lean()
+  const slugs = [...new Set(items.flatMap((a) => [a.gangA, a.gangB]))]
+  const gangs = slugs.length ? await Gang.find({ slug: { $in: slugs } }, 'slug name color emblem').lean() : []
+  const bySlug = Object.fromEntries(gangs.map((g) => [g.slug, g]))
+  const side = (slug) => {
+    const g = bySlug[slug]
+    return g
+      ? { id: g.slug, name: g.name, color: /^#[0-9a-f]{6}$/i.test(g.color || '') ? g.color : null, emblem: g.emblem || null }
+      : { id: slug, name: slug, color: null, emblem: null }
+  }
+  const alerts = items.map((a) => ({
+    id: String(a._id),
+    a: side(a.gangA),
+    b: side(a.gangB),
+    title: a.title,
+    url: a.url,
+    note: a.note,
+    startedAt: a.createdAt,
+    endsAt: a.endsAt,
+  }))
+  const mediaUrl = await resolveMediaUrls(alerts.flatMap((x) => [x.a.emblem, x.b.emblem]))
+  for (const x of alerts) {
+    x.a.emblem = mediaUrl(x.a.emblem)
+    x.b.emblem = mediaUrl(x.b.emblem)
+  }
+  res.json({ alerts })
 })
 
 /**

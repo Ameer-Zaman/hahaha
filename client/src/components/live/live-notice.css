@@ -1,0 +1,248 @@
+/* LIVE gang situation notification — bottom-left corner of every page (the chat sits bottom-right) */
+.live {
+  position: fixed;
+  left: max(1rem, env(safe-area-inset-left));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 60;
+  width: min(23rem, calc(100vw - 2rem));
+  pointer-events: none;
+}
+.live__list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.live__card,
+.live__tab {
+  pointer-events: auto;
+}
+.live__card {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.9rem 1rem 1rem;
+  border: 1px solid rgb(226 56 77 / 0.45);
+  border-radius: 4px;
+  background: #0a0a0a;
+  color: var(--fg);
+  box-shadow: 0 24px 50px -20px rgb(0 0 0 / 0.9);
+  animation: live-in 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes live-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+.live__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.live__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #ff6b7d;
+}
+.live__dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e2384d;
+}
+.live__dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid #e2384d;
+  animation: live-ping 1.6s ease-out infinite;
+}
+@keyframes live-ping {
+  from {
+    opacity: 0.8;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+.live__close {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -0.6rem -0.75rem -0.6rem 0;
+  border: 0;
+  background: none;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+.live__close:hover {
+  color: var(--fg);
+}
+
+/* Gang A  vs  Gang B — each name in its gang's colour */
+.live__match {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+}
+.live__side {
+  --side: var(--c-gold-light);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.live__side:last-child {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+.live__emblem {
+  flex: none;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--side);
+}
+.live__emblem--initial {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--side);
+}
+.live__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: var(--side);
+}
+.live__vs {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--fg-muted);
+}
+.live__title {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.live__note {
+  margin: -0.4rem 0 0;
+  font-size: 0.875rem;
+  color: var(--fg-muted);
+  overflow-wrap: anywhere;
+}
+.live__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgb(var(--rgb-ivory) / 0.1);
+}
+.live__when {
+  font-size: 0.8125rem;
+  color: var(--fg-muted);
+}
+.live__watch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: 2px;
+  background: #e2384d;
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+.live__watch:hover {
+  background: #f04a5f;
+}
+.live__watch:focus-visible,
+.live__close:focus-visible,
+.live__tab:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* closed: a small LIVE tab that opens it again */
+.live__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 1px solid rgb(226 56 77 / 0.55);
+  border-radius: 2px;
+  background: #0a0a0a;
+  color: #ff6b7d;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.live__count {
+  min-width: 1.3rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: #e2384d;
+  color: #fff;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+/* phones: across the bottom, clear of the chat button */
+@media (max-width: 40rem) {
+  .live {
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: calc(max(0.75rem, env(safe-area-inset-bottom)) + 4.5rem);
+    width: auto;
+  }
+  .live:has(.live__tab) {
+    right: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live__card {
+    animation: none;
+  }
+  .live__dot::after {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+@media print {
+  .live {
+    display: none;
+  }
+}
