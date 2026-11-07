@@ -166,77 +166,93 @@ function Feed({ events, now }) {
   )
 }
 
-/** The badge: "On now", "In 2 days, 4 hours", "Cancelled", "Finished". */
+/** Where an event stands, as plain words: "In 2 days", "On now", "Cancelled", "Finished". */
 export function StateBadge({ event, now, short = false }) {
   if (event.state === 'upcoming') {
     return (
-      <span className="ev-badge ev-badge--upcoming">
+      <span className="ev-state">
         {short ? 'In' : 'Starts in'} {untilText(event.startsAt, now)}
       </span>
     )
   }
   return (
-    <span className={`ev-badge ev-badge--${event.state}`}>
-      {event.state === 'live' && <span className="ev-badge__pulse" aria-hidden="true" />}
+    <span className={`ev-state ev-state--${event.state}`}>
+      {event.state === 'live' && <span className="ev-state__dot" aria-hidden="true" />}
       {STATE_LABEL[event.state]}
     </span>
   )
 }
 
-/** The date, as a small calendar badge laid over a picture. */
+/** The date set as type: a big day number, the month and weekday small beside it. */
 export function DateBadge({ date, className = '' }) {
   const t = dateTile(date)
   return (
     <span className={`ev-date ${className}`} aria-hidden="true">
-      <span className="ev-date__month">{t.month}</span>
-      <span className="ev-date__day">{t.day}</span>
+      <span className="ev-date__day">{String(t.day).padStart(2, '0')}</span>
+      <span className="ev-date__side">
+        <span>{t.month}</span>
+        <span>{t.weekday}</span>
+      </span>
     </span>
   )
 }
 
-/** The featured or next event: its picture fills the band, the title sits on it. */
+/** The featured or next event: a wide picture, and beside it the date, title and actions. */
 function Spotlight({ event: e, now }) {
   return (
     <article className="ev-spot" aria-labelledby={`spot-${e.id}`}>
-      <div className="ev-spot__media" aria-hidden="true">
+      <Link to={`/events/${e.id}`} state={OPEN} className="ev-spot__media" tabIndex={-1} aria-hidden="true">
         <Plate image={e.image} seed={seedFor(e.id)} horizon={0.7} priority parallax />
-        <span className="ev-spot__shade" />
-      </div>
+      </Link>
       <div className="ev-spot__body">
-        <DateBadge date={e.startsAt} className="ev-date--lg" />
-        <div className="ev-spot__copy">
-          <p className="ev-meta">
-            <span className="ev-meta__cat">{e.featured ? `Featured · ${e.category}` : `Next up · ${e.category}`}</span>
-            <StateBadge event={e} now={now} />
-          </p>
-          <h2 id={`spot-${e.id}`} className="ev-spot__title">
-            <Link to={`/events/${e.id}`} state={OPEN}>
-              {e.title}
-            </Link>
-          </h2>
-          <p className="ev-spot__when">
-            {formatDay(e.startsAt)} · {timeRange(e)}
-            {e.location && <> · {e.location}</>}
-          </p>
-          {e.summary && <p className="ev-spot__summary">{e.summary}</p>}
-          <div className="ev-spot__actions">
-            <Link to={`/events/${e.id}`} state={OPEN} className="btn btn--primary">
-              Event details <Arrow />
-            </Link>
-            {e.signup && (
-              <a className="btn btn--ghost" href={e.signup.url} target="_blank" rel="noopener noreferrer">
-                {e.signup.label}
-              </a>
-            )}
+        <p className="ev-spot__kicker">
+          <span className="ev-spot__cat">{e.featured ? 'Featured' : 'Next up'}</span>
+          <span>{e.category}</span>
+          <StateBadge event={e} now={now} />
+        </p>
+        <h2 id={`spot-${e.id}`} className="ev-spot__title">
+          <Link to={`/events/${e.id}`} state={OPEN}>
+            {e.title}
+          </Link>
+        </h2>
+        {e.summary && <p className="ev-spot__summary">{e.summary}</p>}
+        <dl className="ev-spot__facts">
+          <div>
+            <dt>Date</dt>
+            <dd>{formatDay(e.startsAt)}</dd>
           </div>
+          <div>
+            <dt>Time</dt>
+            <dd>{timeRange(e)}</dd>
+          </div>
+          {e.location && (
+            <div>
+              <dt>Where</dt>
+              <dd>{e.location}</dd>
+            </div>
+          )}
+        </dl>
+        <div className="ev-spot__actions">
+          <Link to={`/events/${e.id}`} state={OPEN} className="evd__btn evd__btn--solid">
+            Event details <Arrow />
+          </Link>
+          {e.signup && (
+            <a className="evd__btn" href={e.signup.url} target="_blank" rel="noopener noreferrer">
+              {e.signup.label}
+            </a>
+          )}
         </div>
       </div>
     </article>
   )
 }
 
-/** One event as a poster: picture with its date and state, then what, when and where. The whole card links. */
+/**
+ * One event: a clean picture, then a row set like a timetable — the date in big numerals on
+ * the left, and the kind, where it stands, the title and the time beside it. The whole card links.
+ */
 function PosterCard({ event: e, now, small = false }) {
+  const where = [timeRange(e), !small && e.location].filter(Boolean).join(' · ')
   return (
     <Link
       to={`/events/${e.id}`}
@@ -245,21 +261,21 @@ function PosterCard({ event: e, now, small = false }) {
     >
       <span className="ev-card__media" aria-hidden="true">
         <Plate image={e.image} seed={seedFor(e.id)} horizon={0.72} />
-        <span className="ev-card__shade" />
-        <DateBadge date={e.startsAt} />
-        <span className="ev-card__state">
-          <StateBadge event={e} now={now} short />
-        </span>
       </span>
       <span className="ev-card__body">
-        <span className="ev-card__meta">
-          {e.category} · {timeRange(e)}
+        <DateBadge date={e.startsAt} />
+        <span className="ev-card__info">
+          <span className="ev-card__top">
+            <span className="ev-card__cat">{e.category}</span>
+            <StateBadge event={e} now={now} short />
+          </span>
+          <span className="ev-card__title">{e.title}</span>
+          <span className="ev-card__where">{where}</span>
+          {!small && e.host && <span className="ev-card__host">Hosted by {e.host}</span>}
         </span>
-        <span className="ev-card__title">{e.title}</span>
-        {!small && (e.location || e.host) && (
-          <span className="ev-card__where">{[e.location, e.host && `Hosted by ${e.host}`].filter(Boolean).join(' · ')}</span>
-        )}
-        {!small && e.summary && <span className="ev-card__summary">{e.summary}</span>}
+        <span className="ev-card__go" aria-hidden="true">
+          <Arrow />
+        </span>
         <span className="visually-hidden">
           {formatDay(e.startsAt)}. {e.state === 'cancelled' ? 'Cancelled.' : ''}
         </span>
@@ -272,12 +288,12 @@ function FeedSkeleton() {
   return (
     <SkeletonGroup label="Loading events">
       <div className="ev-spot ev-spot--skeleton">
-        <Skeleton w="100%" h="100%" radius={24} />
+        <Skeleton w="100%" h="100%" radius={4} />
       </div>
       <div className="ev-grid">
         {Array.from({ length: 3 }, (_, i) => (
           <div key={i} className="ev-skel-card">
-            <Skeleton w="100%" h="12rem" radius={16} />
+            <Skeleton w="100%" h="12rem" radius={3} />
             <Skeleton w="40%" h="0.8rem" />
             <Skeleton w={`${70 - i * 10}%`} h="1.3rem" />
           </div>
