@@ -1944,3 +1944,64 @@
 .p-live-form .p-row {
   margin-top: var(--sp-4);
 }
+
+/* ---------- Rules help chat → AI answers ---------- */
+.p-ai-list {
+  display: grid;
+  margin: var(--sp-4) 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--p-line);
+}
+.p-ai {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--p-line);
+}
+.p-ai.is-off {
+  opacity: 0.6;
+}
+.p-ai__n {
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  padding-top: 0.2rem;
+}
+.p-ai__main {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+.p-ai__models,
+.p-ai__today {
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  overflow-wrap: anywhere;
+}
+.p-ai__rest {
+  color: var(--c-gold-light);
+  font-size: 0.8125rem;
+}
+.p-ai__state {
+  display: grid;
+  justify-items: end;
+  gap: 0.35rem;
+  text-align: right;
+}
+.p-ai-note {
+  font-size: 0.8125rem;
+}
+@media (max-width: 40rem) {
+  .p-ai {
+    grid-template-columns: 1.5rem minmax(0, 1fr);
+  }
+  .p-ai__state {
+    grid-column: 2;
+    justify-items: start;
+    text-align: left;
+  }
+}

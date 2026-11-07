@@ -36,7 +36,7 @@ function ChatScreen({ data, reload }) {
     <>
       <PageHead
         title="Rules help chat"
-        sub="The chat button on every page answers questions about the rules straight from your rule book (free, no AI). If no rule fits, visitors can ask staff: the question opens a thread in your Discord, and replies there go back to them."
+        sub="The chat button on every page answers questions about the rules from your rule book — in plain words with the free AI services below, or with the plain rule search when none is set up or all are resting. If no rule fits, visitors can ask staff: the question opens a thread in your Discord, and replies there go back to them."
       >
         <button type="button" className="pbtn pbtn--ghost" onClick={reload}>
           Refresh
@@ -81,6 +81,8 @@ function ChatScreen({ data, reload }) {
           </p>
         </Panel>
       </div>
+
+      {data.ai && <AiPanel services={data.ai} />}
 
       <Panel title={`Questions sent to staff (${data.chats.length})`}>
         {data.chats.length === 0 ? (
@@ -169,6 +171,57 @@ function BotForm({ initial }) {
           </button>
         </div>
       </form>
+    </Panel>
+  )
+}
+
+const RESTING = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' })
+
+/** The free AI services, in the order they're tried: set up or not, resting, and today's use. */
+function AiPanel({ services }) {
+  const ready = services.filter((s) => s.configured)
+  return (
+    <Panel title="AI answers">
+      <p className="p-text">
+        {ready.length
+          ? `Tried in this order. When one runs out of free uses the next one answers; when all are resting the chat uses the plain rule search.`
+          : `No AI service is set up, so the chat uses the plain rule search. Add a free key on Render (Environment) to turn AI answers on.`}
+      </p>
+      <ol className="p-ai-list">
+        {services.map((s, i) => (
+          <li key={s.id} className={`p-ai ${s.configured ? '' : 'is-off'}`}>
+            <span className="p-ai__n">{i + 1}</span>
+            <span className="p-ai__main">
+              <strong>{s.name}</strong>
+              <span className="p-ai__models">{s.models.join(' → ')}</span>
+              {s.resting.map((r) => (
+                <span key={r.model} className="p-ai__rest">
+                  {r.model}: {r.why} · back at {RESTING.format(new Date(r.until))}
+                </span>
+              ))}
+            </span>
+            <span className="p-ai__state">
+              {!s.configured ? (
+                <Status>Not set up · {s.keyName}</Status>
+              ) : s.resting.length === s.models.length ? (
+                <Status warn>Resting</Status>
+              ) : (
+                <Status ok>Ready</Status>
+              )}
+              {s.configured && (
+                <span className="p-ai__today">
+                  Today: {s.today.answered} answered
+                  {s.today.limited ? ` · ${s.today.limited} limit hits` : ''}
+                  {s.today.failed ? ` · ${s.today.failed} errors` : ''}
+                </span>
+              )}
+            </span>
+          </li>
+        ))}
+      </ol>
+      <p className="p-text p-ai-note">
+        Keys are added on the server (Render → Environment), never here. Counts restart when the server restarts.
+      </p>
     </Panel>
   )
 }

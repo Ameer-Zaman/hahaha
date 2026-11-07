@@ -39,6 +39,80 @@ function cloudinaryConfig() {
 }
 const cloudinary = cloudinaryConfig()
 
+/** "a, b ,c" → ['a', 'b', 'c'] */
+const list = (value) =>
+  String(value ?? '')
+    .split(',')
+    .map((v) => v.trim())
+    .filter(Boolean)
+
+/**
+ * The free AI services for the rules helper, all speaking the same (OpenAI-style) language.
+ * Models can be changed with <NAME>_MODELS (comma-separated, tried in order) when a service
+ * renames them. *_API_BASE overrides are for tests only.
+ */
+function aiProviders() {
+  const env = process.env
+  const cfAccount = env.CLOUDFLARE_ACCOUNT_ID ?? ''
+  const all = [
+    {
+      id: 'groq',
+      name: 'Groq',
+      keyName: 'GROQ_API_KEY',
+      key: env.GROQ_API_KEY ?? '',
+      base: env.GROQ_API_BASE ?? 'https://api.groq.com/openai/v1',
+      // GROQ_MODEL / GROQ_FALLBACK_MODEL still work
+      models: list(
+        env.GROQ_MODELS ?? [env.GROQ_MODEL ?? 'openai/gpt-oss-120b', env.GROQ_FALLBACK_MODEL ?? 'llama-3.1-8b-instant'].join(','),
+      ),
+    },
+    {
+      id: 'cerebras',
+      name: 'Cerebras',
+      keyName: 'CEREBRAS_API_KEY',
+      key: env.CEREBRAS_API_KEY ?? '',
+      base: env.CEREBRAS_API_BASE ?? 'https://api.cerebras.ai/v1',
+      models: list(env.CEREBRAS_MODELS ?? 'gpt-oss-120b,llama3.1-8b'),
+    },
+    {
+      id: 'openrouter',
+      name: 'OpenRouter',
+      keyName: 'OPENROUTER_API_KEY',
+      key: env.OPENROUTER_API_KEY ?? '',
+      base: env.OPENROUTER_API_BASE ?? 'https://openrouter.ai/api/v1',
+      models: list(env.OPENROUTER_MODELS ?? 'openrouter/free'),
+      headers: { 'X-Title': env.SITE_NAME ?? 'Rameirah Empire' },
+    },
+    {
+      id: 'cloudflare',
+      name: 'Cloudflare Workers AI',
+      keyName: 'CLOUDFLARE_AI_TOKEN',
+      key: cfAccount ? (env.CLOUDFLARE_AI_TOKEN ?? '') : '',
+      base: env.CLOUDFLARE_AI_BASE ?? `https://api.cloudflare.com/client/v4/accounts/${cfAccount}/ai/v1`,
+      models: list(env.CLOUDFLARE_AI_MODELS ?? '@cf/meta/llama-3.3-70b-instruct-fp8-fast'),
+    },
+    {
+      id: 'mistral',
+      name: 'Mistral',
+      keyName: 'MISTRAL_API_KEY',
+      key: env.MISTRAL_API_KEY ?? '',
+      base: env.MISTRAL_API_BASE ?? 'https://api.mistral.ai/v1',
+      models: list(env.MISTRAL_MODELS ?? 'mistral-small-latest'),
+    },
+    {
+      id: 'gemini',
+      name: 'Google Gemini',
+      keyName: 'GEMINI_API_KEY',
+      key: env.GEMINI_API_KEY ?? '',
+      base: env.GEMINI_API_BASE ?? 'https://generativelanguage.googleapis.com/v1beta/openai',
+      models: list(env.GEMINI_MODELS ?? 'gemini-flash-latest'),
+    },
+  ].map((p) => ({ headers: {}, ...p, base: p.base.replace(/\/$/, '') }))
+  const order = list(env.AI_ORDER).map((o) => o.toLowerCase())
+  if (!order.length) return all
+  return [...order.map((id) => all.find((p) => p.id === id)).filter(Boolean), ...all.filter((p) => !order.includes(p.id))]
+}
+
 const jwtSecret = required('JWT_SECRET')
 if (jwtSecret.length < 32) throw new Error('JWT_SECRET must be at least 32 characters long')
 
@@ -77,17 +151,12 @@ export const env = {
   },
 
   /**
-   * Rules helper AI (optional): with GROQ_API_KEY set, the website chat answers rule questions
-   * in plain words, using only the published rule book. When Groq is down or its free daily
-   * limit is used up, the chat goes back to the normal rule search by itself.
+   * Rules helper AI (optional, free): the website chat answers rule questions in plain words,
+   * using only the published rule book. Each service below is used only when its key is set,
+   * in this order (or AI_ORDER); when one runs out of free uses the next one answers, and when
+   * all are out the chat goes back to the normal rule search by itself.
    */
-  ai: {
-    groqKey: process.env.GROQ_API_KEY ?? '',
-    model: process.env.GROQ_MODEL ?? 'openai/gpt-oss-120b',
-    fallbackModel: process.env.GROQ_FALLBACK_MODEL ?? 'llama-3.1-8b-instant',
-    // overridable for tests only
-    apiBase: (process.env.GROQ_API_BASE ?? 'https://api.groq.com/openai/v1').replace(/\/$/, ''),
-  },
+  ai: { providers: aiProviders() },
 
   /**
    * Admin-panel sign-in alerts to Discord (optional): a message in a staff channel every time

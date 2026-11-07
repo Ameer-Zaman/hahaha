@@ -33,8 +33,20 @@ services:
       # to Cloudinary and are delivered from its CDN; leave it out to store them in the database.
       - key: CLOUDINARY_URL
         sync: false
-      # Rules helper AI (optional, free key from console.groq.com).
+      # Rules helper AI (optional, free keys; any of them). See server/.env.example.
       - key: GROQ_API_KEY
+        sync: false
+      - key: CEREBRAS_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: CLOUDFLARE_ACCOUNT_ID
+        sync: false
+      - key: CLOUDFLARE_AI_TOKEN
+        sync: false
+      - key: MISTRAL_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
         sync: false
       # Rules help chat → Discord (optional). See README "Rules help chat".
       - key: DISCORD_BOT_TOKEN

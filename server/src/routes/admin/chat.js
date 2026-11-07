@@ -3,6 +3,7 @@ import { Router } from 'express'
 import { ChatSession } from '../../models/ChatSession.js'
 import { Settings } from '../../models/Settings.js'
 import { discordStatus } from '../../services/discordBridge.js'
+import { aiStatus } from '../../services/ruleAi.js'
 
 /** Panel → Website chat: is it on, is Discord connected, and the latest staff chats (read-only). */
 const router = Router()
@@ -15,6 +16,7 @@ router.get('/', async (req, res) => {
   res.json({
     on: settings?.sections?.chat !== false,
     discord: discordStatus(),
+    ai: aiStatus(),
     chats: chats.map((c) => ({
       id: c.publicId,
       nickname: c.nickname,

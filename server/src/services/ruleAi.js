@@ -3,23 +3,65 @@ import { RuleBook } from '../models/RuleBook.js'
 import { indexRules, searchRules } from './ruleSearch.js'
 
 /**
- * The rules helper AI (Groq, free plan). It answers a player's question in plain words, but
- * only from the published rule book: the server picks the rules, the model may only use those,
- * and it must say which rule it used. Anything else ("not in the rules") is sent to staff.
+ * The rules helper AI. It answers a player's question in plain words, but only from the
+ * published rule book: the server picks the rules, the model may only use those, and it must
+ * say which rule it used. Anything else ("not in the rules") is sent to staff.
  *
- * Two models: the main one, then a smaller one with a bigger free allowance. When a model hits
- * its limit Groq says how long to wait; that model is skipped until then. When both are out (or
- * Groq is down), `askRules` throws and the website chat uses the normal rule search instead.
+ * Several free AI services are tried in turn (env.ai.providers: Groq, Cerebras, OpenRouter …,
+ * each only when its key is set). When one hits its free limit it says how long to wait, and it
+ * is skipped until then; one that fails or is slow rests for a short while. When every one is
+ * resting, `askRules` throws and the website chat uses the normal rule search instead.
  */
 
-const TIMEOUT_MS = 12_000
+const TIMEOUT_MS = 10_000 // one service
+const BUDGET_MS = 20_000 // all of them together, so a visitor is never left waiting long
 // below this size the whole rule book goes to the model; above it, the best matches + titles
 const WHOLE_BOOK_CHARS = 14_000
-const pausedUntil = new Map() // model → time it may be used again
 
-export const aiEnabled = () => Boolean(env.ai.groqKey)
+// per "provider model": { until, why } while it rests, and today's counts for the panel
+const resting = new Map()
+const plainOnly = new Set() // models that refused the JSON-mode option once: ask them plainly
+const stats = new Map()
+let statsDay = new Date().toDateString()
+
+const configured = () => env.ai.providers.filter((p) => p.key && p.models.length)
+export const aiEnabled = () => configured().length > 0
 
 export class AiUnavailable extends Error {}
+
+function rest(slot, seconds, why) {
+  resting.set(slot, { until: Date.now() + Math.min(seconds, 24 * 3600) * 1000, why })
+}
+function count(name, field) {
+  const today = new Date().toDateString()
+  if (today !== statsDay) {
+    stats.clear()
+    statsDay = today
+  }
+  const s = stats.get(name) ?? { answered: 0, limited: 0, failed: 0 }
+  s[field] += 1
+  stats.set(name, s)
+}
+
+/** For Panel → Rules help chat: each service, whether it's set up, resting, and today's counts. */
+export function aiStatus() {
+  const now = Date.now()
+  return env.ai.providers.map((p) => {
+    const rests = p.models
+      .map((m) => ({ model: m, ...resting.get(`${p.id} ${m}`) }))
+      .filter((r) => r.until > now)
+      .map((r) => ({ model: r.model, until: new Date(r.until), why: r.why }))
+    return {
+      id: p.id,
+      name: p.name,
+      keyName: p.keyName,
+      configured: Boolean(p.key),
+      models: p.models,
+      resting: rests,
+      today: stats.get(p.id) ?? { answered: 0, limited: 0, failed: 0 },
+    }
+  })
+}
 
 const SYSTEM = `You are the rules helper on a FiveM roleplay community website (${env.siteName}).
 Answer the player's question using ONLY the rules given to you. Do not invent rules, penalties, punishments, numbers or exceptions, and do not use outside knowledge about other servers.
@@ -58,33 +100,78 @@ function context(categories, question, history) {
   return { ids, text: `RULES (full text):\n${full.join('\n') || '(none matched)'}\n\nOTHER RULES (title only):\n${titles}` }
 }
 
-async function callModel(model, messages) {
-  const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS)
+/** The JSON object in a reply, even when a model wraps it in text or ``` fences. */
+function readJson(content) {
+  if (typeof content !== 'string') return null
   try {
-    const res = await fetch(`${env.ai.apiBase}/chat/completions`, {
-      method: 'POST',
-      signal: ctrl.signal,
-      headers: { authorization: `Bearer ${env.ai.groqKey}`, 'content-type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature: 0.2,
-        max_completion_tokens: 700,
-        response_format: { type: 'json_object' },
-        ...(model.startsWith('openai/gpt-oss') ? { reasoning_effort: 'low' } : {}),
-      }),
-    })
-    if (res.status === 429) {
-      const wait = Number(res.headers.get('retry-after')) || 60
-      pausedUntil.set(model, Date.now() + Math.min(wait, 24 * 3600) * 1000)
+    return JSON.parse(content)
+  } catch {
+    const m = /\{[\s\S]*\}/.exec(content)
+    try {
+      return m ? JSON.parse(m[0]) : null
+    } catch {
       return null
     }
-    if (!res.ok) return null
+  }
+}
+
+async function post(provider, body, signal) {
+  return fetch(`${provider.base}/chat/completions`, {
+    method: 'POST',
+    signal,
+    headers: { authorization: `Bearer ${provider.key}`, 'content-type': 'application/json', ...provider.headers },
+    body: JSON.stringify(body),
+  })
+}
+
+/** One model at one service: the parsed answer, or null (and the model rests) when it can't. */
+async function callModel(provider, model, messages, timeLeft) {
+  const slot = `${provider.id} ${model}`
+  const ctrl = new AbortController()
+  const timer = setTimeout(() => ctrl.abort(), Math.min(TIMEOUT_MS, timeLeft))
+  const body = {
+    model,
+    messages,
+    temperature: 0.2,
+    max_tokens: 700,
+    response_format: { type: 'json_object' },
+    ...(/gpt-oss/.test(model) ? { reasoning_effort: 'low' } : {}),
+  }
+  try {
+    // some services don't take every option: then ask plainly (the prompt still asks for JSON)
+    const { response_format: _f, reasoning_effort: _r, ...plain } = body
+    let res = await post(provider, plainOnly.has(slot) ? plain : body, ctrl.signal)
+    if ((res.status === 400 || res.status === 422) && !plainOnly.has(slot)) {
+      res = await post(provider, plain, ctrl.signal)
+      if (res.ok) plainOnly.add(slot)
+    }
+    if (res.status === 429) {
+      rest(slot, Number(res.headers.get('retry-after')) || 60, 'free limit reached')
+      count(provider.id, 'limited')
+      return null
+    }
+    if (res.status === 401 || res.status === 403) {
+      rest(slot, 3600, 'key refused — check it on Render')
+      count(provider.id, 'failed')
+      return null
+    }
+    if (!res.ok) {
+      rest(slot, res.status === 404 ? 3600 : 30, res.status === 404 ? 'model not found' : `error ${res.status}`)
+      count(provider.id, 'failed')
+      return null
+    }
     const data = await res.json()
-    return JSON.parse(data.choices?.[0]?.message?.content ?? '')
+    const out = readJson(data.choices?.[0]?.message?.content)
+    if (!out || typeof out.answer !== 'string' || !out.answer.trim()) {
+      count(provider.id, 'failed')
+      return null
+    }
+    count(provider.id, 'answered')
+    return out
   } catch {
-    return null // timeout, network, or not JSON
+    rest(slot, 30, 'no reply in time')
+    count(provider.id, 'failed')
+    return null
   } finally {
     clearTimeout(timer)
   }
@@ -92,10 +179,11 @@ async function callModel(model, messages) {
 
 /** Answers a rules question: { answer, rules: [ids], found }. Throws AiUnavailable to fall back. */
 export async function askRules(question, history = []) {
-  if (!aiEnabled()) throw new AiUnavailable('off')
-  const models = [env.ai.model, env.ai.fallbackModel].filter((m, i, a) => m && a.indexOf(m) === i)
-  const ready = models.filter((m) => (pausedUntil.get(m) ?? 0) <= Date.now())
-  if (!ready.length) throw new AiUnavailable('limit')
+  const now = Date.now()
+  const queue = configured().flatMap((p) =>
+    p.models.filter((m) => (resting.get(`${p.id} ${m}`)?.until ?? 0) <= now).map((m) => ({ provider: p, model: m })),
+  )
+  if (!queue.length) throw new AiUnavailable(aiEnabled() ? 'all resting' : 'off')
 
   const book = await RuleBook.findOne({ key: 'main' }, 'published').lean()
   const categories = book?.published ?? []
@@ -111,9 +199,12 @@ export async function askRules(question, history = []) {
     },
   ]
 
-  for (const model of ready) {
-    const out = await callModel(model, messages)
-    if (!out || typeof out.answer !== 'string' || !out.answer.trim()) continue
+  const deadline = Date.now() + BUDGET_MS
+  for (const { provider, model } of queue) {
+    const timeLeft = deadline - Date.now()
+    if (timeLeft < 1500) break
+    const out = await callModel(provider, model, messages, timeLeft)
+    if (!out) continue
     const rules = (Array.isArray(out.rules) ? out.rules : []).map(String).filter((id) => ids.has(id))
     return {
       answer: out.answer.trim().slice(0, 900),

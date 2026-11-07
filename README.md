@@ -169,15 +169,22 @@ Netlify forwards `/api/*` to Render behind the scenes, so the API lives on the w
 
 A gold chat button sits in the corner of every page. Visitors ask about the rules ("can I RDM?", "what is NLR?") and get the matching rules straight from the rule book, with a link to each one on the Rules page. It runs in the visitor's browser — free, instant, no AI and no API key — and it only ever quotes the real rules (the published rule book, or the draft while nothing is published). Common slang is understood (RDM, VDM, NLR, meta, cops, mod menu, banned …).
 
-### AI answers (optional, free — Groq)
+### AI answers (optional, free — several services)
 
-With a Groq key the chat answers rule questions in plain words, using **only the published rule book**, and links the rule it used. Players' questions are sent to Groq to get the answer.
+With a free AI key the chat answers rule questions in plain words, using **only the published rule book**, and links the rule it used. Players' questions are sent to the AI service to get the answer.
 
-1. Make a free account at console.groq.com → **API Keys** → create a key.
-2. Render → the API service → **Environment** → add `GROQ_API_KEY` with the key (never put it in the code or in chat).
-3. **Manual Deploy**.
+Add any of these on Render (API service → **Environment**), then **Manual Deploy**. They're tried in this order; when one runs out of free uses the next one answers, and when all are out the chat quietly uses the normal rule search:
 
-It uses `openai/gpt-oss-120b`, then `llama-3.1-8b-instant` when that one's free limit is used up (change with `GROQ_MODEL` / `GROQ_FALLBACK_MODEL`). When both are used up, Groq is down, or a visitor asks too much (10 a minute, 80 a day), the chat quietly goes back to the normal rule search. Remove the key to turn it off.
+| Service | Render variable(s) | Get a free key |
+|---|---|---|
+| Groq | `GROQ_API_KEY` | console.groq.com → API Keys |
+| Cerebras | `CEREBRAS_API_KEY` | cloud.cerebras.ai → API Keys |
+| OpenRouter (free models) | `OPENROUTER_API_KEY` | openrouter.ai → Keys |
+| Cloudflare Workers AI | `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_AI_TOKEN` | Cloudflare → API Tokens → "Workers AI" |
+| Mistral | `MISTRAL_API_KEY` | console.mistral.ai (free plan may train on prompts) |
+| Google Gemini | `GEMINI_API_KEY` | aistudio.google.com (free plan may train on prompts) |
+
+Change the order with `AI_ORDER` (e.g. `cerebras,groq`). If a service renames its models, set `<NAME>_MODELS` (see `server/.env.example`). **Panel → Rules help chat → AI answers** shows which services are set up, which are resting and why, and how many questions each answered today. Each visitor can ask 10 a minute and 80 a day. Never put keys in the code or in chat.
 
 The assistant is called **Vexy**. Change its name and picture in **Panel → Rules help chat → The bot** (the picture comes from the media library; without one it shows the first letter of the name). This is the assistant in the website's chat window — the Discord bot's own name and picture are set in the Discord Developer Portal.
 
