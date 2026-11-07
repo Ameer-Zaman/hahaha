@@ -1,3 +1,4 @@
+import '@fontsource/mr-dafoe/latin-400.css'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
@@ -6,7 +7,6 @@ import '@fontsource/big-shoulders-display/latin-900'
 import { setSmokeColor } from '../../components/cursor/smokeColor'
 import Plate from '../../components/media/Plate'
 import GangsLoading from './components/GangsLoading'
-import RollText from '../../components/ui/RollText'
 import Arrow from '../../components/ui/Arrow'
 import usePageTitle from '../../hooks/usePageTitle'
 import { gsap, MOTION_OK, ScrollTrigger, useGSAP } from '../../lib/gsap'
@@ -87,7 +87,6 @@ const PAGE_SIZE = 8
 
 function GangDetail({ file, prev, next, total }) {
   const root = useRef(null)
-  const [rolled, setRolled] = useState(false)
   const [open, setOpen] = useState(null) // 'wars' | 'players' | null
   const { record } = file
   const played = record.wars.length
@@ -99,11 +98,6 @@ function GangDetail({ file, prev, next, total }) {
     setSmokeColor(gangTheme(file.color)?.['--c-gold'] ?? null)
     return () => setSmokeColor(null)
   }, [file.color])
-
-  useEffect(() => {
-    const id = window.setTimeout(() => setRolled(true), 250)
-    return () => window.clearTimeout(id)
-  }, [])
 
   // ← / → on the keyboard go to the previous / next gang (not while typing or in a pop-up)
   const navigate = useNavigate()
@@ -153,6 +147,47 @@ function GangDetail({ file, prev, next, total }) {
           scrollTrigger: { trigger: '.gx-hero', start: 'top top', end: 'bottom top', scrub: true },
         })
       })
+
+      // the picture tilts in 3D with the mouse (the name drifts the other way, for depth)
+      mm.add(`${MOTION_OK} and (hover: hover) and (pointer: fine)`, () => {
+        const hero = root.current?.querySelector('.gx-hero')
+        const media = hero?.querySelector('.gx-hero__media')
+        const copy = hero?.querySelector('.gx-hero__copy')
+        if (!hero || !media || !copy) return undefined
+        gsap.set(media, { transformPerspective: 1100, scale: 1.1, transformOrigin: '50% 50%' })
+        const ease = { duration: 0.9, ease: 'power3.out' }
+        const to = {
+          rx: gsap.quickTo(media, 'rotationX', ease),
+          ry: gsap.quickTo(media, 'rotationY', ease),
+          mx: gsap.quickTo(media, 'x', ease),
+          my: gsap.quickTo(media, 'y', ease),
+          cx: gsap.quickTo(copy, 'x', ease),
+          cy: gsap.quickTo(copy, 'y', ease),
+        }
+        const move = (x, y) => {
+          to.ry(x * 9)
+          to.rx(-y * 7)
+          to.mx(-x * 26)
+          to.my(-y * 18)
+          to.cx(x * 18)
+          to.cy(y * 12)
+        }
+        const onMove = (e) => {
+          const r = hero.getBoundingClientRect()
+          const x = (e.clientX - r.left) / r.width - 0.5
+          const y = (e.clientY - r.top) / r.height - 0.5
+          move(x, y)
+          hero.style.setProperty('--gx-mx', `${((x + 0.5) * 100).toFixed(1)}%`)
+          hero.style.setProperty('--gx-my', `${((y + 0.5) * 100).toFixed(1)}%`)
+        }
+        const onLeave = () => move(0, 0)
+        hero.addEventListener('pointermove', onMove)
+        hero.addEventListener('pointerleave', onLeave)
+        return () => {
+          hero.removeEventListener('pointermove', onMove)
+          hero.removeEventListener('pointerleave', onLeave)
+        }
+      })
       return () => mm.revert()
     },
     { scope: root },
@@ -165,6 +200,7 @@ function GangDetail({ file, prev, next, total }) {
           <Plate className="gx-hero__plate" image={file.image} seed={file.scene.seed} horizon={file.scene.horizon} priority>
             {file.video && <CardVideo src={file.video} playing delay={0} />}
           </Plate>
+          <div className="gx-hero__glare" />
         </div>
         <div className="gx-hero__shade" aria-hidden="true" />
         {total > 1 && (
@@ -184,8 +220,8 @@ function GangDetail({ file, prev, next, total }) {
               <span className="gx-dot" aria-hidden="true" />
               {file.type} · File {formatFileNumber(file.number)} of {formatFileNumber(total)}
             </p>
-            <h1 className="gx-hero__title gang-name">
-              <RollText text={file.title} rolled={rolled} />
+            <h1 className="gx-hero__title gx-neon">
+              <span className="gx-neon__text">{file.title}</span>
             </h1>
             {file.headline && <p className="gx-hero__line">“{file.headline}”</p>}
           </div>

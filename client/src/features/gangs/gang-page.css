@@ -42,6 +42,7 @@
   position: absolute;
   inset: 0;
   z-index: -2;
+  will-change: transform;
 }
 .gx-hero__plate {
   position: absolute;
@@ -132,8 +133,72 @@
   background: var(--gx-accent);
   rotate: 45deg;
 }
-.gx-hero__title {
-  font-size: clamp(3.6rem, 1rem + 9.5vw, 10.5rem);
+/* the gang's name: glowing neon script in the gang's colour, switched on like a sign */
+.gx-neon {
+  --g: var(--gang, var(--c-gold));
+  --g-core: color-mix(in oklab, var(--g) 30%, white);
+  margin: 0;
+  padding: 0.1em 0.25em 0.15em 0.14em;
+  font-family: 'Mr Dafoe', 'Brush Script MT', cursive;
+  font-size: clamp(4rem, 1.4rem + 10vw, 11.5rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+.gx-neon__text {
+  display: inline-block;
+  color: var(--g-core);
+  transform: rotate(-4deg);
+  transform-origin: left bottom;
+  text-shadow:
+    0 0 1px #fff,
+    0 0 0.04em var(--g-core),
+    0 0 0.09em var(--g),
+    0 0 0.2em var(--g),
+    0 0 0.42em color-mix(in oklab, var(--g) 80%, transparent),
+    0 0 0.8em color-mix(in oklab, var(--g) 45%, transparent);
+  animation:
+    gx-neon-on 1.4s steps(1, end) 0.2s both,
+    gx-neon-hum 4.5s ease-in-out 1.8s infinite;
+}
+/* flicker on, like a sign being switched on */
+@keyframes gx-neon-on {
+  0% { opacity: 0.08; text-shadow: none; }
+  12% { opacity: 1; }
+  16% { opacity: 0.15; text-shadow: none; }
+  30% { opacity: 1; }
+  34% { opacity: 0.3; text-shadow: none; }
+  40%, 100% { opacity: 1; }
+}
+/* then a slow, faint hum in the glow */
+@keyframes gx-neon-hum {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.12) drop-shadow(0 0 0.12em color-mix(in oklab, var(--g) 50%, transparent)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gx-neon__text {
+    animation: none;
+  }
+}
+
+/* a soft light in the gang's colour that follows the mouse across the picture */
+.gx-hero__glare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    38% 48% at var(--gx-mx, 70%) var(--gx-my, 30%),
+    color-mix(in oklab, var(--gang, var(--c-gold)) 22%, transparent),
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.gx-hero:hover .gx-hero__glare {
+  opacity: 1;
 }
 /* the dot by "Gang · File" picks up the gang's colour too */
 .gx[style*='--gang'] .gx-hero__label .gx-dot {
