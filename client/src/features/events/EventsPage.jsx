@@ -234,7 +234,7 @@ function Spotlight({ event: e, now }) {
         </dl>
         <div className="ev-spot__actions">
           <Link to={`/events/${e.id}`} state={OPEN} className="evd__btn evd__btn--solid">
-            Event details <Arrow />
+            Event details
           </Link>
           {e.signup && (
             <a className="evd__btn" href={e.signup.url} target="_blank" rel="noopener noreferrer">
@@ -248,8 +248,8 @@ function Spotlight({ event: e, now }) {
 }
 
 /**
- * One event: a clean picture, then a row set like a timetable — the date in big numerals on
- * the left, and the kind, where it stands, the title and the time beside it. The whole card links.
+ * One event: a clean picture with the date and where it stands set on its top edge, then the
+ * kind, the title, the time and place. The whole card links.
  */
 function PosterCard({ event: e, now, small = false }) {
   const where = [timeRange(e), !small && e.location].filter(Boolean).join(' · ')
@@ -259,23 +259,18 @@ function PosterCard({ event: e, now, small = false }) {
       state={OPEN}
       className={`ev-card ${small ? 'ev-card--small' : ''} ${e.state === 'cancelled' ? 'is-cancelled' : ''} ${e.state === 'ended' ? 'is-ended' : ''}`}
     >
-      <span className="ev-card__media" aria-hidden="true">
+      <span className="ev-card__media">
         <Plate image={e.image} seed={seedFor(e.id)} horizon={0.72} />
+        <span className="ev-card__over">
+          <DateBadge date={e.startsAt} />
+          <StateBadge event={e} now={now} short />
+        </span>
       </span>
       <span className="ev-card__body">
-        <DateBadge date={e.startsAt} />
-        <span className="ev-card__info">
-          <span className="ev-card__top">
-            <span className="ev-card__cat">{e.category}</span>
-            <StateBadge event={e} now={now} short />
-          </span>
-          <span className="ev-card__title">{e.title}</span>
-          <span className="ev-card__where">{where}</span>
-          {!small && e.host && <span className="ev-card__host">Hosted by {e.host}</span>}
-        </span>
-        <span className="ev-card__go" aria-hidden="true">
-          <Arrow />
-        </span>
+        <span className="ev-card__cat">{e.category}</span>
+        <span className="ev-card__title">{e.title}</span>
+        <span className="ev-card__where">{where}</span>
+        {!small && e.host && <span className="ev-card__host">Hosted by {e.host}</span>}
         <span className="visually-hidden">
           {formatDay(e.startsAt)}. {e.state === 'cancelled' ? 'Cancelled.' : ''}
         </span>
