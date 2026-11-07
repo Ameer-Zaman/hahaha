@@ -409,8 +409,6 @@ function RulesChat({ bot }) {
                     </span>
                   )}
 
-                  {m.ai && <span className="chatw__ai-note">AI answer · the rule itself is what counts</span>}
-
                   {m.noMatch && !auth && (
                     <span className="chatw__chips chatw__chips--inline">
                       {canAskStaff ? (
