@@ -257,13 +257,6 @@
   }
 }
 
-.site-nav__cta {
-  --btn-off: 3px;
-  min-height: 2.5rem;
-  padding-inline: 1.25rem;
-  font-size: 0.95rem;
-}
-
 /* ---- Mobile toggle: two lines that turn into a cross ---- */
 .site-header__toggle {
   display: inline-grid;
@@ -471,8 +464,8 @@
   }
 }
 
-/* Laptops and landscape tablets (960–1200px): seven menu items, the community icon, Apply
-   and the music button only fit with tighter spacing — otherwise Apply runs off the edge. */
+/* Laptops and landscape tablets (960–1200px): seven menu items, the community icon, the bell
+   and the music button only fit with tighter spacing. */
 @media (min-width: 60rem) and (max-width: 75rem) {
   .site-nav,
   .site-nav__list {
@@ -500,6 +493,13 @@
   .site-header__music {
     margin-left: calc(-1 * var(--sp-3));
     margin-right: calc(-1 * var(--sp-2));
+  }
+  /* desktop: the links, Discord, the bell and music sit together on the right, no empty gap */
+  .site-nav {
+    margin-left: auto;
+  }
+  .site-header__bell {
+    margin-left: calc(-1 * var(--sp-2));
   }
 }
 
