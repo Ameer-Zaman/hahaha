@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 
-import { applyLink, site } from '../../config/site'
+import { site } from '../../config/site'
 import { useCommunityLinks, useNavigation } from '../../lib/siteSettings'
-import Arrow from '../ui/Arrow'
 import BrandMark from '../ui/BrandMark'
 import SocialIcon from '../ui/SocialIcon'
 import './header.css'
-import ApplyLink from '../ui/ApplyLink'
 import MusicButton from '../ui/MusicButton'
 import { MobileNavGroup, NavDropdown } from './NavDropdown'
 import SocialHub from './SocialHub'
@@ -133,7 +131,6 @@ export default function SiteHeader({ tone = 'dark' }) {
               <SocialHub links={socials} />
             </div>
           )}
-          <ApplyLink className="btn btn--primary site-nav__cta">{applyLink.label}</ApplyLink>
         </nav>
 
         <LiveBell className="site-header__bell" />
@@ -173,9 +170,6 @@ export default function SiteHeader({ tone = 'dark' }) {
             )}
           </ul>
           <div className="mobile-menu__foot" style={{ '--i': navigation.length }}>
-            <ApplyLink className="btn btn--primary btn--large mobile-menu__cta" onClick={() => setOpen(false)}>
-              {applyLink.label} <Arrow />
-            </ApplyLink>
             {socials.length > 0 && (
               <ul role="list" className="mobile-menu__socials">
                 {socials.map((link, i) => (

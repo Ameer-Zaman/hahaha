@@ -217,10 +217,6 @@ function GangDetail({ file, prev, next, total }) {
           </Link>
           <div className="gx-hero__copy">
             {file.demo && <span className="gx-demo">Demo data — not real</span>}
-            <p className="gx-hero__label">
-              <span className="gx-dot" aria-hidden="true" />
-              {file.type} · File {formatFileNumber(file.number)} of {formatFileNumber(total)}
-            </p>
             <NeonName as="h1" className="gx-hero__title" text={file.title} />
             {file.headline && <p className="gx-hero__line">“{file.headline}”</p>}
           </div>
