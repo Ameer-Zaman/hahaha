@@ -11,8 +11,8 @@ export default function MusicButton({ className = '' }) {
       type="button"
       className={`music-btn ${playing ? 'is-playing' : ''} ${className}`}
       aria-pressed={playing}
-      aria-label={playing ? 'Music on — turn off' : 'Music off — turn on'}
-      title={playing ? 'Music on' : 'Music off'}
+      aria-label={playing ? 'Sound on — turn off' : 'Sound off — turn on'}
+      title={playing ? 'Sound on' : 'Sound off'}
       onClick={toggleMusic}
     >
       <svg className="music-btn__wave" viewBox="0 0 24 12" width="24" height="12" aria-hidden="true">

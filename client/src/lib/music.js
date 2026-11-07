@@ -136,6 +136,9 @@ const subscribe = (fn) => {
   return () => listeners.delete(fn)
 }
 
+/** Is the sound on right now (the header button)? The interface sounds follow it. */
+export const isSoundOn = () => state.playing
+
 export function useMusic() {
   return useSyncExternalStore(subscribe, () => state)
 }
