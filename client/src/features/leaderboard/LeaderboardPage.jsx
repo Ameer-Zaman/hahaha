@@ -197,21 +197,6 @@ function WarBoard() {
         </div>
       </dl>
 
-      {/* phones: the column headings are hidden, so sorting moves up here */}
-      <div className="wb-sort" role="group" aria-label="Sort the standings">
-        {WAR_SORTS.map((o) => (
-          <button
-            key={o.key}
-            type="button"
-            className={`wb-sort__btn ${sort.key === o.key ? 'is-active' : ''}`}
-            aria-pressed={sort.key === o.key}
-            onClick={() => setSort({ key: o.key, dir: o.key === 'rank' ? 'asc' : 'desc' })}
-          >
-            {o.label}
-          </button>
-        ))}
-      </div>
-
       <table className="wb">
         <caption className="visually-hidden">War standings</caption>
         <thead>
@@ -240,7 +225,8 @@ function WarBoard() {
               </SortButton>
             </th>
             <th scope="col" className="wb__form">
-              Last 5
+              <span className="wb__form-head--5">Last 5</span>
+              <span className="wb__form-head--3">Last 3</span>
             </th>
           </tr>
         </thead>
@@ -280,13 +266,6 @@ function WarBoard() {
     </div>
   )
 }
-
-const WAR_SORTS = [
-  { key: 'rank', label: 'Rank' },
-  { key: 'wins', label: 'Wins' },
-  { key: 'losses', label: 'Losses' },
-  { key: 'played', label: 'Wars' },
-]
 
 /** Every war counted once (each one appears in both gangs' records). */
 function warTotals(files = []) {

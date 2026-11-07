@@ -559,77 +559,34 @@
     min-width: 0;
   }
 
-  /* A wide table on a phone hides its own columns, so each row becomes a card:
-     rank and name on top, every stat below with the label it had in the header. */
-  .lb-table-wrap {
-    border: 0;
-    border-radius: 0;
-    background: none;
-    overflow: visible;
-  }
-  .lb-table,
-  .lb-table thead,
-  .lb-table tbody,
-  .lb-table tr,
-  .lb-table td,
-  .lb-table th {
-    display: block;
+  /* phones: still a table — one line per player: rank, name, then each number in its column */
+  .lb-table {
     min-width: 0;
   }
-  .lb-table thead {
-    display: none; /* the labels ride on each cell instead */
+  .lb-table th,
+  .lb-table td {
+    padding: 0.7rem 0.5rem;
   }
-  .lb-table tbody tr {
-    position: relative;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(4.25rem, 1fr));
-    gap: var(--sp-3) 0.75rem;
-    margin-bottom: var(--sp-3);
-    padding: var(--sp-4);
-    border: 1px solid rgb(var(--rgb-ivory) / 0.1);
-    border-radius: 14px;
-    background: rgb(var(--rgb-card) / 0.45);
-  }
-  .lb-table tbody tr.is-top {
-    border-color: rgb(var(--rgb-gold) / 0.35);
-  }
-  .lb-table tbody tr:hover {
-    background: rgb(var(--rgb-card) / 0.45);
-  }
-  .lb-table tbody tr > * {
-    padding: 0;
-    border: 0;
-    text-align: left;
-    white-space: normal;
-  }
-  /* the rank sits in the corner; the name takes the whole first line */
-  .lb-table tbody .lb-col-rank {
-    position: absolute;
-    top: var(--sp-4);
-    left: var(--sp-4);
-    width: auto;
-  }
-  .lb-table tbody .lb-col-name {
-    grid-column: 1 / -1;
-    padding-left: 2.75rem;
-    min-height: 2rem;
-    display: flex;
-    align-items: center;
-    font-size: var(--fs-md);
-  }
-  /* each stat is a little label-over-value stack, flowing across the card */
-  .lb-table tbody td[data-label] {
-    display: grid;
-    gap: 0.15rem;
-    align-content: start;
-  }
-  .lb-table tbody td[data-label]::before {
-    content: attr(data-label);
-    font-family: var(--font-mono);
-    font-size: var(--fs-2xs);
+  .lb-table thead th {
     letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--fg-muted);
+  }
+  .lb-table .lb-col-rank {
+    width: 2.5rem;
+    padding-inline: 0.35rem;
+  }
+  /* the name takes what's left and trims with … if it's very long */
+  .lb-table tbody .lb-col-name {
+    max-width: 0;
+  }
+  .lb-table tbody .lb-col-name .lb-name {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lb-rank {
+    min-width: 1.75rem;
+    height: 1.75rem;
   }
   .lb-table__empty {
     padding: var(--sp-6) 0 !important;
@@ -788,7 +745,7 @@
   white-space: nowrap;
 }
 
-.wb-sort {
+.wb__form-head--3 {
   display: none;
 }
 
@@ -806,112 +763,112 @@
   }
 }
 
-/* phones: each gang is a compact two-line row — rank, name and last result; then the
-   record, the balance bar and the form across the line below */
+/* phones: one line per gang — rank, emblem and name, W, L, wars and the last five results */
 @media (max-width: 720px) {
-  .wb thead {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-  }
-  .wb,
-  .wb tbody {
-    display: block;
-  }
   .wb {
-    position: relative; /* keeps the hidden heading row inside the table */
+    table-layout: auto;
   }
-  .wb tbody tr {
-    display: grid;
-    grid-template-columns: 2.5rem auto auto auto minmax(0, 1fr);
-    grid-template-areas:
-      'rank gang gang gang gang'
-      '.    win  loss wars form';
-    align-items: center;
-    gap: var(--sp-2) var(--sp-3);
-    padding: var(--sp-4) var(--sp-2) var(--sp-4) 0;
+  .wb thead th {
+    padding: 0.6rem 0.3rem;
+    letter-spacing: 0.06em;
   }
   .wb td,
   .wb tbody th {
-    padding: 0;
+    padding: 0.6rem 0.3rem;
   }
-  .wb tbody .wb__rank {
-    grid-area: rank;
-    width: auto;
+  .wb__rank {
+    width: 2.1rem;
   }
+  .wb .lb-rank {
+    min-width: 1.6rem;
+    height: 1.6rem;
+  }
+  /* name: takes the room that's left, trimmed with … if it's long; the "last war" line is dropped */
   .wb tbody .wb__gang {
-    grid-area: gang;
+    max-width: 0;
   }
-  /* the numbers sit on the second line, each with a small label: W 4 · L 1 · WARS 5 */
-  .wb tbody .wb__num {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.35rem;
-    width: auto;
-    padding-right: var(--sp-3);
-    font-size: var(--fs-md);
+  .wb__name {
+    display: flex;
+    gap: 0.45rem;
+    min-width: 0;
+    overflow-wrap: normal;
   }
-  .wb tbody .wb__num::before {
-    content: attr(data-label);
-    font-size: var(--fs-2xs);
-    font-weight: 400;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--fg-muted);
+  .wb__name-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
-  .wb tbody .wb__num--win {
-    grid-area: win;
-  }
-  .wb tbody .wb__num--loss {
-    grid-area: loss;
-  }
-  .wb tbody .wb__num--played {
-    grid-area: wars;
-  }
-  .wb tbody .wb__form {
-    grid-area: form;
-    justify-self: end;
+  .wb__name .lb-emblem,
+  .wb__name img {
+    width: 1.5rem;
+    height: 1.5rem;
+    flex: none;
   }
   .wb__last {
-    padding-left: 0;
-    margin-top: 0;
+    display: none;
+  }
+  .wb .wb__num {
+    width: 2rem;
+  }
+  .wb td.wb__num {
+    font-size: var(--fs-md);
+  }
+  .wb td.wb__num--played {
+    font-size: var(--fs-sm);
+  }
+  .wb thead .wb__num .lb-sort,
+  .wb thead .wb__rank .lb-sort {
+    padding-inline: 0;
+  }
+  .wb__form {
+    width: 1%;
+    text-align: right;
+  }
+  .wb__form .lb-form {
+    gap: 2px;
+  }
+  .wb__form .lb-form__dot {
+    width: 17px;
+    height: 17px;
+    border-radius: 4px;
+    font-size: 0.66rem;
   }
   .wb tbody tr.is-top-1 td:first-child {
-    box-shadow: none;
+    box-shadow: inset 2px 0 var(--c-gold);
   }
-  .wb-sort {
-    display: flex;
-    gap: 4px;
-    width: fit-content;
-    max-width: 100%;
-    margin-bottom: var(--sp-3);
-    padding: 4px;
-    border: 1px solid rgb(var(--rgb-ivory) / 0.12);
-    border-radius: 999px;
+}
+
+/* small phones: tighter still, and the form column keeps the three most recent results */
+@media (max-width: 480px) {
+  .wb thead th,
+  .wb td,
+  .wb tbody th {
+    padding-inline: 0.2rem;
   }
-  .wb-sort__btn {
-    min-height: 44px;
-    padding: 0 clamp(0.6rem, 3vw, 1rem);
-    white-space: nowrap;
-    border: 0;
-    border-radius: 999px;
-    background: none;
-    color: var(--fg-muted);
-    font-family: var(--font-mono);
-    font-size: var(--fs-2xs);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    cursor: pointer;
+  .wb thead .lb-sort {
+    min-width: 1.75rem;
   }
-  .wb-sort__btn.is-active {
-    background: rgb(var(--rgb-gold) / 0.14);
-    color: var(--c-gold-light);
+  .wb .wb__num {
+    width: 1.9rem;
   }
-  .wb-sort__btn:focus-visible {
-    outline: 2px solid var(--focus);
-    outline-offset: 2px;
+  .wb__rank {
+    width: 1.9rem;
+  }
+  .wb__name .lb-emblem,
+  .wb__name img {
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: 0.65rem;
+  }
+  .wb__form .lb-form__dot:nth-last-child(n + 4) {
+    display: none;
+  }
+  .wb__form-head--5 {
+    display: none;
+  }
+  .wb__form-head--3 {
+    display: inline;
   }
 }
 
@@ -941,4 +898,16 @@
 }
 .lb-skel-row:last-child {
   border-bottom: 0;
+}
+
+/* the narrowest phones: the gang name needs the room more than the emblem does */
+@media (max-width: 400px) {
+  .wb__name .lb-emblem,
+  .wb__name img {
+    display: none;
+  }
+  .wb .lb-rank {
+    min-width: 1.4rem;
+    height: 1.4rem;
+  }
 }
