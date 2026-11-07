@@ -1,19 +1,20 @@
 /* =========================================================
-   Website chat — a direct-message thread in the site's own black and gold.
-   Received bubbles graphite, sent bubbles gold, gold-ringed avatars, a pill
-   composer with Send. The chat button is the bot's own picture.
+   Website chat — minimal: black, hairlines, square-ish corners, one gold accent.
+   Received messages on a dark tile, sent ones outlined in gold; a plain composer
+   with a square send button. The chat button is the bot's own picture.
    ========================================================= */
 .chatw {
   --cw-bg: #0b0b0d;
   --cw-surface: #141416;
-  --cw-bubble: #1d1d21;
+  --cw-bubble: #151517;
   --cw-line: rgb(244 239 230 / 0.1);
   --cw-line-strong: rgb(244 239 230 / 0.18);
   --cw-text: #f4efe6;
   --cw-muted: rgb(244 239 230 / 0.62);
   --cw-accent: var(--c-gold-light, #f6e3b0); /* links and Send, on black */
   --cw-gold: var(--gold-gradient, #e3b55a); /* filled: sent bubbles and buttons, dark text */
-  --cw-ring: linear-gradient(140deg, #fff2c9, #e3b55a 45%, #a87a2c);
+  --cw-ring: linear-gradient(140deg, #fff2c9, #e3b55a 45%, #a87a2c); /* the chat button only */
+  --cw-r: 4px;
   position: fixed;
   right: max(1rem, env(safe-area-inset-right));
   bottom: max(1rem, env(safe-area-inset-bottom));
@@ -74,8 +75,8 @@
   height: 1.4rem;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
+  stroke-width: 1.6;
+  stroke-linecap: square;
 }
 .chatw__badge {
   position: absolute;
@@ -102,14 +103,14 @@
   flex-direction: column;
   width: min(24rem, calc(100vw - 2rem));
   height: min(38rem, calc(100svh - 7rem));
-  border: 1px solid var(--cw-line);
-  border-radius: 20px;
+  border: 1px solid var(--cw-line-strong);
+  border-radius: var(--cw-r);
   background: var(--cw-bg);
-  box-shadow: 0 30px 80px -20px #000;
+  box-shadow: 0 30px 70px -30px #000;
   overflow: hidden;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(12px) scale(0.97);
+  transform: translateY(8px);
   transform-origin: bottom right;
   transition: opacity 0.22s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0.25s;
 }
@@ -134,8 +135,8 @@
 }
 .chatw__name {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 0.9375rem;
+  font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -152,7 +153,7 @@
   place-items: center;
   min-height: 2.75rem;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--cw-r);
   background: none;
   color: var(--cw-text);
   cursor: pointer;
@@ -164,6 +165,7 @@
   padding: 0 0.85rem;
   font: 600 0.875rem/1 var(--font-sans);
   color: var(--cw-accent);
+  text-decoration: none;
 }
 .chatw__icon-btn svg {
   width: 1.25rem;
@@ -180,8 +182,7 @@
 .chatw__icon-btn:focus-visible,
 .chatw__text-btn:focus-visible,
 .chatw__chip:focus-visible,
-.chatw__send:focus-visible,
-.chatw__profile-btn:focus-visible {
+.chatw__send:focus-visible {
   outline: 2px solid var(--cw-accent);
   outline-offset: 2px;
 }
@@ -208,6 +209,13 @@
   /* the black gap between the ring and the picture */
   box-shadow: 0 0 0 2px var(--cw-bg);
 }
+/* inside the window the ring is just a hairline */
+.chatw__panel .chatw__ring {
+  background: var(--cw-line-strong);
+}
+.chatw__panel .chatw__ring .chatw__avatar {
+  box-shadow: 0 0 0 1px var(--cw-bg);
+}
 .chatw__avatar-img {
   width: 100%;
   height: 100%;
@@ -227,12 +235,12 @@
   box-shadow: none;
 }
 .chatw__ring--sm {
-  width: 2.6rem;
-  height: 2.6rem;
+  width: 2.25rem;
+  height: 2.25rem;
 }
 .chatw__avatar--sm {
-  width: calc(2.6rem - 6px);
-  height: calc(2.6rem - 6px);
+  width: calc(2.25rem - 2px);
+  height: calc(2.25rem - 2px);
   font-size: 1.05rem;
 }
 .chatw__ring--lg {
@@ -266,41 +274,6 @@
   overscroll-behavior: contain;
 }
 
-/* the profile card that opens every conversation */
-.chatw__profile {
-  display: grid;
-  justify-items: center;
-  gap: 0.2rem;
-  padding: 1rem 0 1.25rem;
-  text-align: center;
-}
-.chatw__profile .chatw__ring {
-  margin-bottom: 0.55rem;
-}
-.chatw__profile-name {
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-.chatw__profile-sub {
-  font-size: 0.8125rem;
-  color: var(--cw-muted);
-}
-.chatw__profile-btn {
-  display: inline-grid;
-  place-items: center;
-  min-height: 2.75rem;
-  margin-top: 0.75rem;
-  padding: 0 1.1rem;
-  border-radius: 10px;
-  background: var(--cw-line-strong);
-  color: var(--cw-text);
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-decoration: none;
-}
-.chatw__profile-btn:hover {
-  background: rgb(244 239 230 / 0.24);
-}
 .chatw__time {
   padding: 0.25rem 0 0.85rem;
   text-align: center;
@@ -364,8 +337,8 @@
 }
 
 .chatw__bubble {
-  padding: 0.55rem 0.85rem;
-  border-radius: 22px;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--cw-r);
   font-size: 0.9375rem;
   line-height: 1.4;
   white-space: pre-wrap;
@@ -375,21 +348,9 @@
   background: var(--cw-bubble);
 }
 .chatw__msg--me .chatw__bubble {
-  background: var(--cw-gold);
-  color: #0b0a08;
-}
-/* a run of messages from one sender reads as one block: the inner corners tighten */
-.chatw__msg--them:not(.is-last) .chatw__bubble {
-  border-bottom-left-radius: 6px;
-}
-.chatw__msg--them:not(.is-first) .chatw__bubble {
-  border-top-left-radius: 6px;
-}
-.chatw__msg--me:not(.is-last) .chatw__bubble {
-  border-bottom-right-radius: 6px;
-}
-.chatw__msg--me:not(.is-first) .chatw__bubble {
-  border-top-right-radius: 6px;
+  border: 1px solid rgb(227 181 90 / 0.55);
+  background: rgb(227 181 90 / 0.06);
+  color: var(--cw-text);
 }
 .chatw__msg--mid .chatw__bubble {
   padding: 0.3rem 0.6rem;
@@ -440,10 +401,11 @@
 .chatw__rule {
   display: grid;
   gap: 0.3rem;
-  padding: 0.8rem 0.9rem;
+  padding: 0.75rem 0.9rem;
   border: 1px solid var(--cw-line);
-  border-radius: 16px;
-  background: var(--cw-surface);
+  border-left: 2px solid var(--c-gold, #e3b55a);
+  border-radius: var(--cw-r);
+  background: none;
   overflow-wrap: anywhere;
 }
 .chatw__rule-cat {
@@ -481,7 +443,7 @@
   gap: 0.5rem;
   min-height: 2.75rem;
   padding: 0.55rem 0.9rem;
-  border-radius: 14px;
+  border-radius: var(--cw-r);
   color: var(--cw-text);
   font-size: 0.875rem;
   font-weight: 600;
@@ -510,7 +472,7 @@
   min-height: 2.5rem;
   padding: 0 0.95rem;
   border: 1px solid var(--cw-line-strong);
-  border-radius: 999px;
+  border-radius: var(--cw-r);
   background: none;
   color: var(--cw-text);
   font: 600 0.8125rem/1.2 var(--font-sans);
@@ -522,7 +484,7 @@
 }
 .chatw__chip--staff {
   border-color: transparent;
-  background: var(--cw-gold);
+  background: var(--c-gold, #e3b55a);
   color: #0b0a08;
 }
 .chatw__chip--staff:hover {
@@ -533,30 +495,31 @@
   cursor: default;
 }
 
-/* ---------- the composer: a pill with Send inside ---------- */
+/* ---------- the composer: a plain field on a hairline, square send button ---------- */
 .chatw__compose {
   display: grid;
   gap: 0.4rem;
   padding: 0.6rem 0.75rem 0.75rem;
+  border-top: 1px solid var(--cw-line);
 }
 .chatw__pill {
   display: flex;
   align-items: flex-end;
-  gap: 0.25rem;
-  padding: 0.2rem 0.3rem 0.2rem 1rem;
+  gap: 0.5rem;
+  padding: 0.2rem 0.2rem 0.2rem 0.85rem;
   border: 1px solid var(--cw-line-strong);
-  border-radius: 24px;
+  border-radius: var(--cw-r);
   background: var(--cw-bg);
 }
 .chatw__pill:focus-within {
-  border-color: rgb(227 181 90 / 0.55);
+  border-color: rgb(227 181 90 / 0.6);
 }
 .chatw__input {
   width: 100%;
   min-height: 2.75rem;
   padding: 0.7rem 0.9rem;
   border: 1px solid var(--cw-line-strong);
-  border-radius: 12px;
+  border-radius: var(--cw-r);
   background: var(--cw-surface);
   color: var(--cw-text);
   font: inherit;
@@ -583,18 +546,24 @@
 }
 .chatw__send {
   flex: none;
-  min-width: 3.5rem;
-  min-height: 2.75rem;
-  padding: 0 0.75rem;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
   border: 0;
-  border-radius: 999px;
-  background: none;
-  color: var(--cw-accent);
-  font: 700 0.9375rem/1 var(--font-sans);
+  border-radius: 2px;
+  background: var(--c-gold, #e3b55a);
+  color: #0b0a08;
   cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+.chatw__send:hover:not(:disabled) {
+  background: var(--c-gold-light, #f6e3b0);
 }
 .chatw__send:disabled {
-  color: rgb(246 227 176 / 0.4);
+  background: var(--cw-line);
+  color: var(--cw-muted);
   cursor: default;
 }
 
@@ -624,8 +593,8 @@
   min-height: 2.75rem;
   padding: 0 1.1rem;
   border: 0;
-  border-radius: 10px;
-  background: var(--cw-gold);
+  border-radius: 2px;
+  background: var(--c-gold, #e3b55a);
   color: #0b0a08;
   font: 600 0.875rem/1 var(--font-sans);
   cursor: pointer;

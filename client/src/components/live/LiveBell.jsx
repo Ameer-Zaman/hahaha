@@ -1,8 +1,8 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 
-import { ago, useLiveAlerts, watchLabel } from './liveData'
-import Side from './LiveSide'
+import { useLiveAlerts } from './liveData'
+import LiveItem from './LiveItem'
 import './live-notice.css'
 import './live-bell.css'
 
@@ -86,23 +86,7 @@ export default function LiveBell({ className = '' }) {
           <ul className="bell__list" role="list">
             {alerts.map((a) => (
               <li key={a.id} className="bell__item">
-                <p className="live__match">
-                  <Side side={a.a} />
-                  <span className="live__vs">vs</span>
-                  <Side side={a.b} />
-                </p>
-                {a.title && <p className="live__title">{a.title}</p>}
-                {a.note && <p className="live__note">{a.note}</p>}
-                <div className="live__foot">
-                  <span className="live__when">{ago(a.startedAt, now)}</span>
-                  <a className="live__watch" href={a.url} target="_blank" rel="noopener noreferrer">
-                    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
-                      <path d="M4 2.8v10.4L13 8 4 2.8Z" fill="currentColor" />
-                    </svg>
-                    {watchLabel(a.url)}
-                    <span className="visually-hidden"> (opens in a new tab)</span>
-                  </a>
-                </div>
+                <LiveItem alert={a} now={now} />
               </li>
             ))}
           </ul>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { applyLink, site } from '../../config/site'
+import { applyLink } from '../../config/site'
 import { ApiError, USE_API } from '../../lib/api'
 import { useRuleBook } from '../../lib/ruleBook'
 import { indexRules, searchRules } from '../../lib/ruleSearch'
@@ -295,10 +295,14 @@ function RulesChat({ bot }) {
             <p className="chatw__name">{bot.name}</p>
             <p className="chatw__status">{inStaffChat ? 'Chatting with staff' : 'Answers from the rule book'}</p>
           </div>
-          {auth && (
+          {auth ? (
             <button type="button" className="chatw__text-btn" onClick={endStaffChat} title="End the chat with staff">
               End chat
             </button>
+          ) : (
+            <Link to="/rules" className="chatw__text-btn" onClick={() => setOpen(false)}>
+              Rules
+            </Link>
           )}
           <button type="button" className="chatw__icon-btn" onClick={toggle} aria-label="Close">
             {Icon.close}
@@ -306,15 +310,6 @@ function RulesChat({ bot }) {
         </header>
 
         <ol ref={listRef} className="chatw__list" aria-live="polite">
-          {/* the profile card that opens a conversation */}
-          <li className="chatw__profile" aria-hidden="true">
-            <BotAvatar bot={bot} size="lg" />
-            <span className="chatw__profile-name">{bot.name}</span>
-            <span className="chatw__profile-sub">Rules assistant · {site.name}</span>
-            <Link to="/rules" className="chatw__profile-btn" tabIndex={open ? 0 : -1} onClick={() => setOpen(false)}>
-              View the rules
-            </Link>
-          </li>
           <li className="chatw__time" aria-hidden="true">
             Today {clock.format(openedAt)}
           </li>
@@ -448,8 +443,10 @@ function RulesChat({ bot }) {
                 placeholder={inStaffChat ? 'Message the staff…' : 'Message…'}
                 aria-label={inStaffChat ? 'Message the staff' : `Message ${bot.name} about a rule`}
               />
-              <button type="submit" className="chatw__send" disabled={busy || !draft.trim()}>
-                Send
+              <button type="submit" className="chatw__send" disabled={busy || !draft.trim()} aria-label="Send">
+                <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
+                  <path d="M4 10h11M10.5 5.5 15 10l-4.5 4.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="square" />
+                </svg>
               </button>
             </div>
           </form>
