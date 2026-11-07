@@ -162,48 +162,103 @@
 }
 
 /*
- * The gang's name (reel cards and the gang's own page): a tall, heavy condensed face, filled
- * with the gang's colour from a light tint at the top to a deep shade at the foot, standing on
- * a hard offset shadow in its darkest shade, with a soft glow in its colour behind.
- * --gang comes from Panel → Gangs → Name colour; without one it's the site's gold.
+ * The gang's name (reel cards and the gang's own page): glowing neon script in the gang's
+ * colour (Panel → Gangs → Name colour; the site's gold without one), like a sign on a wall.
  */
-.gang-name {
+.neon-name {
   --g: var(--gang, var(--c-gold));
-  --gang-tint: color-mix(in oklab, var(--g) 42%, white);
-  --gang-deep: color-mix(in oklab, var(--g) 58%, black);
-  --gang-shadow: color-mix(in oklab, var(--g) 28%, black);
-  --roll-h: 0.9em;
+  --g-core: color-mix(in oklab, var(--g) 30%, white);
   margin: 0;
-  font-family: var(--font-crew);
-  font-weight: 900;
-  line-height: 0.9;
-  letter-spacing: 0.005em;
-  text-transform: uppercase;
-  color: var(--g);
+  padding: 0.1em 0.25em 0.15em 0.14em;
+  font-weight: 400;
+  line-height: 1;
   overflow-wrap: anywhere;
-  filter: drop-shadow(0.05em 0.05em 0 var(--gang-shadow)) drop-shadow(0 0 0.45em color-mix(in oklab, var(--g) 35%, transparent))
-    drop-shadow(0 0.2em 0.4em rgb(0 0 0 / 0.55));
+}
+.neon-name__text {
+  display: inline-block;
+  font-family: 'Mr Dafoe', 'Brush Script MT', cursive;
+  font-size: 1.1em;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--g-core);
+  transform: rotate(-4deg);
+  transform-origin: left bottom;
+  text-shadow:
+    0 0 1px #fff,
+    0 0 0.04em var(--g-core),
+    0 0 0.09em var(--g),
+    0 0 0.2em var(--g),
+    0 0 0.42em color-mix(in oklab, var(--g) 80%, transparent),
+    0 0 0.8em color-mix(in oklab, var(--g) 45%, transparent);
+}
+/* script runs smaller than block capitals: a bigger size on the cards */
+.reel-card__title .neon-name__text {
+  font-size: 1.45em;
+}
+/* in the reel the sign is off on the cards peeking in, and switches on when its gang arrives */
+.reel.is-loop .reel-card .neon-name__text {
+  opacity: 0.4;
+  text-shadow: 0 0 0.06em color-mix(in oklab, var(--g) 50%, transparent);
+  transition: opacity 0.3s ease;
+}
+.reel.is-loop .reel-card.is-active .neon-name__text {
+  opacity: 1;
+  text-shadow:
+    0 0 1px #fff,
+    0 0 0.04em var(--g-core),
+    0 0 0.09em var(--g),
+    0 0 0.2em var(--g),
+    0 0 0.42em color-mix(in oklab, var(--g) 80%, transparent),
+    0 0 0.8em color-mix(in oklab, var(--g) 45%, transparent);
+  animation:
+    neon-on 1.1s steps(1, end) 0.15s both,
+    neon-hum 4.5s ease-in-out 1.4s infinite;
+}
+@keyframes neon-on {
+  0% { opacity: 0.25; text-shadow: none; }
+  12% { opacity: 1; }
+  16% { opacity: 0.3; text-shadow: none; }
+  30% { opacity: 1; }
+  34% { opacity: 0.4; text-shadow: none; }
+  40%, 100% { opacity: 1; }
+}
+@keyframes neon-hum {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.12) drop-shadow(0 0 0.12em color-mix(in oklab, var(--g) 50%, transparent)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .neon-name__text,
+  .reel.is-loop .reel-card.is-active .neon-name__text {
+    animation: none !important;
+  }
 }
 
-/* the fill sits on each letter (the letters roll, so the heading itself can't clip it) */
-.gang-name .roll__in > span {
-  background: linear-gradient(180deg, var(--gang-tint) 0%, var(--g) 52%, var(--gang-deep) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* 3D: the picture leans toward the mouse (--tilt-x/y, -0.5…0.5, set by the reel), the name and
+   status drift the other way, and a soft light in the gang's colour follows the mouse */
+.reel.has-tilt .reel-card__media .plate {
+  transform: perspective(1100px) rotateY(calc(var(--tilt-x, 0) * 10deg)) rotateX(calc(var(--tilt-y, 0) * -8deg))
+    translate3d(calc(var(--tilt-x, 0) * -28px), calc(var(--tilt-y, 0) * -20px), 0) scale(1.1);
+  will-change: transform;
 }
-
-/* a short bar in the gang's colour under the name, cut at a slant */
-.gang-name::after {
-  content: '';
-  display: block;
-  width: clamp(3rem, 18%, 6rem);
-  height: 0.09em;
-  min-height: 3px;
-  max-height: 7px;
-  margin-top: 0.22em;
-  background: linear-gradient(90deg, var(--gang-tint), var(--g));
-  clip-path: polygon(0 0, 100% 0, calc(100% - 0.4em) 100%, 0 100%);
+.reel.has-tilt .reel-card__title {
+  translate: calc(var(--tilt-x, 0) * 22px) calc(var(--tilt-y, 0) * 14px);
+}
+.reel-card__glare {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    36% 46% at var(--glare-x, 70%) var(--glare-y, 30%),
+    color-mix(in oklab, var(--gang, var(--c-gold)) 20%, transparent),
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.reel.has-tilt .reel-card.is-active .reel-card__glare {
+  opacity: 1;
 }
 
 /* the card's colour also tints its backdrop a little, so each gang feels like its own */

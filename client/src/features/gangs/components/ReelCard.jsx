@@ -1,10 +1,9 @@
-import '@fontsource/big-shoulders-display/latin-900'
+import '@fontsource/mr-dafoe/latin-400.css'
 
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import Plate from '../../../components/media/Plate'
-import RollText from '../../../components/ui/RollText'
 import { gangTheme } from '../gangsModel'
 import CardVideo from './CardVideo'
 
@@ -77,6 +76,7 @@ export default function ReelCard({ file, active }) {
         </div>
         <div className="reel-card__tint" aria-hidden="true" />
         <div className="reel-card__shade" aria-hidden="true" />
+        <div className="reel-card__glare" aria-hidden="true" />
         {file.demo && <span className="demo-tag">Demo data</span>}
 
         <div className="reel-card__body">
@@ -88,8 +88,8 @@ export default function ReelCard({ file, active }) {
             </div>
           )}
           <div className="reel-card__left">
-            <h2 id={`gang-${file.slug}-title`} className="reel-card__title gang-name">
-              <RollText text={file.title} rolled={active} />
+            <h2 id={`gang-${file.slug}-title`} className="reel-card__title neon-name">
+              <span className="neon-name__text">{file.title}</span>
             </h2>
           </div>
 

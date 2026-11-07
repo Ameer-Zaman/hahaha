@@ -263,6 +263,43 @@ export default function Reel({ files }) {
     }
   }, [reduced])
 
+  /* ---------- 3D tilt: each card's picture leans toward the mouse, the name drifts away ---------- */
+  useEffect(() => {
+    const el = root.current
+    if (reduced || touch || !el) return undefined
+    let x = 0
+    let y = 0
+    let tx = 0
+    let ty = 0
+    let raf = 0
+    const draw = () => {
+      x = lerp(x, tx, 0.08)
+      y = lerp(y, ty, 0.08)
+      el.style.setProperty('--tilt-x', x.toFixed(4))
+      el.style.setProperty('--tilt-y', y.toFixed(4))
+      raf = Math.abs(x - tx) + Math.abs(y - ty) > 0.0005 ? requestAnimationFrame(draw) : 0
+    }
+    const aim = (nx, ny) => {
+      tx = nx
+      ty = ny
+      if (!raf) raf = requestAnimationFrame(draw)
+    }
+    const onMove = (e) => {
+      if (e.pointerType && e.pointerType !== 'mouse') return
+      aim(e.clientX / window.innerWidth - 0.5, e.clientY / window.innerHeight - 0.5)
+      el.style.setProperty('--glare-x', `${((e.clientX / window.innerWidth) * 100).toFixed(1)}%`)
+      el.style.setProperty('--glare-y', `${((e.clientY / window.innerHeight) * 100).toFixed(1)}%`)
+    }
+    const onLeave = () => aim(0, 0)
+    window.addEventListener('pointermove', onMove, { passive: true })
+    document.documentElement.addEventListener('mouseleave', onLeave)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('pointermove', onMove)
+      document.documentElement.removeEventListener('mouseleave', onLeave)
+    }
+  }, [reduced, touch])
+
   /** The gang dropdown: turn the reel to that gang the shortest way round (or scroll to it). */
   const goTo = (i) => {
     if (reduced) {
@@ -287,7 +324,7 @@ export default function Reel({ files }) {
   }
 
   return (
-    <section ref={root} className={`reel ${reduced ? 'is-static' : 'is-loop'}`} aria-labelledby="gangs-title">
+    <section ref={root} className={`reel ${reduced ? 'is-static' : 'is-loop'} ${!reduced && !touch ? 'has-tilt' : ''}`} aria-labelledby="gangs-title">
       <h1 id="gangs-title" className="visually-hidden">
         Gangs of the city
       </h1>
