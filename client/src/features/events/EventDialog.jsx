@@ -4,7 +4,6 @@ import Plate from '../../components/media/Plate'
 import Arrow from '../../components/ui/Arrow'
 import { Skeleton, SkeletonGroup } from '../../components/ui/Skeleton'
 import { usePublic } from '../../lib/publicData'
-import { DateBadge, StateBadge } from './EventsPage'
 import { downloadCalendar, formatDay, formatTime, liveState, seedFor, timeRange, untilText } from './eventsModel'
 
 /**
@@ -77,12 +76,14 @@ function Remote({ slug, now, onClose }) {
     return (
       <div className="evd__panel evd__missing">
         <CloseButton onClose={onClose} />
-        <p className="evd__kicker">Events</p>
+        <p className="evd__meta">
+          <span className="evd__cat">Events</span>
+        </p>
         <h2 id="evd-title" className="evd__title">
           {failed ? 'This event can’t be loaded' : 'No event by that name'}
         </h2>
         <p className="evd__summary">{failed ? 'Try again in a moment.' : 'It may have been taken down, or the link is wrong.'}</p>
-        <button type="button" className="btn btn--primary" onClick={onClose}>
+        <button type="button" className="evd__btn evd__btn--solid" onClick={onClose}>
           See all events <Arrow />
         </button>
       </div>
@@ -94,13 +95,26 @@ function Remote({ slug, now, onClose }) {
 function CloseButton({ onClose }) {
   return (
     <button type="button" className="evd__close" onClick={onClose} aria-label="Close">
-      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-        <path d="M3.5 3.5l9 9m0-9-9 9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true">
+        <path d="M3.5 3.5l9 9m0-9-9 9" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="square" />
       </svg>
     </button>
   )
 }
 
+/** Where things stand, in a few plain words: "In 3 days", "On now", "Cancelled", "Finished". */
+function stateText(e, now) {
+  if (e.state === 'upcoming') return `In ${untilText(e.startsAt, now)}`
+  if (e.state === 'live') return `On now — until about ${formatTime(e.endsBy)}`
+  if (e.state === 'cancelled') return e.statusNote ? `Cancelled — ${e.statusNote}` : 'Cancelled'
+  return 'Finished'
+}
+
+/**
+ * The details, set plainly: a clean picture, then type and hairlines — the kind of event and
+ * where it stands, the title, a short list of facts, and the sections the team filled in.
+ * No boxes, pills or gradients; one accent colour.
+ */
 function Details({ event: e, now, onClose }) {
   const open = e.state === 'upcoming' || e.state === 'live'
   const paragraphs = e.description
@@ -112,140 +126,112 @@ function Details({ event: e, now, onClose }) {
   return (
     <div className="evd__panel evd__panel--event">
       <CloseButton onClose={onClose} />
-      {/* the picture, with the date and where things stand laid over it */}
-      <header className="evd__media">
+      <figure className="evd__media" aria-hidden="true">
         <Plate image={e.image} seed={seedFor(e.id)} horizon={0.7} />
-        <span className="evd__shade" aria-hidden="true" />
-        <div className="evd__tag">
-          <DateBadge date={e.startsAt} className="ev-date--lg" />
-          <p className="ev-meta">
-            <span className="ev-meta__cat">{e.category}</span>
-            <StateBadge event={e} now={now} />
-          </p>
-        </div>
-      </header>
+      </figure>
 
       <div className="evd__scroll">
         <div className="evd__body">
-          <h2 id="evd-title" className={`evd__title ${e.state === 'cancelled' ? 'is-cancelled' : ''}`}>
-            {e.title}
-          </h2>
-          {e.summary && <p className="evd__summary">{e.summary}</p>}
+          <header className="evd__head">
+            <p className="evd__meta">
+              <span className="evd__cat">{e.category}</span>
+              <span className={`evd__state evd__state--${e.state}`}>{stateText(e, now)}</span>
+            </p>
+            <h2 id="evd-title" className={`evd__title ${e.state === 'cancelled' ? 'is-cancelled' : ''}`}>
+              {e.title}
+            </h2>
+            {e.summary && <p className="evd__summary">{e.summary}</p>}
+          </header>
 
           <dl className="evd__facts">
             <Fact label="Date">{formatDay(e.startsAt)}</Fact>
             <Fact label="Time">{timeRange(e)}</Fact>
             {e.location && <Fact label="Where">{e.location}</Fact>}
-            {e.host && <Fact label="Hosted by">{e.host}</Fact>}
+            {e.host && <Fact label="Host">{e.host}</Fact>}
             {e.capacity > 0 && <Fact label="Places">{e.capacity}</Fact>}
           </dl>
 
-          <Status event={e} now={now} />
-
           {paragraphs.length > 0 && (
-            <section className="evd__block" aria-labelledby="evd-about">
-              <h3 id="evd-about" className="evp-block__title">
-                About
-              </h3>
+            <Section id="evd-about" title="About">
               {paragraphs.map((p, i) => (
-                <p key={i} className="evp-text">
+                <p key={i} className="evd__text">
                   {p}
                 </p>
               ))}
-            </section>
+            </Section>
           )}
 
           {e.schedule.length > 0 && (
-            <section className="evd__block" aria-labelledby="evd-programme">
-              <h3 id="evd-programme" className="evp-block__title">
-                Programme
-              </h3>
-              <ol className="evp-timeline" role="list">
+            <Section id="evd-programme" title="Programme">
+              <ol className="evd__rows" role="list">
                 {e.schedule.map((s, i) => (
-                  <li key={i} className="evp-timeline__item">
-                    <span className="evp-timeline__time">{s.time || '—'}</span>
-                    <span className="evp-timeline__what">{s.item}</span>
+                  <li key={i}>
+                    <span className="evd__rows-key">{s.time || '—'}</span>
+                    <span>{s.item}</span>
                   </li>
                 ))}
               </ol>
-            </section>
+            </Section>
           )}
 
           {e.requirements.length > 0 && (
-            <section className="evd__block" aria-labelledby="evd-need">
-              <h3 id="evd-need" className="evp-block__title">
-                What you need
-              </h3>
-              <ul className="evp-checks" role="list">
+            <Section id="evd-need" title="What you need">
+              <ul className="evd__list" role="list">
                 {e.requirements.map((r, i) => (
-                  <li key={i}>
-                    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-                      <path
-                        d="m3.5 8.5 3 3 6-7"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    {r}
-                  </li>
+                  <li key={i}>{r}</li>
                 ))}
               </ul>
-            </section>
+            </Section>
           )}
 
           {e.prizes.length > 0 && (
-            <section className="evd__block" aria-labelledby="evd-prizes">
-              <h3 id="evd-prizes" className="evp-block__title">
-                Prizes
-              </h3>
-              <ol className="evp-prizes" role="list">
+            <Section id="evd-prizes" title="Prizes">
+              <ol className="evd__rows" role="list">
                 {e.prizes.map((p, i) => (
-                  <li key={i} className={`evp-prize ${i === 0 ? 'is-first' : ''}`}>
-                    {p.place && <span className="evp-prize__place">{p.place}</span>}
-                    <span className="evp-prize__what">{p.prize}</span>
+                  <li key={i}>
+                    <span className="evd__rows-key">{p.place || `${i + 1}.`}</span>
+                    <span className={i === 0 ? 'evd__first' : undefined}>{p.prize}</span>
                   </li>
                 ))}
               </ol>
-            </section>
+            </Section>
           )}
 
-          {empty && <p className="evp-text evp-text--muted">More details will be posted here closer to the day.</p>}
+          {empty && <p className="evd__text evd__text--muted">More details will be posted here closer to the day.</p>}
         </div>
       </div>
 
-      {/* how to take part: always in reach at the foot of the pop-up */}
       <footer className="evd__foot">
-        <p className="evd__foot-when">
-          {open ? (
-            <>
-              <strong>
-                {formatDay(e.startsAt)} · {formatTime(e.startsAt)}
-              </strong>
-              <span>
-                {e.signup ? (e.capacity > 0 ? `${e.capacity} places` : 'Sign-up open') : 'No sign-up needed — just be there on time'}
-              </span>
-            </>
-          ) : (
-            <span>{e.state === 'cancelled' ? 'This event is not going ahead.' : 'This event has finished.'}</span>
-          )}
-        </p>
-        {open && (
-          <div className="evd__foot-actions">
-            <button type="button" className="btn btn--ghost" onClick={() => downloadCalendar(e)}>
-              Add to calendar
-            </button>
-            {e.signup && (
-              <a className="btn btn--primary" href={e.signup.url} target="_blank" rel="noopener noreferrer">
-                {e.signup.label} <Arrow />
-              </a>
-            )}
-          </div>
+        {open ? (
+          <>
+            <p className="evd__foot-when">{e.signup ? (e.capacity > 0 ? `${e.capacity} places` : 'Sign-up open') : 'No sign-up needed'}</p>
+            <div className="evd__foot-actions">
+              <button type="button" className="evd__btn" onClick={() => downloadCalendar(e)}>
+                Add to calendar
+              </button>
+              {e.signup && (
+                <a className="evd__btn evd__btn--solid" href={e.signup.url} target="_blank" rel="noopener noreferrer">
+                  {e.signup.label}
+                </a>
+              )}
+            </div>
+          </>
+        ) : (
+          <p className="evd__foot-when">{e.state === 'cancelled' ? 'This event is not going ahead.' : 'This event has finished.'}</p>
         )}
       </footer>
     </div>
+  )
+}
+
+function Section({ id, title, children }) {
+  return (
+    <section className="evd__section" aria-labelledby={id}>
+      <h3 id={id} className="evd__h">
+        {title}
+      </h3>
+      <div className="evd__section-body">{children}</div>
+    </section>
   )
 }
 
@@ -255,19 +241,5 @@ function Fact({ label, children }) {
       <dt>{label}</dt>
       <dd>{children}</dd>
     </div>
-  )
-}
-
-/** The one line that says where things stand right now. */
-function Status({ event: e, now }) {
-  let text
-  if (e.state === 'cancelled') text = e.statusNote ? `Cancelled — ${e.statusNote}` : 'This event has been cancelled.'
-  else if (e.state === 'live') text = `On now — started at ${formatTime(e.startsAt)}, runs until about ${formatTime(e.endsBy)}.`
-  else if (e.state === 'upcoming') text = `Starts in ${untilText(e.startsAt, now)}.`
-  else text = 'This event has finished.'
-  return (
-    <p className={`evd__status evd__status--${e.state}`} role="status">
-      {text}
-    </p>
   )
 }
