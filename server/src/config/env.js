@@ -77,6 +77,19 @@ export const env = {
   },
 
   /**
+   * Rules helper AI (optional): with GROQ_API_KEY set, the website chat answers rule questions
+   * in plain words, using only the published rule book. When Groq is down or its free daily
+   * limit is used up, the chat goes back to the normal rule search by itself.
+   */
+  ai: {
+    groqKey: process.env.GROQ_API_KEY ?? '',
+    model: process.env.GROQ_MODEL ?? 'openai/gpt-oss-120b',
+    fallbackModel: process.env.GROQ_FALLBACK_MODEL ?? 'llama-3.1-8b-instant',
+    // overridable for tests only
+    apiBase: (process.env.GROQ_API_BASE ?? 'https://api.groq.com/openai/v1').replace(/\/$/, ''),
+  },
+
+  /**
    * Admin-panel sign-in alerts to Discord (optional): a message in a staff channel every time
    * someone signs into /panel, and on failed attempts, with the IP, rough location and device.
    * Needs the Discord bot above. Posts to DISCORD_SECURITY_CHANNEL_ID, or the chat channel when

@@ -457,6 +457,16 @@
   font-size: 1.1rem;
 }
 
+/* the small line under an AI answer */
+.chatw__ai-note {
+  display: block;
+  padding: 0.1rem 0.15rem 0;
+  color: var(--cw-muted);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.02em;
+}
+
 /* ---------- quick replies ---------- */
 .chatw__chips {
   display: flex;

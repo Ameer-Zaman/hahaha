@@ -93,6 +93,8 @@ function RulesChat({ bot }) {
   const [asking, setAsking] = useState(false) // the "ask staff" form is showing
   const [name, setName] = useState('')
   const [staffUp, setStaffUp] = useState(null) // null = unknown
+  const [aiUp, setAiUp] = useState(false) // the AI helper is set up on the server
+  const [thinking, setThinking] = useState(false) // waiting for the AI helper
   const [auth, setAuth] = useState(readStore) // a chat with staff: { id, token }
   const [staff, setStaff] = useState(null) // { status, blocked, messages, seen }
   const [busy, setBusy] = useState(false)
@@ -108,7 +110,10 @@ function RulesChat({ bot }) {
   useEffect(() => {
     if (!open || staffUp !== null || !USE_API) return
     call('/status')
-      .then((s) => setStaffUp(Boolean(s.staffAvailable)))
+      .then((s) => {
+        setStaffUp(Boolean(s.staffAvailable))
+        setAiUp(Boolean(s.ai))
+      })
       .catch(() => setStaffUp(false))
   }, [open, staffUp])
 
@@ -190,23 +195,60 @@ function RulesChat({ bot }) {
     setTimeout(() => setLog((cur) => cur.map((m) => (m.id === typing.id ? answer : m))), TYPING_MS)
   }, [])
 
-  function ask(question) {
+  // the plain rule search, in the browser: always works, quotes the rule book word for word
+  function searchAnswer(q) {
+    const found = searchRules(index, q)
+    return found.length
+      ? say('bot', {
+          text: found.length === 1 ? 'Here’s the rule:' : 'These rules cover it:',
+          rules: found.map((f) => ({ rule: f.rule, category: f.category })),
+        })
+      : say('bot', { text: 'I couldn’t find a rule about that. Try other words, or ask the staff.', noMatch: true })
+  }
+
+  async function ask(question) {
     const q = question.trim()
-    if (!q) return
+    if (!q || thinking) return
     setDraft('')
     setError('')
     setAsking(false)
     setLastQuestion(q)
-    const found = searchRules(index, q)
-    reply(
-      q,
-      found.length
-        ? say('bot', {
-            text: found.length === 1 ? 'Here’s the rule:' : 'These rules cover it:',
-            rules: found.map((f) => ({ rule: f.rule, category: f.category })),
-          })
-        : say('bot', { text: 'I couldn’t find a rule about that. Try other words, or ask the staff.', noMatch: true }),
-    )
+    if (!aiUp) {
+      reply(q, searchAnswer(q))
+      return
+    }
+
+    // the AI helper answers in plain words from the rule book; if it can't (free limit used
+    // up, Groq down, too many questions), the plain search answers instead, without a fuss
+    const history = log
+      .filter((m) => !m.greet && !m.typing && m.text)
+      .slice(-4)
+      .map((m) => ({
+        from: m.from === 'visitor' ? 'visitor' : 'bot',
+        text: (m.rules && !m.ai ? `${m.text} ${m.rules.map((r) => r.rule.title).join(', ')}` : m.text).slice(0, 900),
+      }))
+    const typing = say('bot', { typing: true })
+    setLog((cur) => [...cur, say('visitor', { text: q }), typing])
+    setThinking(true)
+    let answer
+    try {
+      const data = await call('/ask', { method: 'POST', body: { question: q, history } })
+      const byId = new Map(index.map((e) => [e.rule.id, e]))
+      const rules = data.rules.map((id) => byId.get(id)).filter(Boolean)
+      answer = say('bot', {
+        text: data.answer,
+        rules: rules.length ? rules.map((e) => ({ rule: e.rule, category: e.category })) : undefined,
+        compact: true,
+        ai: true,
+        noMatch: !data.found,
+      })
+    } catch (err) {
+      if (err.status === 503 && /resting/.test(err.message)) setAiUp(false) // out for now: stop asking it this visit
+      answer = searchAnswer(q)
+    } finally {
+      setThinking(false)
+    }
+    setLog((cur) => cur.map((m) => (m.id === typing.id ? answer : m)))
   }
 
   /* ---------- asking staff ---------- */
@@ -367,6 +409,8 @@ function RulesChat({ bot }) {
                     </span>
                   )}
 
+                  {m.ai && <span className="chatw__ai-note">AI answer · the rule itself is what counts</span>}
+
                   {m.noMatch && !auth && (
                     <span className="chatw__chips chatw__chips--inline">
                       {canAskStaff ? (
@@ -443,7 +487,7 @@ function RulesChat({ bot }) {
                 placeholder={inStaffChat ? 'Message the staff…' : 'Message…'}
                 aria-label={inStaffChat ? 'Message the staff' : `Message ${bot.name} about a rule`}
               />
-              <button type="submit" className="chatw__send" disabled={busy || !draft.trim()} aria-label="Send">
+              <button type="submit" className="chatw__send" disabled={busy || thinking || !draft.trim()} aria-label="Send">
                 <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
                   <path d="M4 10h11M10.5 5.5 15 10l-4.5 4.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="square" />
                 </svg>

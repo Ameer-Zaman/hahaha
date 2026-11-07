@@ -169,6 +169,16 @@ Netlify forwards `/api/*` to Render behind the scenes, so the API lives on the w
 
 A gold chat button sits in the corner of every page. Visitors ask about the rules ("can I RDM?", "what is NLR?") and get the matching rules straight from the rule book, with a link to each one on the Rules page. It runs in the visitor's browser — free, instant, no AI and no API key — and it only ever quotes the real rules (the published rule book, or the draft while nothing is published). Common slang is understood (RDM, VDM, NLR, meta, cops, mod menu, banned …).
 
+### AI answers (optional, free — Groq)
+
+With a Groq key the chat answers rule questions in plain words, using **only the published rule book**, and links the rule it used. Players' questions are sent to Groq to get the answer.
+
+1. Make a free account at console.groq.com → **API Keys** → create a key.
+2. Render → the API service → **Environment** → add `GROQ_API_KEY` with the key (never put it in the code or in chat).
+3. **Manual Deploy**.
+
+It uses `openai/gpt-oss-120b`, then `llama-3.1-8b-instant` when that one's free limit is used up (change with `GROQ_MODEL` / `GROQ_FALLBACK_MODEL`). When both are used up, Groq is down, or a visitor asks too much (10 a minute, 80 a day), the chat quietly goes back to the normal rule search. Remove the key to turn it off.
+
 The assistant is called **Vexy**. Change its name and picture in **Panel → Rules help chat → The bot** (the picture comes from the media library; without one it shows the first letter of the name). This is the assistant in the website's chat window — the Discord bot's own name and picture are set in the Discord Developer Portal.
 
 When no rule fits, **Ask staff** sends the question to a **thread in your Discord**; staff reply in that thread and the reply appears in the visitor's chat window. In a thread, `!close` ends the chat and `!block` stops that visitor. Without the Discord bot, visitors get a link to your Discord instead. Switch the chat off in **Panel → Sections & maintenance**.

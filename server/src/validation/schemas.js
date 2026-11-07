@@ -380,6 +380,14 @@ export const settingsMediaSchema = z.object({
 /* ---- website chat ---- */
 export const chatStartSchema = z.object({ name: text(30).min(1, 'Enter a name'), text: text(600).min(1, 'Write your question') })
 export const chatMessageSchema = z.object({ text: text(600).min(1, 'Write a message') })
+/** A rules question for the AI helper, with the last few lines of the chat for follow-ups. */
+export const chatAskSchema = z.object({
+  question: text(600).min(1, 'Write your question'),
+  history: z
+    .array(z.object({ from: z.enum(['visitor', 'bot']), text: text(900) }))
+    .max(6)
+    .default([]),
+})
 
 /** Panel → Live: a live gang situation with its stream link. */
 export const liveAlertSchema = z

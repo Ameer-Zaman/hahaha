@@ -8,12 +8,23 @@ import { HttpError } from '../middleware/errors.js'
 import { validateBody } from '../middleware/validate.js'
 import { ChatSession } from '../models/ChatSession.js'
 import { Settings } from '../models/Settings.js'
-import { discordReady, fakeDiscordLog, fakeStaffReply, isFakeDiscord, noteInThread, onStaffMessage, openThread, sendToThread } from '../services/discordBridge.js'
-import { chatMessageSchema, chatStartSchema } from '../validation/schemas.js'
+import {
+  discordReady,
+  fakeDiscordLog,
+  fakeStaffReply,
+  isFakeDiscord,
+  noteInThread,
+  onStaffMessage,
+  openThread,
+  sendToThread,
+} from '../services/discordBridge.js'
+import { AiUnavailable, aiEnabled, askRules } from '../services/ruleAi.js'
+import { chatAskSchema, chatMessageSchema, chatStartSchema } from '../validation/schemas.js'
 
 /**
- * Website chat → staff. The rules questions are answered in the browser (no server, no AI);
- * when a visitor can't find their answer, "Ask staff" starts a chat here: the question goes to
+ * Website chat → staff. Rules questions are answered by the AI helper (POST /ask, Groq, only
+ * from the published rule book) or, when it's off or out of free uses, in the browser by the
+ * plain rule search; when a visitor can't find their answer, "Ask staff" starts a chat here: the question goes to
  * a Discord thread and staff replies come back. The visitor gets a secret token (kept in their
  * browser) that is needed to read or write their chat.
  */
@@ -23,8 +34,36 @@ router.use((req, res, next) => {
   next()
 })
 
-const startLimiter = rateLimit({ windowMs: 10 * 60 * 1000, limit: 6, standardHeaders: 'draft-8', legacyHeaders: false, message: { message: 'Too many new chats. Try again in a few minutes.' } })
-const messageLimiter = rateLimit({ windowMs: 60 * 1000, limit: 12, standardHeaders: 'draft-8', legacyHeaders: false, message: { message: 'You’re sending messages too fast. Wait a moment.' } })
+const startLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 6,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { message: 'Too many new chats. Try again in a few minutes.' },
+})
+const messageLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 12,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { message: 'You’re sending messages too fast. Wait a moment.' },
+})
+
+// the AI helper: per visitor, so one person can't use up the free daily allowance for everyone
+const askLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { message: 'Slow down a little — try again in a minute.', fallback: true },
+})
+const askDailyLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000,
+  limit: 80,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { message: 'That’s a lot of questions today.', fallback: true },
+})
 
 const hash = (token) => createHash('sha256').update(token).digest()
 const LINK = /(https?:\/\/|www\.|discord\.gg\/)\S+/gi
@@ -60,7 +99,21 @@ const push = (session, from, text, name = '') => {
 
 /** Whether "Ask staff" can be offered right now (the rules search itself runs in the browser). */
 router.get('/status', async (req, res) => {
-  res.json({ on: await chatOn(), staffAvailable: discordReady(), discordInvite: env.chat.discordInvite })
+  res.json({ on: await chatOn(), staffAvailable: discordReady(), ai: aiEnabled(), discordInvite: env.chat.discordInvite })
+})
+
+/**
+ * A rules question for the AI helper. 503 with { fallback: true } whenever it can't answer
+ * (no key, free limit used up, Groq down): the website then uses the plain rule search.
+ */
+router.post('/ask', askLimiter, askDailyLimiter, validateBody(chatAskSchema), async (req, res) => {
+  if (!(await chatOn())) throw new HttpError(404, 'The chat is turned off.')
+  try {
+    res.json(await askRules(req.body.question, req.body.history))
+  } catch (err) {
+    if (!(err instanceof AiUnavailable)) throw err
+    res.status(503).json({ message: 'The AI helper is resting — using the rule search.', fallback: true })
+  }
 })
 
 // local testing only (DISCORD_BOT_TOKEN=fake): play the staff side, and see what reached "Discord"
