@@ -236,7 +236,7 @@ export function CreatorCard({ creator: c, onOpen }) {
         {c.live.on ? (
           <>
             <span className="cr-live">
-              <span className="cr-dot" aria-hidden="true" /> Live
+              <span className="cr-dot" aria-hidden="true" /> Active
             </span>
             {c.live.viewers > 0 && (
               <span className="cr-views">
