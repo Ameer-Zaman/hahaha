@@ -296,6 +296,8 @@ export const creatorSchema = z.object({
   tagline: text(100).optional().default(''),
   photo: mediaId,
   banner: mediaId,
+  photoSource: z.enum(['auto', 'upload', 'youtube', 'kick', 'twitch']).optional().default('auto'),
+  bannerSource: z.enum(['auto', 'upload', 'youtube', 'kick', 'twitch']).optional().default('auto'),
   links: staffSocialsSchema.optional().default({}),
   order: z.number().int().min(0).max(9999).optional().default(0),
   visible: z.boolean().optional().default(true),

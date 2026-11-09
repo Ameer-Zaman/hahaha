@@ -10,6 +10,9 @@ import { creatorManualLiveSchema, creatorSchema } from '../../validation/schemas
 /** Panel → Creators: the cards on the Creators page, and their live status. */
 const router = Router()
 
+/** Wait for a refresh, but never more than a few seconds. */
+const settle = (p) => Promise.race([p.catch(() => {}), new Promise((r) => setTimeout(r, 6000))])
+
 const list = async () => Creator.find().sort({ order: 1, createdAt: 1 }).lean()
 
 router.get('/', async (req, res) => {
@@ -26,8 +29,8 @@ router.post('/', validateBody(creatorSchema), async (req, res) => {
   const creator = await Creator.create(req.body)
   await audit(req, 'creator.create', creator.id, creator.name)
   refreshLive({ force: true }).catch(() => {})
-  refreshStats({ force: true }).catch(() => {})
-  res.status(201).json({ creator })
+  await settle(refreshStats({ force: true }))
+  res.status(201).json({ creator: await Creator.findById(creator.id).lean() })
 })
 
 router.put('/:id', validateBody(creatorSchema), async (req, res) => {
@@ -37,8 +40,8 @@ router.put('/:id', validateBody(creatorSchema), async (req, res) => {
   await creator.save()
   await audit(req, 'creator.update', creator.id, creator.name)
   refreshLive({ force: true }).catch(() => {})
-  refreshStats({ force: true }).catch(() => {})
-  res.json({ creator })
+  await settle(refreshStats({ force: true })) // so the panel shows their channel pictures straight away
+  res.json({ creator: await Creator.findById(creator.id).lean() })
 })
 
 router.post('/:id/live', validateBody(creatorManualLiveSchema), async (req, res) => {

@@ -12,6 +12,12 @@ const creatorSchema = new mongoose.Schema(
     tagline: { type: String, default: '', trim: true },
     photo: { type: String, default: null }, // media id: their logo / profile picture (GIFs work)
     banner: { type: String, default: null }, // media id: the wide picture across the top (GIFs work)
+    /**
+     * Where the logo / banner come from: 'auto' (the upload if there is one, else their own
+     * channel pictures), 'upload', or one platform: 'youtube' | 'kick' | 'twitch'.
+     */
+    photoSource: { type: String, default: 'auto' },
+    bannerSource: { type: String, default: 'auto' },
     /** Channel links: { twitch, kick, youtube, tiktok, instagram, x, facebook, discord } */
     links: { type: Object, default: () => ({}) },
     order: { type: Number, default: 0 },

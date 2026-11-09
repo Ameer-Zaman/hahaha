@@ -41,7 +41,94 @@ const LIVE_PLATFORMS = [
   { value: 'other', label: 'Other' },
 ]
 
-const blank = () => ({ name: '', tagline: '', photo: null, banner: null, links: {}, order: 0, visible: true })
+const blank = () => ({
+  name: '',
+  tagline: '',
+  photo: null,
+  banner: null,
+  photoSource: 'auto',
+  bannerSource: 'auto',
+  links: {},
+  order: 0,
+  visible: true,
+  stats: null,
+})
+/** A saved choice whose picture isn't there (any more) shows as Automatic — which is what the website does. */
+const usable = (source, kind, stats, upload) =>
+  source === 'upload'
+    ? upload
+      ? source
+      : 'auto'
+    : ['youtube', 'kick', 'twitch'].includes(source)
+      ? stats?.[source]?.[kind]
+        ? source
+        : 'auto'
+      : 'auto'
+
+const toForm = (c) => ({
+  id: c._id,
+  name: c.name,
+  tagline: c.tagline ?? '',
+  photo: c.photo,
+  banner: c.banner ?? null,
+  photoSource: usable(c.photoSource, 'avatar', c.stats, c.photo),
+  bannerSource: usable(c.bannerSource, 'banner', c.stats, c.banner),
+  links: { ...(c.links ?? {}) },
+  order: c.order,
+  visible: c.visible,
+  stats: c.stats ?? null,
+})
+
+/**
+ * Where a creator's logo or banner comes from: automatic, their upload, or one of their
+ * channels — each shown as a small preview of the picture it would use.
+ */
+function SourcePicker({ label, kind, value, onChange, stats, upload, autoText }) {
+  const fromStats = (p) => stats?.[p]?.[kind] || ''
+  const options = [
+    { value: 'auto', label: 'Automatic', note: autoText },
+    { value: 'youtube', label: 'YouTube', img: fromStats('youtube') },
+    { value: 'kick', label: 'Kick', img: fromStats('kick') },
+    { value: 'twitch', label: 'Twitch', img: fromStats('twitch') },
+    { value: 'upload', label: 'Uploaded', media: upload },
+  ]
+  return (
+    <fieldset className="p-src">
+      <legend className="p-field__label">{label}</legend>
+      <div className={`p-src__grid p-src__grid--${kind}`} role="radiogroup" aria-label={label}>
+        {options.map((o) => {
+          const available = o.value === 'auto' || o.img || o.media
+          return (
+            <label key={o.value} className={`p-src__opt ${value === o.value ? 'is-on' : ''} ${available ? '' : 'is-off'}`}>
+              <input
+                type="radio"
+                className="p-sr-only"
+                name={`src-${kind}`}
+                value={o.value}
+                checked={value === o.value}
+                disabled={!available}
+                onChange={() => onChange(o.value)}
+              />
+              <span className="p-src__pic">
+                {o.img ? (
+                  <img src={o.img} alt="" loading="lazy" />
+                ) : o.media ? (
+                  <Thumb id={o.media} alt="" />
+                ) : (
+                  <span className="p-src__none">{o.value === 'auto' ? 'Auto' : '—'}</span>
+                )}
+              </span>
+              <span className="p-src__label">{o.label}</span>
+              <span className="p-src__note">
+                {o.value === 'auto' ? o.note : available ? '' : o.value === 'upload' ? 'Upload one above' : 'Not found'}
+              </span>
+            </label>
+          )
+        })}
+      </div>
+    </fieldset>
+  )
+}
 const compact = (n) => new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 }).format(n)
 const time = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' })
 
@@ -70,6 +157,8 @@ export default function Creators() {
       tagline: form.tagline.trim(),
       photo: form.photo,
       banner: form.banner,
+      photoSource: form.photoSource,
+      bannerSource: form.bannerSource,
       links: Object.fromEntries(
         Object.entries(form.links)
           .filter(([, v]) => v.trim())
@@ -83,7 +172,8 @@ export default function Creators() {
       form.id ? 'Saved' : 'Creator added',
     )
     if (!res) return
-    setForm(null)
+    // a new creator stays open, now with their channel pictures to choose from
+    setForm(form.id ? null : toForm(res.creator))
     reload()
   }
   async function remove(id) {
@@ -207,6 +297,31 @@ export default function Creators() {
                 />
               </div>
             </div>
+            <div className="p-src-wrap">
+              <p className="p-field__hint">
+                {form.id
+                  ? 'Choose where the logo and banner come from. Their YouTube, Kick and Twitch pictures are fetched by the server (with the keys set up); for a GIF, upload it above and pick Uploaded.'
+                  : 'Add the creator first — then their YouTube and Kick pictures appear here to choose from.'}
+              </p>
+              <SourcePicker
+                label="Logo"
+                kind="avatar"
+                value={form.photoSource}
+                onChange={set('photoSource')}
+                stats={form.stats}
+                upload={form.photo}
+                autoText="Upload, else YouTube → Kick → Twitch"
+              />
+              <SourcePicker
+                label="Banner"
+                kind="banner"
+                value={form.bannerSource}
+                onChange={set('bannerSource')}
+                stats={form.stats}
+                upload={form.banner}
+                autoText="Upload, else Kick → YouTube → Twitch"
+              />
+            </div>
             <fieldset className="p-socials">
               <legend className="p-field__label">Channels</legend>
               <p className="p-field__hint">
@@ -309,22 +424,7 @@ export default function Creators() {
                       Mark live
                     </button>
                   )}
-                  <button
-                    type="button"
-                    className="pbtn pbtn--ghost pbtn--sm"
-                    onClick={() =>
-                      setForm({
-                        id: c._id,
-                        name: c.name,
-                        tagline: c.tagline ?? '',
-                        photo: c.photo,
-                        banner: c.banner ?? null,
-                        links: { ...(c.links ?? {}) },
-                        order: c.order,
-                        visible: c.visible,
-                      })
-                    }
-                  >
+                  <button type="button" className="pbtn pbtn--ghost pbtn--sm" onClick={() => setForm(toForm(c))}>
                     Edit
                   </button>
                 </div>

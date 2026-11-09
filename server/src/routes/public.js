@@ -201,6 +201,30 @@ router.get('/events/:slug', async (req, res) => {
  */
 const num = (v) => (v === null || v === undefined || Number.isNaN(Number(v)) ? null : Number(v))
 
+/**
+ * A creator's logo and banner, from where the panel says: their upload, one platform, or
+ * 'auto' — the upload if there is one, else their own channel pictures (logo: YouTube, Kick,
+ * Twitch; banner: Kick, YouTube, Twitch). Uploaded GIFs also get a still frame for until hover.
+ */
+function pictures(c, st, mediaUrl, stillOf) {
+  const fromPlatform = (kind, order) => order.map((p) => st[p]?.[kind]).find(Boolean) || null
+  const pick = (source, upload, kind, autoOrder) => {
+    const uploaded = upload ? mediaUrl(upload) : null
+    if (source === 'upload' && uploaded) return { url: uploaded, still: stillOf(upload) }
+    if (['youtube', 'kick', 'twitch'].includes(source)) {
+      const url = st[source]?.[kind] || null
+      if (url) return { url, still: null }
+    }
+    // automatic (also when the chosen picture isn't there any more): the upload, else their channels
+    if (uploaded && (source === 'auto' || !source || source === 'upload')) return { url: uploaded, still: stillOf(upload) }
+    const url = fromPlatform(kind, autoOrder) || uploaded
+    return { url, still: url && url === uploaded ? stillOf(upload) : null }
+  }
+  const photo = pick(c.photoSource, c.photo, 'avatar', ['youtube', 'kick', 'twitch'])
+  const banner = pick(c.bannerSource, c.banner, 'banner', ['kick', 'youtube', 'twitch'])
+  return { photo: photo.url, photoStill: photo.still, banner: banner.url, bannerStill: banner.still }
+}
+
 router.get('/creators', async (req, res) => {
   res.set('Cache-Control', 'public, max-age=20')
   // the server may have been asleep: bring the live status up to date first (briefly)
@@ -243,12 +267,7 @@ router.get('/creators', async (req, res) => {
         id: String(c._id),
         name: c.name,
         tagline: c.tagline,
-        // uploaded here first, then the creator's own pictures from their channels
-        photo: mediaUrl(c.photo) || st.youtube?.avatar || st.kick?.avatar || st.twitch?.avatar || null,
-        banner: mediaUrl(c.banner) || st.kick?.banner || st.youtube?.banner || st.twitch?.banner || null,
-        // animated (GIF) uploads: a still frame to show until the card is hovered, like Discord
-        photoStill: c.photo ? stillOf(c.photo) : null,
-        bannerStill: c.banner ? stillOf(c.banner) : null,
+        ...pictures(c, st, mediaUrl, stillOf),
         counts,
         links,
         tracked,
