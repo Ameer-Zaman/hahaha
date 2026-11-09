@@ -190,6 +190,9 @@
   }
 }
 .cr-live__viewers {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   padding-left: 0.4rem;
   border-left: 1px solid rgb(255 255 255 / 0.45);
   font-weight: 500;
@@ -698,6 +701,64 @@
 .crp__conn:hover .crp__conn-out {
   color: var(--fg);
   transform: translate(2px, -2px);
+}
+
+/* ---------- the watching eye ---------- */
+.watch-eye {
+  flex: none;
+  width: 1.15em;
+  height: auto;
+  overflow: visible;
+  vertical-align: -0.15em;
+}
+.watch-eye__white {
+  fill: #fff;
+}
+.watch-eye__outline {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.4;
+}
+.watch-eye__iris {
+  fill: #2b1216;
+}
+.watch-eye__pupil {
+  fill: #000;
+}
+.watch-eye__glint {
+  fill: #fff;
+}
+.watch-eye__look {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+.watch-eye__lid {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 70ms ease-in;
+}
+.watch-eye__lid.is-blink {
+  transform: scaleY(0.08);
+}
+/* on dark backgrounds (card text, pop-out): a softer eye */
+.watch-eye--muted .watch-eye__white {
+  fill: rgb(var(--rgb-ivory) / 0.9);
+}
+.watch-eye--muted .watch-eye__outline {
+  stroke: rgb(var(--rgb-ivory) / 0.9);
+}
+.watch-eye--muted .watch-eye__iris {
+  fill: var(--cr-live, #e2384d);
+}
+.cr-watching {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+.cr-live .watch-eye {
+  width: 1.45em;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -8,6 +8,7 @@ import { SOCIAL_PLATFORMS } from '../../components/ui/socialPlatforms'
 import usePageTitle from '../../hooks/usePageTitle'
 import { usePublic } from '../../lib/publicData'
 import { useNow } from '../events/eventsModel'
+import WatchEye from './WatchEye'
 import './creators.css'
 
 const PLATFORM = Object.fromEntries(SOCIAL_PLATFORMS.map((p) => [p.id, p]))
@@ -168,7 +169,12 @@ function CreatorCard({ creator: c, now, onOpen }) {
         {c.live.on ? (
           <span className="cr-live">
             <span className="cr-dot" aria-hidden="true" /> Live
-            {c.live.viewers > 0 && <span className="cr-live__viewers">{compact(c.live.viewers)}</span>}
+            {c.live.viewers > 0 && (
+              <span className="cr-live__viewers">
+                <WatchEye /> {compact(c.live.viewers)}
+                <span className="visually-hidden"> watching</span>
+              </span>
+            )}
           </span>
         ) : c.tracked.length > 0 ? (
           <span className="cr-off">Offline</span>
@@ -191,7 +197,14 @@ function CreatorCard({ creator: c, now, onOpen }) {
           <div className="cr-card__now">
             {c.live.title && <p className="cr-card__title">{c.live.title}</p>}
             <p className="cr-card__meta">
-              {c.live.viewers > 0 && <>{compact(c.live.viewers)} watching · </>}
+              {c.live.viewers > 0 && (
+                <>
+                  <span className="cr-watching">
+                    <WatchEye className="watch-eye--muted" /> {compact(c.live.viewers)} watching
+                  </span>{' '}
+                  ·{' '}
+                </>
+              )}
               {platformName(c.live.platform)}
               {c.live.since && <> · {liveFor(c.live.since, now)}</>}
             </p>
@@ -318,7 +331,15 @@ function ProfilePopout({ creator: c, now, onClose }) {
                       <p className="crp__activity-title">{c.live.title || `Streaming on ${platformName(c.live.platform)}`}</p>
                       <p className="crp__activity-meta">
                         Streaming on {platformName(c.live.platform)}
-                        {c.live.viewers > 0 && <> · {compact(c.live.viewers)} watching</>}
+                        {c.live.viewers > 0 && (
+                          <>
+                            {' '}
+                            ·{' '}
+                            <span className="cr-watching">
+                              <WatchEye className="watch-eye--muted" /> {compact(c.live.viewers)} watching
+                            </span>
+                          </>
+                        )}
                         {c.live.since && <> · {liveFor(c.live.since, now)}</>}
                       </p>
                     </div>
