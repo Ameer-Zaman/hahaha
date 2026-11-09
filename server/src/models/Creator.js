@@ -24,6 +24,9 @@ const creatorSchema = new mongoose.Schema(
       effect: { type: String, default: 'none' },
       decoration: { type: String, default: 'none' },
       accent: { type: String, default: '#e3b55a' },
+      /** A frame over the card: a built-in one, or 'custom' with an uploaded transparent PNG / GIF. */
+      frame: { type: String, default: 'none' },
+      frameImage: { type: String, default: null }, // media id
     },
     photoSource: { type: String, default: 'auto' },
     bannerSource: { type: String, default: 'auto' },

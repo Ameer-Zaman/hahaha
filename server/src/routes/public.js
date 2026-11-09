@@ -235,7 +235,7 @@ router.get('/creators', async (req, res) => {
   const now = new Date()
   const support = liveSupport()
   const creators = await Creator.find({ visible: true }).sort({ order: 1, createdAt: 1 }).lean()
-  const mediaUrl = await resolveMediaUrls(creators.flatMap((c) => [c.photo, c.banner]))
+  const mediaUrl = await resolveMediaUrls(creators.flatMap((c) => [c.photo, c.banner, c.look?.frameImage]))
   const stillOf = await resolveStillUrls(creators.flatMap((c) => [c.photo, c.banner]))
   res.json({
     creators: creators.map((c) => {
@@ -268,7 +268,13 @@ router.get('/creators', async (req, res) => {
         name: c.name,
         tagline: c.tagline,
         ...pictures(c, st, mediaUrl, stillOf),
-        look: { effect: c.look?.effect ?? 'none', decoration: c.look?.decoration ?? 'none', accent: c.look?.accent ?? '#e3b55a' },
+        look: {
+          effect: c.look?.effect ?? 'none',
+          decoration: c.look?.decoration ?? 'none',
+          accent: c.look?.accent ?? '#e3b55a',
+          frame: c.look?.frame === 'custom' && !c.look?.frameImage ? 'none' : (c.look?.frame ?? 'none'),
+          frameImage: c.look?.frame === 'custom' ? mediaUrl(c.look?.frameImage) : null,
+        },
         counts,
         links,
         tracked,

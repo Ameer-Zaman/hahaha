@@ -1140,6 +1140,83 @@
   }
 }
 
+/* ---- frames over the card (CardFrame) ---- */
+.cr-card,
+.crp__panel {
+  --frame-hi: color-mix(in srgb, var(--fx, #e3b55a) 25%, #ffffff);
+  --frame-mid: color-mix(in srgb, var(--fx, #e3b55a) 55%, #9aa0a6);
+  --frame-lo: color-mix(in srgb, var(--fx, #e3b55a) 45%, #2a2c30);
+  position: relative;
+}
+.cr-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 4;
+  width: 100%;
+  aspect-ratio: 300 / 115;
+  height: auto;
+  overflow: visible;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.7));
+}
+.crp__panel .cr-frame {
+  aspect-ratio: 300 / 135;
+}
+.cr-frame .frame__stroke {
+  fill: none;
+  stroke: var(--frame-grad);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.cr-frame .frame__stroke--dark {
+  stroke: var(--frame-lo);
+}
+.cr-frame .frame__fill {
+  fill: var(--frame-grad);
+}
+.cr-frame .frame__crown {
+  fill: color-mix(in srgb, var(--fx, #e3b55a) 35%, #111);
+}
+.cr-frame .frame__gem {
+  fill: var(--fx, #e3b55a);
+  filter: drop-shadow(0 0 3px var(--fx, #e3b55a));
+}
+/* the crown sits a little lower so it isn't cut off at the top */
+.cr-frame--crown {
+  top: 4px;
+}
+/* an uploaded frame covers the whole card, above everything, without catching clicks */
+.cr-frame-img {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+}
+.crp__panel .cr-frame-img {
+  border-radius: 14px;
+}
+/* the LIVE tag and close button stay clear of a built-in frame's top edge */
+.cr-card.has-frame .cr-live,
+.cr-card.has-frame .cr-off {
+  top: 1.05rem;
+  right: 1.1rem;
+}
+/* filigree's corner scrolls are bigger: the tag sits further in */
+.cr-card.frame-filigree .cr-live,
+.cr-card.frame-filigree .cr-off {
+  top: 1.25rem;
+  right: 2.9rem;
+}
+.crp__panel:has(.cr-frame--filigree) .crp__close {
+  top: 1.1rem;
+  right: 2.6rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cr-card[class*='fx-'],
   .cr-card.fx-shine::after,

@@ -42,7 +42,7 @@ const LIVE_PLATFORMS = [
   { value: 'other', label: 'Other' },
 ]
 
-const DEFAULT_LOOK = { effect: 'none', decoration: 'none', accent: '#e3b55a' }
+const DEFAULT_LOOK = { effect: 'none', decoration: 'none', accent: '#e3b55a', frame: 'none', frameImage: null }
 const blank = () => ({
   name: '',
   tagline: '',
@@ -74,6 +74,18 @@ const DECORATIONS = [
   { value: 'spin', label: 'Spin', note: 'A turning ring of colour' },
   { value: 'orbit', label: 'Orbit', note: 'Two moons circle the logo' },
   { value: 'ripple', label: 'Ripple', note: 'Rings spread out, like sonar' },
+]
+const FRAMES = [
+  { value: 'none', label: 'None' },
+  { value: 'thorns', label: 'Thorns', note: 'Twisted thorny vines over the top and down the sides' },
+  { value: 'filigree', label: 'Filigree', note: 'Scrolled corners and a centre ornament' },
+  { value: 'chains', label: 'Chains', note: 'Chain links across the top and down the sides' },
+  { value: 'crown', label: 'Crown', note: 'A jewelled crown on top' },
+  {
+    value: 'custom',
+    label: 'Your own',
+    note: 'Upload a transparent PNG or GIF — it lies over the whole card, like a Discord profile effect',
+  },
 ]
 const ACCENTS = ['#e3b55a', '#e2384d', '#9146ff', '#53fc18', '#19d3c5', '#3b82f6', '#ff4d8d', '#ffffff']
 
@@ -140,7 +152,7 @@ function CardPreview({ form }) {
           since: null,
         }
       : { on: false },
-    look: form.look,
+    look: { ...form.look, frameImage: form.look.frame === 'custom' && form.look.frameImage ? mediaUrl(form.look.frameImage) : null },
   }
   return (
     <div className="p-look-preview">
@@ -410,6 +422,21 @@ export default function Creators() {
                     value={form.look.effect}
                     onChange={(v) => setForm((f) => ({ ...f, look: { ...f.look, effect: v } }))}
                   />
+                  <LookChips
+                    label="Frame"
+                    options={FRAMES}
+                    value={form.look.frame}
+                    onChange={(v) => setForm((f) => ({ ...f, look: { ...f.look, frame: v } }))}
+                  />
+                  {form.look.frame === 'custom' && (
+                    <MediaField
+                      label="Frame image"
+                      value={form.look.frameImage}
+                      onChange={(v) => setForm((f) => ({ ...f, look: { ...f.look, frameImage: v } }))}
+                      fallback="Empty: no frame."
+                      hint="A transparent PNG or GIF, about 2:3 (the card's shape). Only use art you made or have the rights to."
+                    />
+                  )}
                   <LookChips
                     label="Logo decoration"
                     options={DECORATIONS}

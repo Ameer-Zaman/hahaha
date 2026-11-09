@@ -8,6 +8,7 @@ import { SOCIAL_PLATFORMS } from '../../components/ui/socialPlatforms'
 import usePageTitle from '../../hooks/usePageTitle'
 import { usePublic } from '../../lib/publicData'
 import { useNow } from '../events/eventsModel'
+import CardFrame from './CardFrame'
 import WatchEye from './WatchEye'
 import './creators.css'
 
@@ -224,7 +225,7 @@ export function CreatorCard({ creator: c, onOpen }) {
   const effect = c.look?.effect ?? 'none'
   return (
     <article
-      className={`cr-card ${c.live.on ? 'is-live' : ''} ${effect !== 'none' ? `fx-${effect}` : ''}`}
+      className={`cr-card ${c.live.on ? 'is-live' : ''} ${effect !== 'none' ? `fx-${effect}` : ''} ${c.look?.frame && c.look.frame !== 'none' ? `has-frame frame-${c.look.frame}` : ''}`}
       style={{ '--fx': c.look?.accent || '#e3b55a' }}
       aria-labelledby={`cr-${c.id}`}
       onClick={open}
@@ -263,6 +264,7 @@ export function CreatorCard({ creator: c, onOpen }) {
 
         <SocialLinks links={c.links} name={c.name} className="cr-card__links" order={CHANNEL_ORDER} />
       </div>
+      <CardFrame frame={c.look?.frame} image={c.look?.frameImage} />
     </article>
   )
 }
@@ -390,6 +392,7 @@ function ProfilePopout({ creator: c, now, onClose }) {
             <Pic src={c.banner} still={null} />
             <CardFx effect={c.look?.effect} seed={`${c.id}-big`} count={1.5} />
           </div>
+          <CardFrame frame={c.look?.frame} image={c.look?.frameImage} />
           <button type="button" className="crp__close" onClick={close} aria-label="Close">
             <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
               <path d="M3.5 3.5l9 9m0-9-9 9" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
