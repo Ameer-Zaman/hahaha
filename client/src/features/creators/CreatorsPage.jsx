@@ -104,7 +104,7 @@ export default function CreatorsPage() {
                 <ul className="cr-grid" role="list">
                   {shown.map((c, i) => (
                     <li key={c.id} style={{ '--i': Math.min(i, 12) }}>
-                      <CreatorCard creator={c} now={now} onOpen={() => setOpenId(c.id)} />
+                      <CreatorCard creator={c} onOpen={() => setOpenId(c.id)} />
                     </li>
                   ))}
                 </ul>
@@ -141,11 +141,68 @@ function Pic({ src, still, className = '' }) {
   )
 }
 
+/** Effects that are drawn as little pieces over the banner, and how many of each. */
+const FX_PIECES = { sparkles: 12, embers: 16, snow: 22, confetti: 18, hearts: 10 }
+
+/** A small seeded random generator, so each creator's pieces always fall the same way. */
+function seeded(text) {
+  let h = 1779033703
+  for (const ch of String(text)) h = Math.imul(h ^ ch.charCodeAt(0), 3432918353)
+  return () => {
+    h = Math.imul(h ^ (h >>> 16), 2246822507)
+    h = Math.imul(h ^ (h >>> 13), 3266489909)
+    return ((h ^= h >>> 16) >>> 0) / 4294967296
+  }
+}
+
+/** Sparkles, embers, snow, confetti or hearts over the top of the card (the rest are CSS on the card itself). */
+function CardFx({ effect, seed, count = 1 }) {
+  const n = Math.round((FX_PIECES[effect] ?? 0) * count)
+  if (!n) return null
+  const r = seeded(seed)
+  return (
+    <span className={`cr-fx cr-fx--${effect}`} aria-hidden="true">
+      {Array.from({ length: n }, (_, i) => (
+        <i
+          key={i}
+          style={{
+            '--x': `${(r() * 100).toFixed(1)}%`,
+            '--y': `${(r() * 100).toFixed(1)}%`,
+            '--d': `${(-r() * 8).toFixed(2)}s`,
+            '--t': `${(3 + r() * 4).toFixed(2)}s`,
+            '--s': (0.6 + r() * 0.9).toFixed(2),
+            '--h': Math.floor(r() * 360),
+            '--w': `${((r() - 0.5) * 40).toFixed(0)}px`,
+          }}
+        />
+      ))}
+    </span>
+  )
+}
+
 /** The logo with a status dot cut into its corner: red while live, grey when (checked and) offline. */
 function Avatar({ creator: c, size = 'md' }) {
   const status = c.live.on ? 'live' : c.tracked.length > 0 ? 'off' : null
+  const deco = c.look?.decoration ?? 'none'
   return (
-    <div className={`cr-avatar cr-avatar--${size}`}>
+    <div className={`cr-avatar cr-avatar--${size} ${deco !== 'none' ? `deco-${deco}` : ''}`}>
+      {deco !== 'none' && (
+        <span className="cr-deco" aria-hidden="true">
+          {deco === 'orbit' && (
+            <>
+              <i />
+              <i />
+            </>
+          )}
+          {deco === 'ripple' && (
+            <>
+              <i />
+              <i />
+              <i />
+            </>
+          )}
+        </span>
+      )}
       <div className="cr-avatar__img">
         {c.photo ? <Pic src={c.photo} still={c.photoStill} /> : <span className="cr-avatar__initials">{initialsOf(c.name)}</span>}
       </div>
@@ -159,15 +216,22 @@ function Avatar({ creator: c, size = 'md' }) {
  * it, name and short line, their Kick followers / YouTube subscribers, what they're streaming
  * if they're live, and their channels. Clicking the card opens their profile, like Discord.
  */
-function CreatorCard({ creator: c, now, onOpen }) {
+export function CreatorCard({ creator: c, onOpen }) {
   const open = (e) => {
     if (e.target.closest('a, button')) return // the card's own links and buttons do their own thing
-    onOpen()
+    onOpen?.()
   }
+  const effect = c.look?.effect ?? 'none'
   return (
-    <article className={`cr-card ${c.live.on ? 'is-live' : ''}`} aria-labelledby={`cr-${c.id}`} onClick={open}>
+    <article
+      className={`cr-card ${c.live.on ? 'is-live' : ''} ${effect !== 'none' ? `fx-${effect}` : ''}`}
+      style={{ '--fx': c.look?.accent || '#e3b55a' }}
+      aria-labelledby={`cr-${c.id}`}
+      onClick={open}
+    >
       <div className="cr-card__banner" aria-hidden="true">
         <Pic src={c.banner} still={c.bannerStill} />
+        <CardFx effect={effect} seed={c.id} />
         {c.live.on ? (
           <span className="cr-live">
             <span className="cr-dot" aria-hidden="true" /> Live
@@ -197,19 +261,6 @@ function CreatorCard({ creator: c, now, onOpen }) {
 
         {c.live.on && (
           <div className="cr-card__now">
-            {c.live.title && <p className="cr-card__title">{c.live.title}</p>}
-            <p className="cr-card__meta">
-              {c.live.viewers > 0 && (
-                <>
-                  <span className="cr-watching">
-                    <WatchEye className="watch-eye--muted" /> {compact(c.live.viewers)} watching
-                  </span>{' '}
-                  ·{' '}
-                </>
-              )}
-              {platformName(c.live.platform)}
-              {c.live.since && <> · {liveFor(c.live.since, now)}</>}
-            </p>
             <WatchButton live={c.live} />
           </div>
         )}
@@ -324,9 +375,10 @@ function ProfilePopout({ creator: c, now, onClose }) {
       }}
     >
       {c && (
-        <div className={`crp__panel ${c.live.on ? 'is-live' : ''}`}>
+        <div className={`crp__panel ${c.live.on ? 'is-live' : ''}`} style={{ '--fx': c.look?.accent || '#e3b55a' }}>
           <div className="crp__banner" aria-hidden="true">
             <Pic src={c.banner} still={null} />
+            <CardFx effect={c.look?.effect} seed={`${c.id}-big`} count={1.5} />
           </div>
           <button type="button" className="crp__close" onClick={close} aria-label="Close">
             <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">

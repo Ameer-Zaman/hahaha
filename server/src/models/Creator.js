@@ -16,6 +16,15 @@ const creatorSchema = new mongoose.Schema(
      * Where the logo / banner come from: 'auto' (the upload if there is one, else their own
      * channel pictures), 'upload', or one platform: 'youtube' | 'kick' | 'twitch'.
      */
+    /**
+     * The card's look, picked in the panel (like Discord profile effects): an effect on or
+     * around the card, a decoration around the logo, and the accent colour they use.
+     */
+    look: {
+      effect: { type: String, default: 'none' },
+      decoration: { type: String, default: 'none' },
+      accent: { type: String, default: '#e3b55a' },
+    },
     photoSource: { type: String, default: 'auto' },
     bannerSource: { type: String, default: 'auto' },
     /** Channel links: { twitch, kick, youtube, tiktok, instagram, x, facebook, discord } */

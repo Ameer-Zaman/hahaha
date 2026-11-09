@@ -290,12 +290,28 @@ export const staffSchema = z.object({
   onDuty: z.boolean().optional().default(false),
 })
 
+/** Card effects and logo decorations a creator card can have (see client creators.css). */
+export const CREATOR_EFFECTS = ['none', 'aurora', 'neon', 'shine', 'sparkles', 'embers', 'snow', 'confetti', 'hearts']
+export const CREATOR_DECORATIONS = ['none', 'glow', 'spin', 'orbit', 'ripple']
+
 /** A creator card: name, a short line, photo and channel links (same rules as staff links). */
 export const creatorSchema = z.object({
   name: text(60).min(1),
   tagline: text(100).optional().default(''),
   photo: mediaId,
   banner: mediaId,
+  look: z
+    .object({
+      effect: z.enum(CREATOR_EFFECTS).default('none'),
+      decoration: z.enum(CREATOR_DECORATIONS).default('none'),
+      accent: z
+        .string()
+        .trim()
+        .regex(/^#[0-9a-f]{6}$/i, 'accent must be a colour like #e3b55a')
+        .default('#e3b55a'),
+    })
+    .optional()
+    .default({ effect: 'none', decoration: 'none', accent: '#e3b55a' }),
   photoSource: z.enum(['auto', 'upload', 'youtube', 'kick', 'twitch']).optional().default('auto'),
   bannerSource: z.enum(['auto', 'upload', 'youtube', 'kick', 'twitch']).optional().default('auto'),
   links: staffSocialsSchema.optional().default({}),

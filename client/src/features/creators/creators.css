@@ -107,6 +107,8 @@
   min-width: 0;
 }
 .cr-card {
+  --cr-live: #e2384d;
+  --cr-muted: rgb(var(--rgb-ivory) / 0.6);
   display: grid;
   grid-template-rows: auto 1fr;
   min-width: 0;
@@ -162,6 +164,7 @@
 .cr-live,
 .cr-off {
   position: absolute;
+  z-index: 2;
   top: 0.65rem;
   right: 0.65rem;
   display: inline-flex;
@@ -329,13 +332,8 @@
 }
 
 .cr-card__now {
-  display: grid;
-  gap: 0.3rem;
-  margin-top: 0.6rem;
-  padding: 0.75rem 0.85rem;
-  border-radius: 8px;
-  background: rgb(226 56 77 / 0.08);
-  border: 1px solid rgb(226 56 77 / 0.25);
+  display: flex;
+  margin-top: 0.7rem;
 }
 .cr-card__title {
   margin: 0;
@@ -451,177 +449,6 @@
 .cr-card__links .social-links__link:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 3px;
-}
-
-/* ---------- the logo, with a status dot cut into its corner (Discord style) ---------- */
-.cr-avatar {
-  --av: 4.75rem;
-  --ring: #0f0f10;
-  position: relative;
-  width: var(--av);
-  height: var(--av);
-  margin: calc(var(--av) / -2) 0 0.35rem;
-}
-.cr-avatar__img {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  border: 5px solid var(--ring);
-  border-radius: 50%;
-  background: #1d1c1a;
-  transition: filter 0.2s ease;
-}
-.cr-avatar__img .cr-pic {
-  position: absolute;
-  inset: 0;
-}
-.cr-avatar__initials {
-  display: grid;
-  place-items: center;
-  height: 100%;
-  font-family: var(--font-display);
-  font-size: calc(var(--av) * 0.32);
-  color: var(--c-gold);
-}
-.cr-status {
-  position: absolute;
-  right: calc(var(--av) * 0.02);
-  bottom: calc(var(--av) * 0.02);
-  width: calc(var(--av) * 0.26);
-  height: calc(var(--av) * 0.26);
-  border: calc(var(--av) * 0.06) solid var(--ring);
-  border-radius: 50%;
-  background: #80848e;
-}
-.cr-status--live {
-  background: var(--cr-live, #e2384d);
-}
-.cr-status--live::after {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: 50%;
-  box-shadow: 0 0 0 0 rgb(226 56 77 / 0.7);
-  animation: cr-status-ping 1.8s ease-out infinite;
-}
-@keyframes cr-status-ping {
-  to {
-    box-shadow: 0 0 0 8px rgb(226 56 77 / 0);
-  }
-}
-.cr-avatar--lg {
-  --av: 6.25rem;
-  --ring: #141416;
-}
-
-.cr-card__name {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: 1.2rem;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: 0;
-  text-transform: none;
-  overflow-wrap: anywhere;
-}
-.cr-card__open {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.cr-card__open:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.cr-card__open:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 3px;
-  border-radius: 2px;
-}
-.cr-card__tagline {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--cr-muted);
-}
-
-/* Kick followers · YouTube subscribers */
-.cr-counts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem 1.1rem;
-  margin: 0.45rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-.cr-count {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.875rem;
-  color: var(--cr-muted);
-}
-.cr-count strong {
-  color: var(--fg);
-  font-weight: 700;
-}
-
-.cr-card__now {
-  display: grid;
-  gap: 0.3rem;
-  margin-top: 0.6rem;
-  padding: 0.75rem 0.85rem;
-  border-radius: 8px;
-  background: rgb(226 56 77 / 0.08);
-  border: 1px solid rgb(226 56 77 / 0.25);
-}
-.cr-card__title {
-  margin: 0;
-  font-size: 0.9rem;
-  font-weight: 500;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  overflow-wrap: anywhere;
-}
-.cr-card__meta {
-  margin: 0;
-  font-size: 0.8125rem;
-  color: var(--cr-muted);
-}
-.cr-watch {
-  justify-self: start;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 40px;
-  margin-top: 0.3rem;
-  padding: 0 1rem;
-  border-radius: 6px;
-  background: var(--cr-live);
-  color: #fff;
-  font-size: 0.875rem;
-  font-weight: 700;
-  text-decoration: none;
-  transition:
-    background-color 0.2s ease,
-    transform 0.1s ease;
-}
-.cr-watch:hover {
-  background: #f04a5f;
-}
-.cr-watch:active {
-  transform: scale(0.97);
-}
-.cr-watch:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
 }
 
 .cr-skel {
@@ -1016,7 +843,285 @@
   width: 1.45em;
 }
 
+/* =========================================================
+   Card styles picked in the panel (like Discord profile effects)
+   --fx is the accent colour
+   ========================================================= */
+@property --fx-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* ---- around the card ---- */
+/* Aurora: a slowly turning ribbon of colour round the edge */
+.cr-card.fx-aurora {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(#0f0f10, #0f0f10) padding-box,
+    conic-gradient(from var(--fx-angle), var(--fx), #7c4dff, #19d3c5, var(--fx), #ff4d8d, var(--fx)) border-box;
+  animation: fx-turn 5s linear infinite;
+}
+.cr-card.fx-aurora:hover {
+  box-shadow: 0 0 34px -8px var(--fx);
+}
+@keyframes fx-turn {
+  to {
+    --fx-angle: 360deg;
+  }
+}
+/* Neon: an edge in the accent colour that hums */
+.cr-card.fx-neon {
+  border-color: var(--fx);
+  animation: fx-neon 2.6s ease-in-out infinite;
+}
+@keyframes fx-neon {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--fx) 60%, transparent),
+      0 0 18px -4px color-mix(in srgb, var(--fx) 70%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px var(--fx),
+      0 0 34px -2px var(--fx);
+  }
+}
+/* Shine: a band of light that sweeps across now and then */
+.cr-card.fx-shine {
+  position: relative;
+}
+.cr-card.fx-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 38%, color-mix(in srgb, var(--fx) 30%, white 10%) 50%, transparent 62%);
+  transform: translateX(-120%);
+  animation: fx-shine 4.5s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+@keyframes fx-shine {
+  0%,
+  55% {
+    transform: translateX(-120%);
+  }
+  85%,
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+/* ---- over the top of the card: little pieces (CardFx) ---- */
+.cr-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.cr-fx i {
+  position: absolute;
+  left: var(--x);
+  display: block;
+}
+/* Sparkles: four-point stars that twinkle in place */
+.cr-fx--sparkles i {
+  top: var(--y);
+  width: calc(12px * var(--s));
+  height: calc(12px * var(--s));
+  background: var(--fx);
+  clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+  filter: drop-shadow(0 0 4px var(--fx));
+  animation: fx-twinkle var(--t) ease-in-out var(--d) infinite;
+}
+@keyframes fx-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.2) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(45deg);
+  }
+}
+/* Embers: glowing sparks rising from the bottom */
+.cr-fx--embers i {
+  bottom: -6px;
+  width: calc(5px * var(--s));
+  height: calc(5px * var(--s));
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--fx) 70%, #ffb347);
+  box-shadow: 0 0 8px 1px color-mix(in srgb, var(--fx) 80%, #ff6a00);
+  animation: fx-rise var(--t) linear var(--d) infinite;
+}
+@keyframes fx-rise {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(1);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--w), -130px) scale(0.3);
+  }
+}
+/* Snow: soft flakes drifting down */
+.cr-fx--snow i {
+  top: -8px;
+  width: calc(5px * var(--s));
+  height: calc(5px * var(--s));
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.85;
+  animation: fx-fall calc(var(--t) * 1.4) linear var(--d) infinite;
+}
+@keyframes fx-fall {
+  to {
+    transform: translate(var(--w), 160px);
+  }
+}
+/* Confetti: little coloured paper pieces tumbling down */
+.cr-fx--confetti i {
+  top: -10px;
+  width: calc(6px * var(--s));
+  height: calc(10px * var(--s));
+  border-radius: 1px;
+  background: hsl(var(--h) 90% 60%);
+  animation: fx-confetti var(--t) linear var(--d) infinite;
+}
+@keyframes fx-confetti {
+  to {
+    transform: translate(var(--w), 170px) rotate(540deg);
+  }
+}
+/* Hearts: hearts floating up and fading */
+.cr-fx--hearts i {
+  bottom: -14px;
+  width: 12px;
+  height: 12px;
+  background: var(--fx);
+  clip-path: path('M6 11 C-3 5 1 -1 6 3 C11 -1 15 5 6 11 Z');
+  transform-origin: center;
+  animation: fx-hearts var(--t) ease-in var(--d) infinite;
+}
+@keyframes fx-hearts {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.6);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--w), -120px) scale(1.15);
+  }
+}
+
+/* ---- decorations around the logo ---- */
+.cr-deco {
+  position: absolute;
+  inset: -5px;
+  z-index: 1;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.cr-avatar .cr-status {
+  z-index: 2;
+}
+/* Glow: a soft halo that breathes */
+.deco-glow .cr-deco {
+  box-shadow:
+    0 0 0 2px var(--fx),
+    0 0 18px 2px color-mix(in srgb, var(--fx) 70%, transparent);
+  animation: deco-breathe 2.8s ease-in-out infinite;
+}
+@keyframes deco-breathe {
+  50% {
+    box-shadow:
+      0 0 0 2px var(--fx),
+      0 0 30px 6px color-mix(in srgb, var(--fx) 80%, transparent);
+  }
+}
+/* Spin: a turning ring of colour */
+.deco-spin .cr-deco {
+  inset: -6px;
+  background: conic-gradient(from var(--fx-angle), var(--fx), transparent 30%, var(--fx) 50%, transparent 80%, var(--fx));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  animation: fx-turn 2.4s linear infinite;
+}
+/* Orbit: two little moons circling the logo */
+.deco-orbit .cr-deco {
+  inset: -9px;
+  border: 1px dashed color-mix(in srgb, var(--fx) 55%, transparent);
+  animation: deco-orbit 4s linear infinite;
+}
+.deco-orbit .cr-deco i {
+  position: absolute;
+  top: -4px;
+  left: calc(50% - 4px);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--fx);
+  box-shadow: 0 0 10px var(--fx);
+}
+.deco-orbit .cr-deco i + i {
+  top: auto;
+  bottom: -3px;
+  width: 6px;
+  height: 6px;
+  left: calc(50% - 3px);
+}
+@keyframes deco-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Ripple: rings spreading out from the logo, like a sonar */
+.deco-ripple .cr-deco i {
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--fx);
+  border-radius: 50%;
+  opacity: 0;
+  animation: deco-ripple 2.4s ease-out infinite;
+}
+.deco-ripple .cr-deco i:nth-child(2) {
+  animation-delay: 0.8s;
+}
+.deco-ripple .cr-deco i:nth-child(3) {
+  animation-delay: 1.6s;
+}
+@keyframes deco-ripple {
+  0% {
+    opacity: 0.8;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.45);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .cr-card[class*='fx-'],
+  .cr-card.fx-shine::after,
+  .cr-fx,
+  .cr-deco,
+  .cr-deco i {
+    animation: none !important;
+  }
+  .cr-fx {
+    display: none;
+  }
   .cr-watch--brand .cr-watch__live .cr-dot,
   .cr-dot,
   .cr-status--live::after,

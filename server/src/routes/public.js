@@ -268,6 +268,7 @@ router.get('/creators', async (req, res) => {
         name: c.name,
         tagline: c.tagline,
         ...pictures(c, st, mediaUrl, stillOf),
+        look: { effect: c.look?.effect ?? 'none', decoration: c.look?.decoration ?? 'none', accent: c.look?.accent ?? '#e3b55a' },
         counts,
         links,
         tracked,

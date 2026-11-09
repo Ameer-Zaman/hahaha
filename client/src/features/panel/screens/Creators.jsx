@@ -3,8 +3,9 @@ import { useState } from 'react'
 import { BrandIcon } from '../../../components/ui/BrandIcons'
 import { SOCIAL_PLATFORMS } from '../../../components/ui/socialPlatforms'
 
+import { CreatorCard } from '../../creators/CreatorsPage'
 import { useNow } from '../../events/eventsModel'
-import { formatWhen } from '../format'
+import { formatWhen, mediaUrl } from '../format'
 import { useAction, useResource } from '../hooks'
 import { MediaField, Thumb } from '../mediaKit'
 import { adminApi } from '../panelApi'
@@ -41,6 +42,7 @@ const LIVE_PLATFORMS = [
   { value: 'other', label: 'Other' },
 ]
 
+const DEFAULT_LOOK = { effect: 'none', decoration: 'none', accent: '#e3b55a' }
 const blank = () => ({
   name: '',
   tagline: '',
@@ -48,11 +50,110 @@ const blank = () => ({
   banner: null,
   photoSource: 'auto',
   bannerSource: 'auto',
+  look: { ...DEFAULT_LOOK },
   links: {},
   order: 0,
   visible: true,
   stats: null,
 })
+
+const EFFECTS = [
+  { value: 'none', label: 'None' },
+  { value: 'aurora', label: 'Aurora', note: 'A turning ribbon of colour round the edge' },
+  { value: 'neon', label: 'Neon', note: 'A glowing edge that hums' },
+  { value: 'shine', label: 'Shine', note: 'A band of light sweeps across' },
+  { value: 'sparkles', label: 'Sparkles', note: 'Stars twinkle over the banner' },
+  { value: 'embers', label: 'Embers', note: 'Sparks rise from the banner' },
+  { value: 'snow', label: 'Snow', note: 'Flakes drift down' },
+  { value: 'confetti', label: 'Confetti', note: 'Coloured paper tumbles down' },
+  { value: 'hearts', label: 'Hearts', note: 'Hearts float up' },
+]
+const DECORATIONS = [
+  { value: 'none', label: 'None' },
+  { value: 'glow', label: 'Glow', note: 'A breathing halo' },
+  { value: 'spin', label: 'Spin', note: 'A turning ring of colour' },
+  { value: 'orbit', label: 'Orbit', note: 'Two moons circle the logo' },
+  { value: 'ripple', label: 'Ripple', note: 'Rings spread out, like sonar' },
+]
+const ACCENTS = ['#e3b55a', '#e2384d', '#9146ff', '#53fc18', '#19d3c5', '#3b82f6', '#ff4d8d', '#ffffff']
+
+/** Chips to pick one of a few looks. */
+function LookChips({ label, options, value, onChange }) {
+  const picked = options.find((o) => o.value === value)
+  return (
+    <fieldset className="p-look">
+      <legend className="p-field__label">{label}</legend>
+      <div className="p-look__chips" role="radiogroup" aria-label={label}>
+        {options.map((o) => (
+          <label key={o.value} className={`p-look__chip ${value === o.value ? 'is-on' : ''}`} title={o.note}>
+            <input
+              type="radio"
+              className="p-sr-only"
+              name={`look-${label}`}
+              value={o.value}
+              checked={value === o.value}
+              onChange={() => onChange(o.value)}
+            />
+            {o.label}
+          </label>
+        ))}
+      </div>
+      {picked?.note && <p className="p-field__hint">{picked.note}</p>}
+    </fieldset>
+  )
+}
+
+/** The picture the website would show for a source choice (for the live preview). */
+function previewPicture(source, upload, kind, stats, autoOrder) {
+  const fromStats = (p) => stats?.[p]?.[kind] || ''
+  if (source === 'upload' && upload) return mediaUrl(upload)
+  if (['youtube', 'kick', 'twitch'].includes(source) && fromStats(source)) return fromStats(source)
+  if (upload) return mediaUrl(upload)
+  return autoOrder.map(fromStats).find(Boolean) || null
+}
+
+/** The card exactly as visitors will see it, updating as the form changes. */
+function CardPreview({ form }) {
+  const [live, setLive] = useState(true)
+  const creator = {
+    id: form.id ?? 'preview',
+    name: form.name.trim() || 'Creator name',
+    tagline: form.tagline.trim(),
+    photo: previewPicture(form.photoSource, form.photo, 'avatar', form.stats, ['youtube', 'kick', 'twitch']),
+    photoStill: null,
+    banner: previewPicture(form.bannerSource, form.banner, 'banner', form.stats, ['kick', 'youtube', 'twitch']),
+    bannerStill: null,
+    counts: [
+      form.stats?.kick?.followers != null && form.links.kick && { platform: 'kick', label: 'followers', value: form.stats.kick.followers },
+      form.stats?.youtube?.subscribers != null &&
+        form.links.youtube && { platform: 'youtube', label: 'subscribers', value: form.stats.youtube.subscribers },
+    ].filter(Boolean),
+    links: Object.fromEntries(Object.entries(form.links).filter(([, v]) => /^https:\/\//.test(v.trim()))),
+    tracked: ['twitch'],
+    live: live
+      ? {
+          on: true,
+          platform: ['kick', 'twitch', 'youtube'].find((p) => form.links[p]?.trim()) ?? 'twitch',
+          viewers: 1234,
+          url: '#',
+          title: '',
+          since: null,
+        }
+      : { on: false },
+    look: form.look,
+  }
+  return (
+    <div className="p-look-preview">
+      <div className="p-look-preview__head">
+        <span className="p-field__label">Preview</span>
+        <Switch checked={live} onChange={setLive} label="Show as live" tone="green" />
+      </div>
+      <div className="p-look-preview__card" inert="">
+        <CreatorCard creator={creator} />
+      </div>
+    </div>
+  )
+}
 /** A saved choice whose picture isn't there (any more) shows as Automatic — which is what the website does. */
 const usable = (source, kind, stats, upload) =>
   source === 'upload'
@@ -71,6 +172,7 @@ const toForm = (c) => ({
   tagline: c.tagline ?? '',
   photo: c.photo,
   banner: c.banner ?? null,
+  look: { ...DEFAULT_LOOK, ...(c.look ?? {}) },
   photoSource: usable(c.photoSource, 'avatar', c.stats, c.photo),
   bannerSource: usable(c.bannerSource, 'banner', c.stats, c.banner),
   links: { ...(c.links ?? {}) },
@@ -157,6 +259,7 @@ export default function Creators() {
       tagline: form.tagline.trim(),
       photo: form.photo,
       banner: form.banner,
+      look: form.look,
       photoSource: form.photoSource,
       bannerSource: form.bannerSource,
       links: Object.fromEntries(
@@ -297,6 +400,51 @@ export default function Creators() {
                 />
               </div>
             </div>
+            <fieldset className="p-look-wrap">
+              <legend className="p-field__label">Card style</legend>
+              <div className="p-look-grid">
+                <div className="p-look-controls">
+                  <LookChips
+                    label="Effect"
+                    options={EFFECTS}
+                    value={form.look.effect}
+                    onChange={(v) => setForm((f) => ({ ...f, look: { ...f.look, effect: v } }))}
+                  />
+                  <LookChips
+                    label="Logo decoration"
+                    options={DECORATIONS}
+                    value={form.look.decoration}
+                    onChange={(v) => setForm((f) => ({ ...f, look: { ...f.look, decoration: v } }))}
+                  />
+                  <fieldset className="p-look">
+                    <legend className="p-field__label">Accent colour</legend>
+                    <div className="p-look__swatches">
+                      {ACCENTS.map((a) => (
+                        <button
+                          key={a}
+                          type="button"
+                          className={`p-look__swatch ${form.look.accent.toLowerCase() === a ? 'is-on' : ''}`}
+                          style={{ background: a }}
+                          aria-label={`Accent ${a}`}
+                          aria-pressed={form.look.accent.toLowerCase() === a}
+                          onClick={() => setForm((f) => ({ ...f, look: { ...f.look, accent: a } }))}
+                        />
+                      ))}
+                      <label className="p-look__custom">
+                        <input
+                          type="color"
+                          value={form.look.accent}
+                          onChange={(e) => setForm((f) => ({ ...f, look: { ...f.look, accent: e.target.value } }))}
+                          aria-label="Pick any accent colour"
+                        />
+                        Custom
+                      </label>
+                    </div>
+                  </fieldset>
+                </div>
+                <CardPreview form={form} />
+              </div>
+            </fieldset>
             <div className="p-src-wrap">
               <p className="p-field__hint">
                 {form.id
