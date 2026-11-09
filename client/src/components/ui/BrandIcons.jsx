@@ -37,8 +37,9 @@ export function BrandIcon({ platform, size = 18 }) {
 }
 
 /** The row of social links at the bottom of a staff card. Renders nothing when there are none. */
-export function SocialLinks({ links, name, className = '' }) {
-  const items = SOCIAL_PLATFORMS.filter((p) => typeof links?.[p.id] === 'string' && links[p.id].startsWith('https://'))
+export function SocialLinks({ links, name, className = '', order = null }) {
+  const platforms = order ? order.map((id) => SOCIAL_PLATFORMS.find((p) => p.id === id)).filter(Boolean) : SOCIAL_PLATFORMS
+  const items = platforms.filter((p) => typeof links?.[p.id] === 'string' && links[p.id].startsWith('https://'))
   if (items.length === 0) return null
   return (
     <ul role="list" className={`social-links ${className}`}>
@@ -50,6 +51,7 @@ export function SocialLinks({ links, name, className = '' }) {
             rel="noopener noreferrer nofollow"
             className="social-links__link"
             style={{ '--brand': p.color }}
+            data-platform={p.id}
             aria-label={`${name} on ${p.label} (opens in a new tab)`}
             title={p.label}
           >

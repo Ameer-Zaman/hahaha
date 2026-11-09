@@ -11,6 +11,8 @@ import { useNow } from '../events/eventsModel'
 import WatchEye from './WatchEye'
 import './creators.css'
 
+// streaming channels first, Discord last
+const CHANNEL_ORDER = ['youtube', 'kick', 'twitch', 'tiktok', 'instagram', 'x', 'facebook', 'discord']
 const PLATFORM = Object.fromEntries(SOCIAL_PLATFORMS.map((p) => [p.id, p]))
 const platformName = (id) => PLATFORM[id]?.label ?? 'their stream'
 
@@ -214,7 +216,7 @@ function CreatorCard({ creator: c, now, onOpen }) {
           </div>
         )}
 
-        <SocialLinks links={c.links} name={c.name} className="cr-card__links" />
+        <SocialLinks links={c.links} name={c.name} className="cr-card__links" order={CHANNEL_ORDER} />
       </div>
     </article>
   )
@@ -279,7 +281,11 @@ function ProfilePopout({ creator: c, now, onClose }) {
     window.setTimeout(onClose, 160) // let the close animation play
   }
 
-  const links = c ? SOCIAL_PLATFORMS.filter((p) => typeof c.links?.[p.id] === 'string' && c.links[p.id].startsWith('https://')) : []
+  const links = c
+    ? CHANNEL_ORDER.map((id) => PLATFORM[id]).filter(
+        (p) => p && typeof c.links?.[p.id] === 'string' && c.links[p.id].startsWith('https://'),
+      )
+    : []
 
   return (
     <dialog
