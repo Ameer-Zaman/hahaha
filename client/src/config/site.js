@@ -109,6 +109,7 @@ export const navigation = [
   { label: 'Home', to: '/' },
   { label: 'Story', to: '/story' },
   { label: 'Staffs', to: '/staff' },
+  { label: 'Creators', to: '/creators' },
   {
     label: 'Factions', // the dropdown's name — rename freely
     children: [

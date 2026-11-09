@@ -290,6 +290,34 @@ export const staffSchema = z.object({
   onDuty: z.boolean().optional().default(false),
 })
 
+/** A creator card: name, a short line, photo and channel links (same rules as staff links). */
+export const creatorSchema = z.object({
+  name: text(60).min(1),
+  tagline: text(100).optional().default(''),
+  photo: mediaId,
+  links: staffSocialsSchema.optional().default({}),
+  order: z.number().int().min(0).max(9999).optional().default(0),
+  visible: z.boolean().optional().default(true),
+})
+
+/** Staff switching a creator to "live now" by hand, for a while, with where to watch. */
+export const creatorManualLiveSchema = z.object({
+  minutes: z.number().int().min(15).max(720),
+  platform: z.enum(['twitch', 'kick', 'youtube', 'tiktok', 'instagram', 'facebook', 'x', 'other']),
+  url: z
+    .string()
+    .trim()
+    .max(500)
+    .refine((v) => {
+      try {
+        return ['https:', 'http:'].includes(new URL(v).protocol)
+      } catch {
+        return false
+      }
+    }, 'must be a link (https://…)'),
+  title: text(120).optional().default(''),
+})
+
 export const staffStatusSchema = z.object({
   online: z.boolean(),
   onDuty: z.boolean(),

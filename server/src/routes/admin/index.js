@@ -16,6 +16,7 @@ import auditRoutes from './audit.js'
 import backup from './backup.js'
 import chat from './chat.js'
 import clubs from './clubs.js'
+import creators from './creators.js'
 import events from './events.js'
 import gangs from './gangs.js'
 import media from './media.js'
@@ -95,6 +96,7 @@ router.use('/events', staffRoles, events)
 router.use('/chat', staffRoles, chat)
 router.use('/wars', staffRoles, wars)
 router.use('/staff', staffRoles, staff)
+router.use('/creators', staffRoles, creators)
 router.use('/tdm', staffRoles, tdm)
 router.use('/rules', staffRoles, rules)
 router.use('/media', staffRoles, media)

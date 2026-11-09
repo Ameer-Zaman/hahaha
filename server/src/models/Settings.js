@@ -32,7 +32,7 @@ export const STORY_SLOTS = Object.entries(STORY_PLACES).flatMap(([chapter, place
 MEDIA_SLOTS.push(...STORY_SLOTS)
 
 /** Website sections that can be switched off from the panel (Home is always on). */
-export const SECTION_KEYS = ['story', 'staff', 'gangs', 'clubs', 'dhadhas', 'events', 'leaderboard', 'rules', 'chat']
+export const SECTION_KEYS = ['story', 'staff', 'creators', 'gangs', 'clubs', 'dhadhas', 'events', 'leaderboard', 'rules', 'chat']
 
 /** The saved community links, or null when the panel has never set them. */
 export const readSocials = (settings) =>

@@ -159,6 +159,23 @@ export const env = {
   ai: { providers: aiProviders() },
 
   /**
+   * Creators page live checks (optional, all free). A platform without its keys isn't checked.
+   * *_BASE overrides are for tests only.
+   */
+  creators: {
+    twitchId: process.env.TWITCH_CLIENT_ID ?? '',
+    twitchSecret: process.env.TWITCH_CLIENT_SECRET ?? '',
+    kickId: process.env.KICK_CLIENT_ID ?? '',
+    kickSecret: process.env.KICK_CLIENT_SECRET ?? '',
+    youtubeKey: process.env.YOUTUBE_API_KEY ?? '',
+    twitchAuthBase: process.env.TWITCH_AUTH_BASE ?? 'https://id.twitch.tv',
+    twitchApiBase: process.env.TWITCH_API_BASE ?? 'https://api.twitch.tv',
+    kickAuthBase: process.env.KICK_AUTH_BASE ?? 'https://id.kick.com',
+    kickApiBase: process.env.KICK_API_BASE ?? 'https://api.kick.com',
+    youtubeApiBase: process.env.YOUTUBE_API_BASE ?? 'https://www.googleapis.com/youtube/v3',
+  },
+
+  /**
    * Admin-panel sign-in alerts to Discord (optional): a message in a staff channel every time
    * someone signs into /panel, and on failed attempts, with the IP, rough location and device.
    * Needs the Discord bot above. Posts to DISCORD_SECURITY_CHANNEL_ID, or the chat channel when

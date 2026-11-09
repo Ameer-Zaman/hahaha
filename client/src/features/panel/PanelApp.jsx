@@ -20,6 +20,7 @@ import { MediaLibrary, SiteMedia, StoryMedia } from './screens/MediaScreens'
 import Rules from './screens/Rules'
 import SiteSettings from './screens/SiteSettings'
 import Staff from './screens/Staff'
+import Creators from './screens/Creators'
 import Tdm from './screens/Tdm'
 import Wars from './screens/Wars'
 import { ErrorNote, Loading, ToastProvider } from './ui'
@@ -45,6 +46,7 @@ const NAV = [
       { to: '/panel/events', label: 'Events' },
       { to: '/panel/tdm', label: 'TDM leaderboard' },
       { to: '/panel/staff', label: 'Staff' },
+      { to: '/panel/creators', label: 'Creators' },
       { to: '/panel/rules', label: 'Rules' },
     ],
   },
@@ -241,6 +243,7 @@ function Shell() {
           <Route path="events/:id" element={<EventEditor />} />
           <Route path="tdm" element={<Tdm />} />
           <Route path="staff" element={<Staff />} />
+          <Route path="creators" element={<Creators />} />
           <Route path="rules" element={<Rules />} />
           <Route path="media" element={<MediaLibrary />} />
           <Route path="site-media" element={<SiteMedia />} />

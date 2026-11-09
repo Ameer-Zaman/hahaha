@@ -169,6 +169,20 @@ Netlify forwards `/api/*` to Render behind the scenes, so the API lives on the w
 
 A gold chat button sits in the corner of every page. Visitors ask about the rules ("can I RDM?", "what is NLR?") and get the matching rules straight from the rule book, with a link to each one on the Rules page. It runs in the visitor's browser — free, instant, no AI and no API key — and it only ever quotes the real rules (the published rule book, or the draft while nothing is published). Common slang is understood (RDM, VDM, NLR, meta, cops, mod menu, banned …).
 
+## Creators page
+
+Panel → **Creators**: add each streamer with a photo, a short line and their channel links. The Creators page lists them, live ones first, with a LIVE badge, viewer count, stream title and a **Watch live** button.
+
+Live status is checked with each platform's own free API, only for the platforms whose keys are on Render (API service → Environment), then **Manual Deploy**:
+
+| Platform | Render variables | Where |
+|---|---|---|
+| Twitch | `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET` | dev.twitch.tv → Your Console → Applications → Register |
+| Kick | `KICK_CLIENT_ID`, `KICK_CLIENT_SECRET` | kick.com → Settings → Developer |
+| YouTube | `YOUTUBE_API_KEY` | Google Cloud → enable YouTube Data API v3 → Credentials |
+
+Twitch and Kick are checked about every 90 seconds, YouTube every 5 minutes (its free daily quota). A channel that can't be checked never shows "Offline"; for TikTok, Instagram and the rest, staff can use **Mark live** (with a link and a time limit). Panel → Creators → Live checks shows which platforms are on and any errors.
+
 ### AI answers (optional, free — several services)
 
 With a free AI key the chat answers rule questions in plain words, using **only the published rule book**, and links the rule it used. Players' questions are sent to the AI service to get the answer.

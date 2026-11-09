@@ -3,11 +3,13 @@ import { createApp } from './app.js'
 import { connectDb, disconnectDb } from './db.js'
 import { bootstrapSuperAdmin } from './services/bootstrap.js'
 import { startDiscord } from './services/discordBridge.js'
+import { startLiveChecks } from './services/creatorLive.js'
 
 async function main() {
   await connectDb()
   await bootstrapSuperAdmin()
   startDiscord() // website chat → Discord (optional; logs and carries on if it can't connect)
+  startLiveChecks() // Creators page: Twitch / Kick / YouTube live checks (only the platforms with keys)
   const server = createApp().listen(env.port, () => {
     console.log(`Rameirah Empire API listening on port ${env.port}`)
   })

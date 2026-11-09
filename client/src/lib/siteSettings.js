@@ -15,7 +15,7 @@ import { usePublic } from './publicData'
  * itself out because the server is asleep).
  */
 const STORAGE_KEY = 'shy-site-settings'
-const ALL_ON = { story: true, staff: true, gangs: true, clubs: true, dhadhas: true, events: true, leaderboard: true, rules: true, chat: true }
+const ALL_ON = { story: true, staff: true, creators: true, gangs: true, clubs: true, dhadhas: true, events: true, leaderboard: true, rules: true, chat: true }
 /** The chat assistant, until the panel says otherwise (Panel → Rules help chat → The bot). */
 export const DEFAULT_BOT = { name: 'Vexy', avatar: null }
 const DEFAULTS = { sections: ALL_ON, maintenance: { on: false, message: '' }, chatBot: DEFAULT_BOT, socials: null }

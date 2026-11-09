@@ -1,0 +1,329 @@
+/* =========================================================
+   Creators — streamers and creators, and who's live
+   ========================================================= */
+.cr {
+  --cr-line: rgb(var(--rgb-ivory) / 0.12);
+  --cr-muted: rgb(var(--rgb-ivory) / 0.6);
+  --cr-live: #e2384d;
+  padding-block: clamp(2rem, 1rem + 3vw, 4rem) clamp(4rem, 3rem + 5vw, 8rem);
+}
+
+.cr-note {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--fg-muted);
+}
+.cr-empty {
+  display: grid;
+  gap: var(--sp-3);
+  padding: clamp(2rem, 1rem + 4vw, 4rem) 0;
+  border-block: 1px solid var(--cr-line);
+}
+.cr-empty__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  text-transform: uppercase;
+}
+
+/* "2 live now" and the filters, over a hairline */
+.cr-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-6);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--cr-line);
+}
+.cr-head__count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cr-muted);
+}
+.cr-filters {
+  display: flex;
+  gap: 0 1.4rem;
+  margin-bottom: calc(-1 * var(--sp-3) - 1px);
+}
+.cr-filter {
+  min-height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: none;
+  color: rgb(var(--rgb-ivory) / 0.55);
+  font: 500 0.875rem / 1 var(--font-sans);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+.cr-filter:hover {
+  color: var(--fg);
+}
+.cr-filter.is-active {
+  border-bottom-color: var(--c-gold);
+  color: var(--fg);
+}
+.cr-filter:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.cr-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--cr-live, #e2384d);
+  box-shadow: 0 0 0 0 rgb(226 56 77 / 0.6);
+  animation: cr-pulse 1.6s ease-out infinite;
+}
+@keyframes cr-pulse {
+  to {
+    box-shadow: 0 0 0 7px rgb(226 56 77 / 0);
+  }
+}
+
+/* ---------- cards ---------- */
+.cr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.5rem), 1fr));
+  gap: clamp(2rem, 1.5rem + 1.5vw, 3rem) clamp(1.25rem, 0.75rem + 1.5vw, 2rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cr-grid > li {
+  display: grid;
+  min-width: 0;
+}
+.cr-card {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 1rem;
+  min-width: 0;
+}
+.cr-card__media {
+  position: relative;
+  display: grid;
+  text-decoration: none;
+  place-items: center;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #0d0d0d;
+}
+.cr-card__media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(0.85) brightness(0.8);
+  transition:
+    transform 0.8s var(--ease-out),
+    filter 0.5s ease;
+}
+.cr-card:hover .cr-card__media img {
+  transform: scale(1.035);
+  filter: grayscale(0.3) brightness(0.9);
+}
+/* live: full colour, and a thin red frame */
+.cr-card.is-live .cr-card__media img {
+  filter: none;
+}
+.cr-card.is-live .cr-card__media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgb(226 56 77 / 0.8);
+  border-radius: inherit;
+  pointer-events: none;
+}
+.cr-card__initials {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 2rem + 3vw, 4.5rem);
+  color: rgb(var(--rgb-ivory) / 0.18);
+}
+
+/* status on the photo's top edge */
+.cr-card__over {
+  position: absolute;
+  inset: 0 0 auto;
+  display: flex;
+  justify-content: flex-start;
+  padding: 0.9rem 1rem 2.5rem;
+  background: linear-gradient(180deg, rgb(0 0 0 / 0.55), transparent);
+  pointer-events: none;
+}
+.cr-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 2px;
+  background: var(--cr-live);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.cr-live .cr-dot {
+  background: #fff;
+  box-shadow: 0 0 0 0 rgb(255 255 255 / 0.6);
+  animation-name: cr-pulse-white;
+}
+@keyframes cr-pulse-white {
+  to {
+    box-shadow: 0 0 0 6px rgb(255 255 255 / 0);
+  }
+}
+.cr-live__viewers {
+  padding-left: 0.5rem;
+  border-left: 1px solid rgb(255 255 255 / 0.4);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: none;
+}
+.cr-off {
+  font-size: 0.8125rem;
+  color: rgb(var(--rgb-ivory) / 0.75);
+}
+
+.cr-card__body {
+  display: grid;
+  align-content: start;
+  gap: 0.45rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--cr-line);
+  min-width: 0;
+}
+.cr-card.is-live .cr-card__body {
+  border-top-color: rgb(226 56 77 / 0.6);
+}
+.cr-card__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 1.2rem + 0.5vw, 1.7rem);
+  font-weight: 400;
+  line-height: 1;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+.cr-card__tagline {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--cr-muted);
+}
+.cr-card__now {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+.cr-card__title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.cr-card__meta {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--cr-muted);
+}
+.cr-watch {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 44px;
+  margin-top: 0.4rem;
+  padding: 0 1.1rem;
+  border: 1px solid var(--cr-live);
+  border-radius: 2px;
+  background: var(--cr-live);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+.cr-watch:hover {
+  background: #f04a5f;
+  border-color: #f04a5f;
+}
+.cr-watch:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.cr-watch svg path {
+  fill: currentColor;
+}
+/* channel logos: a quiet row of round hairline buttons (own styles: the Staffs page's may not be loaded) */
+.cr-card__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.cr-card__links .social-links__link {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgb(var(--rgb-ivory) / 0.14);
+  border-radius: 50%;
+  transition: border-color 0.2s ease;
+}
+.cr-card__links .social-links__link::after {
+  content: '';
+  position: absolute;
+  inset: -5px; /* a 46px tap area */
+  border-radius: 50%;
+}
+.cr-card__links .social-links__link:hover {
+  border-color: var(--brand);
+}
+.cr-card__links .social-links__link:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.cr-skel {
+  display: grid;
+  gap: 0.7rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cr-dot {
+    animation: none;
+  }
+  .cr-card__media img {
+    transition: none;
+  }
+  .cr-card:hover .cr-card__media img {
+    transform: none;
+  }
+}

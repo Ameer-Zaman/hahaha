@@ -2005,3 +2005,34 @@
     text-align: left;
   }
 }
+
+/* ---------- Creators ---------- */
+.p-cr-pill {
+  align-self: center;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--p-line);
+  border-radius: 2px;
+  font-size: var(--fs-2xs);
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.p-cr-pill.is-on {
+  border-color: rgb(76 207 138 / 0.5);
+  color: #8be3b3;
+}
+.p-cr-live {
+  color: #f0707f;
+}
+.p-cr-hidden {
+  color: var(--fg-muted);
+  font-weight: 400;
+}
+.p-cr-actions {
+  margin: 0;
+  flex-wrap: nowrap;
+}
+.p-cr-manual {
+  grid-column: 1 / -1;
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--p-line);
+}

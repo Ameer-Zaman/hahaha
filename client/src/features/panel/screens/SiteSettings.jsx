@@ -14,6 +14,7 @@ import { RowTools } from './Gangs'
 const SECTIONS = [
   { key: 'story', label: 'Story', path: '/story' },
   { key: 'staff', label: 'Staffs', path: '/staff' },
+  { key: 'creators', label: 'Creators', path: '/creators' },
   { key: 'gangs', label: 'Gangs', path: '/gangs', note: 'In the Factions menu' },
   { key: 'clubs', label: 'Clubs', path: '/clubs', note: 'In the Factions menu' },
   { key: 'dhadhas', label: 'Dhadhas', path: '/dhadhas', note: 'In the Factions menu' },

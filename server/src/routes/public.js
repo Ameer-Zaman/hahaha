@@ -2,6 +2,7 @@ import { Router } from 'express'
 
 import { Announcement, isLive } from '../models/Announcement.js'
 import { Club } from '../models/Club.js'
+import { Creator, manualOn } from '../models/Creator.js'
 import { endOf, Event, eventState } from '../models/Event.js'
 import { Gang } from '../models/Gang.js'
 import { LiveAlert } from '../models/LiveAlert.js'
@@ -11,6 +12,7 @@ import { Staff } from '../models/Staff.js'
 import { TdmBoard } from '../models/TdmBoard.js'
 import { War } from '../models/War.js'
 import { resolveMediaUrls } from '../services/media.js'
+import { channelOf, liveSupport, refreshLive } from '../services/creatorLive.js'
 
 /**
  * Read-only data for the public website. Responses are small and briefly cacheable.
@@ -190,6 +192,53 @@ router.get('/events/:slug', async (req, res) => {
   if (!e) return res.status(404).json({ message: 'No event by that name.' })
   const mediaUrl = await resolveMediaUrls([e.image])
   res.json({ event: publicEvent(e, mediaUrl, new Date()) })
+})
+
+/**
+ * The Creators page: each creator, their links, and whether they're live — from the last
+ * Twitch / Kick / YouTube check, or set by staff by hand. `tracked` says which of a creator's
+ * channels are actually checked, so the page never claims "offline" for one that isn't.
+ */
+router.get('/creators', async (req, res) => {
+  res.set('Cache-Control', 'public, max-age=20')
+  // the server may have been asleep: bring the live status up to date first (briefly)
+  await Promise.race([refreshLive().catch(() => {}), new Promise((r) => setTimeout(r, 5000))])
+  const now = new Date()
+  const support = liveSupport()
+  const creators = await Creator.find({ visible: true }).sort({ order: 1, createdAt: 1 }).lean()
+  const mediaUrl = await resolveMediaUrls(creators.map((c) => c.photo))
+  res.json({
+    creators: creators.map((c) => {
+      const links = c.links ?? {}
+      const tracked = ['twitch', 'kick', 'youtube'].filter(
+        (p) => support[p] && (p === 'youtube' ? Boolean(links.youtube) : Boolean(channelOf(p, links[p]))),
+      )
+      const manual = manualOn(c, now)
+      const live = manual
+        ? { on: true, platform: c.manual.platform, title: c.manual.title, viewers: 0, url: c.manual.url, since: null, source: 'staff' }
+        : c.live?.on && tracked.includes(c.live.platform)
+          ? {
+              on: true,
+              platform: c.live.platform,
+              title: c.live.title,
+              viewers: c.live.viewers,
+              url: c.live.url,
+              since: c.live.startedAt,
+              source: 'auto',
+            }
+          : { on: false }
+      return {
+        id: String(c._id),
+        name: c.name,
+        tagline: c.tagline,
+        photo: mediaUrl(c.photo),
+        links,
+        tracked,
+        live,
+        checkedAt: tracked.length ? (c.live?.checkedAt ?? null) : null,
+      }
+    }),
+  })
 })
 
 router.get('/staff', async (req, res) => {

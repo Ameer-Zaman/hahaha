@@ -33,6 +33,17 @@ services:
       # to Cloudinary and are delivered from its CDN; leave it out to store them in the database.
       - key: CLOUDINARY_URL
         sync: false
+      # Creators page live checks (optional, free). See server/.env.example.
+      - key: TWITCH_CLIENT_ID
+        sync: false
+      - key: TWITCH_CLIENT_SECRET
+        sync: false
+      - key: KICK_CLIENT_ID
+        sync: false
+      - key: KICK_CLIENT_SECRET
+        sync: false
+      - key: YOUTUBE_API_KEY
+        sync: false
       # Rules helper AI (optional, free keys; any of them). See server/.env.example.
       - key: GROQ_API_KEY
         sync: false

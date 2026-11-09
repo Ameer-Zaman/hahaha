@@ -12,6 +12,7 @@ import { useSectionOn } from '../lib/siteSettings'
 // never downloads the homepage's animation code. The loading screen covers the extra hop.
 const HomePage = lazy(() => import('../features/home/HomePage'))
 const StaffPage = lazy(() => import('../features/staff/StaffPage'))
+const CreatorsPage = lazy(() => import('../features/creators/CreatorsPage'))
 const GangsPage = lazy(() => import('../features/gangs/GangsPage'))
 const GangPage = lazy(() => import('../features/gangs/GangPage'))
 const RulesPage = lazy(() => import('../features/rules/RulesPage'))
@@ -31,6 +32,7 @@ export default function App() {
       <Route element={<Layout />}>
         <Route index element={<Lazy><HomePage /></Lazy>} />
         <Route path="staff" element={<Section to="/staff"><StaffPage /></Section>} />
+        <Route path="creators" element={<Section to="/creators"><CreatorsPage /></Section>} />
         {/* the page used to be called Admin */}
         <Route path="admin" element={<Navigate to="/staff" replace />} />
         <Route path="gangs" element={<Section to="/gangs"><GangsPage /></Section>} />
