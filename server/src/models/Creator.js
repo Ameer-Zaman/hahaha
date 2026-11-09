@@ -10,7 +10,8 @@ const creatorSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     /** One short line under the name, e.g. "Plays Marcus, Ballas OG". */
     tagline: { type: String, default: '', trim: true },
-    photo: { type: String, default: null }, // media id
+    photo: { type: String, default: null }, // media id: their logo / profile picture (GIFs work)
+    banner: { type: String, default: null }, // media id: the wide picture across the top (GIFs work)
     /** Channel links: { twitch, kick, youtube, tiktok, instagram, x, facebook, discord } */
     links: { type: Object, default: () => ({}) },
     order: { type: Number, default: 0 },
@@ -31,6 +32,21 @@ const creatorSchema = new mongoose.Schema(
       platform: { type: String, default: '' },
       url: { type: String, default: '' },
       title: { type: String, default: '' },
+    },
+    /**
+     * Public channel numbers and pictures, refreshed every few minutes: YouTube subscribers,
+     * Kick followers, and each platform's own banner / profile picture (used when no banner or
+     * logo is uploaded here).
+     */
+    stats: {
+      youtube: {
+        subscribers: { type: Number, default: null },
+        avatar: { type: String, default: '' },
+        banner: { type: String, default: '' },
+      },
+      kick: { followers: { type: Number, default: null }, avatar: { type: String, default: '' }, banner: { type: String, default: '' } },
+      twitch: { avatar: { type: String, default: '' }, banner: { type: String, default: '' } },
+      checkedAt: { type: Date, default: null },
     },
     /** YouTube channel id and uploads list, looked up once from the channel link. */
     youtube: {

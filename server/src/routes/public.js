@@ -12,7 +12,7 @@ import { Staff } from '../models/Staff.js'
 import { TdmBoard } from '../models/TdmBoard.js'
 import { War } from '../models/War.js'
 import { resolveMediaUrls } from '../services/media.js'
-import { channelOf, liveSupport, refreshLive } from '../services/creatorLive.js'
+import { channelOf, liveSupport, refreshLive, refreshStats } from '../services/creatorLive.js'
 
 /**
  * Read-only data for the public website. Responses are small and briefly cacheable.
@@ -199,14 +199,19 @@ router.get('/events/:slug', async (req, res) => {
  * Twitch / Kick / YouTube check, or set by staff by hand. `tracked` says which of a creator's
  * channels are actually checked, so the page never claims "offline" for one that isn't.
  */
+const num = (v) => (v === null || v === undefined || Number.isNaN(Number(v)) ? null : Number(v))
+
 router.get('/creators', async (req, res) => {
   res.set('Cache-Control', 'public, max-age=20')
   // the server may have been asleep: bring the live status up to date first (briefly)
-  await Promise.race([refreshLive().catch(() => {}), new Promise((r) => setTimeout(r, 5000))])
+  await Promise.race([
+    Promise.all([refreshLive().catch(() => {}), refreshStats().catch(() => {})]),
+    new Promise((r) => setTimeout(r, 5000)),
+  ])
   const now = new Date()
   const support = liveSupport()
   const creators = await Creator.find({ visible: true }).sort({ order: 1, createdAt: 1 }).lean()
-  const mediaUrl = await resolveMediaUrls(creators.map((c) => c.photo))
+  const mediaUrl = await resolveMediaUrls(creators.flatMap((c) => [c.photo, c.banner]))
   res.json({
     creators: creators.map((c) => {
       const links = c.links ?? {}
@@ -227,11 +232,20 @@ router.get('/creators', async (req, res) => {
               source: 'auto',
             }
           : { on: false }
+      const st = c.stats ?? {}
+      const counts = [
+        links.kick && num(st.kick?.followers) !== null && { platform: 'kick', label: 'followers', value: st.kick.followers },
+        links.youtube &&
+          num(st.youtube?.subscribers) !== null && { platform: 'youtube', label: 'subscribers', value: st.youtube.subscribers },
+      ].filter(Boolean)
       return {
         id: String(c._id),
         name: c.name,
         tagline: c.tagline,
-        photo: mediaUrl(c.photo),
+        // uploaded here first, then the creator's own pictures from their channels
+        photo: mediaUrl(c.photo) || st.youtube?.avatar || st.kick?.avatar || st.twitch?.avatar || null,
+        banner: mediaUrl(c.banner) || st.kick?.banner || st.youtube?.banner || st.twitch?.banner || null,
+        counts,
         links,
         tracked,
         live,

@@ -29,7 +29,9 @@
   # data: and blob: cover the city skylines drawn in the browser and the preloaded videos;
   # the two cloudinary hosts are where uploaded pictures and videos live, and where the
   # panel sends a new one. Keep this in step with server/src/config/env.js (cloudinary).
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://res.cloudinary.com; media-src 'self' blob: https://res.cloudinary.com; font-src 'self'; connect-src 'self' https://res.cloudinary.com https://api.cloudinary.com; worker-src 'self' blob:; manifest-src 'self'; frame-src 'none'; upgrade-insecure-requests
+  # The YouTube (yt3), Kick (files.kick.com) and Twitch (static-cdn.jtvnw.net) image hosts
+  # are for creators' own profile pictures and banners on the Creators page.
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://res.cloudinary.com https://yt3.ggpht.com https://yt3.googleusercontent.com https://files.kick.com https://static-cdn.jtvnw.net; media-src 'self' blob: https://res.cloudinary.com; font-src 'self'; connect-src 'self' https://res.cloudinary.com https://api.cloudinary.com; worker-src 'self' blob:; manifest-src 'self'; frame-src 'none'; upgrade-insecure-requests
 
 # The admin panel is never cached and never indexed.
 /panel/*

@@ -8,8 +8,6 @@ import { SOCIAL_PLATFORMS } from '../../components/ui/socialPlatforms'
 import usePageTitle from '../../hooks/usePageTitle'
 import { usePublic } from '../../lib/publicData'
 import { useNow } from '../events/eventsModel'
-import '@fontsource/cinzel/latin-600'
-import '@fontsource/cinzel/latin-700'
 import './creators.css'
 
 const PLATFORM = Object.fromEntries(SOCIAL_PLATFORMS.map((p) => [p.id, p]))
@@ -115,34 +113,10 @@ export default function CreatorsPage() {
   )
 }
 
-/** A small crown over the name: three points, a band, three jewels. */
-function Crown() {
-  return (
-    <svg className="cr-crown" viewBox="0 0 40 22" aria-hidden="true">
-      <path d="M3 18 L6 5 L14 12 L20 2 L26 12 L34 5 L37 18 Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
-      <path d="M4 20.5 H36" stroke="currentColor" strokeWidth="1.3" />
-      <circle cx="6" cy="4.2" r="1.4" fill="currentColor" />
-      <circle cx="20" cy="1.6" r="1.5" fill="currentColor" />
-      <circle cx="34" cy="4.2" r="1.4" fill="currentColor" />
-    </svg>
-  )
-}
-
-/** line — diamond — line, in gold */
-function Flourish() {
-  return (
-    <span className="cr-flourish" aria-hidden="true">
-      <span />
-      <i />
-      <span />
-    </span>
-  )
-}
-
 /**
- * One creator, set like a royal portrait: their photo in a gilded double frame with corner
- * ornaments, then a crown, their name in Roman capitals, a gold flourish, and their channels.
- * Live: the frame wakes up with a slow gold sheen, a red LIVE seal and a Watch button.
+ * One creator as a simple profile card: their banner across the top (a GIF plays), their logo
+ * overlapping it, name and short line, their Kick followers / YouTube subscribers, what they're
+ * streaming if they're live, and their channels.
  */
 function CreatorCard({ creator: c, now }) {
   const initials = c.name
@@ -151,33 +125,15 @@ function CreatorCard({ creator: c, now }) {
     .join('')
     .slice(0, 2)
     .toUpperCase()
-  const picture = c.photo ? (
-    <img src={c.photo} alt="" loading="lazy" decoding="async" />
-  ) : (
-    <span className="cr-card__initials" aria-hidden="true">
-      {initials}
-    </span>
-  )
-  const Media = c.live.on ? 'a' : 'span'
-  const mediaProps = c.live.on
-    ? { href: c.live.url, target: '_blank', rel: 'noopener noreferrer nofollow', tabIndex: -1, 'aria-hidden': true }
-    : {}
 
   return (
     <article className={`cr-card ${c.live.on ? 'is-live' : ''}`} aria-labelledby={`cr-${c.id}`}>
-      <div className="cr-card__frame">
-        <Media className="cr-card__media" {...mediaProps}>
-          {picture}
-          <span className="cr-card__sheen" aria-hidden="true" />
-        </Media>
-        <span className="cr-corner cr-corner--tl" aria-hidden="true" />
-        <span className="cr-corner cr-corner--tr" aria-hidden="true" />
-        <span className="cr-corner cr-corner--bl" aria-hidden="true" />
-        <span className="cr-corner cr-corner--br" aria-hidden="true" />
+      <div className="cr-card__banner" aria-hidden="true">
+        {c.banner && <img src={c.banner} alt="" loading="lazy" decoding="async" />}
         {c.live.on ? (
-          <span className="cr-seal">
+          <span className="cr-live">
             <span className="cr-dot" aria-hidden="true" /> Live
-            {c.live.viewers > 0 && <span className="cr-seal__viewers">{compact(c.live.viewers)}</span>}
+            {c.live.viewers > 0 && <span className="cr-live__viewers">{compact(c.live.viewers)}</span>}
           </span>
         ) : c.tracked.length > 0 ? (
           <span className="cr-off">Offline</span>
@@ -185,24 +141,37 @@ function CreatorCard({ creator: c, now }) {
       </div>
 
       <div className="cr-card__body">
-        <Crown />
+        <div className="cr-card__avatar">
+          {c.photo ? <img src={c.photo} alt="" loading="lazy" decoding="async" /> : <span aria-hidden="true">{initials}</span>}
+        </div>
+
         <h2 id={`cr-${c.id}`} className="cr-card__name">
           {c.name}
         </h2>
         {c.tagline && <p className="cr-card__tagline">{c.tagline}</p>}
-        <Flourish />
+
+        {c.counts.length > 0 && (
+          <ul className="cr-counts" role="list">
+            {c.counts.map((n) => (
+              <li key={n.platform} className="cr-count">
+                {PLATFORM[n.platform] && <BrandIcon platform={PLATFORM[n.platform]} size={14} />}
+                <strong>{compact(n.value)}</strong>
+                <span>{n.label}</span>
+              </li>
+            ))}
+          </ul>
+        )}
 
         {c.live.on && (
           <div className="cr-card__now">
-            {c.live.title && <p className="cr-card__title">“{c.live.title}”</p>}
+            {c.live.title && <p className="cr-card__title">{c.live.title}</p>}
             <p className="cr-card__meta">
               {c.live.viewers > 0 && <>{compact(c.live.viewers)} watching · </>}
-              On {platformName(c.live.platform)}
+              {platformName(c.live.platform)}
               {c.live.since && <> · {liveFor(c.live.since, now)}</>}
             </p>
             <a className="cr-watch" href={c.live.url} target="_blank" rel="noopener noreferrer nofollow">
-              {PLATFORM[c.live.platform] && <BrandIcon platform={PLATFORM[c.live.platform]} size={15} />}
-              Watch live
+              <span className="cr-dot" aria-hidden="true" /> Watch live
             </a>
           </div>
         )}
@@ -219,8 +188,9 @@ function CreatorsSkeleton() {
       <div className="cr-grid">
         {Array.from({ length: 4 }, (_, i) => (
           <div key={i} className="cr-skel">
-            <Skeleton w="100%" h="20rem" radius={2} />
-            <Skeleton w="60%" h="1.3rem" />
+            <Skeleton w="100%" h="7rem" radius={10} />
+            <Skeleton w="4.5rem" h="4.5rem" radius={999} />
+            <Skeleton w="60%" h="1.2rem" />
             <Skeleton w="40%" h="0.9rem" />
           </div>
         ))}

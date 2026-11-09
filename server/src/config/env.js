@@ -173,6 +173,7 @@ export const env = {
     kickAuthBase: process.env.KICK_AUTH_BASE ?? 'https://id.kick.com',
     kickApiBase: process.env.KICK_API_BASE ?? 'https://api.kick.com',
     youtubeApiBase: process.env.YOUTUBE_API_BASE ?? 'https://www.googleapis.com/youtube/v3',
+    kickSiteBase: process.env.KICK_SITE_BASE ?? 'https://kick.com',
   },
 
   /**

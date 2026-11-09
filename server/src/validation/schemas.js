@@ -295,6 +295,7 @@ export const creatorSchema = z.object({
   name: text(60).min(1),
   tagline: text(100).optional().default(''),
   photo: mediaId,
+  banner: mediaId,
   links: staffSocialsSchema.optional().default({}),
   order: z.number().int().min(0).max(9999).optional().default(0),
   visible: z.boolean().optional().default(true),

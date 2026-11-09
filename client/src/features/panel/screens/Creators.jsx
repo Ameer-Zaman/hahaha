@@ -41,7 +41,7 @@ const LIVE_PLATFORMS = [
   { value: 'other', label: 'Other' },
 ]
 
-const blank = () => ({ name: '', tagline: '', photo: null, links: {}, order: 0, visible: true })
+const blank = () => ({ name: '', tagline: '', photo: null, banner: null, links: {}, order: 0, visible: true })
 const compact = (n) => new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 }).format(n)
 const time = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' })
 
@@ -69,6 +69,7 @@ export default function Creators() {
       name: form.name.trim(),
       tagline: form.tagline.trim(),
       photo: form.photo,
+      banner: form.banner,
       links: Object.fromEntries(
         Object.entries(form.links)
           .filter(([, v]) => v.trim())
@@ -150,9 +151,18 @@ export default function Creators() {
             </li>
           ))}
         </ul>
+        {['kickFollowers', 'youtubeStats'].map(
+          (k) =>
+            errors[k] && (
+              <p key={k} className="p-text p-ai__rest">
+                {errors[k]}
+              </p>
+            ),
+        )}
         <p className="p-text p-ai-note">
-          Creators on other platforms (TikTok, Instagram …) show no live status unless you mark them live by hand. The website never shows
-          “Offline” for a channel it can’t check.
+          Every 10 minutes the server also fetches YouTube subscribers (with the YouTube key) and Kick followers, plus their own banner and
+          picture when you haven’t uploaded one. Creators on other platforms (TikTok, Instagram …) show no live status unless you mark them
+          live by hand. The website never shows “Offline” for a channel it can’t check.
         </p>
       </Panel>
 
@@ -180,7 +190,22 @@ export default function Creators() {
                 />
                 <Switch checked={form.visible} onChange={set('visible')} label="Show on the website" />
               </div>
-              <MediaField label="Photo" value={form.photo} onChange={set('photo')} fallback="Empty: the card shows their initials." />
+              <div className="p-form-grid">
+                <MediaField
+                  label="Logo / profile picture"
+                  value={form.photo}
+                  onChange={set('photo')}
+                  fallback="Empty: their YouTube, Kick or Twitch picture, or their initials."
+                  hint="Square works best. GIFs play."
+                />
+                <MediaField
+                  label="Banner"
+                  value={form.banner}
+                  onChange={set('banner')}
+                  fallback="Empty: their Kick or YouTube banner, or a plain dark band."
+                  hint="Wide (about 3:1). GIFs play."
+                />
+              </div>
             </div>
             <fieldset className="p-socials">
               <legend className="p-field__label">Channels</legend>
@@ -243,7 +268,8 @@ export default function Creators() {
                   <p className="p-staff__role">
                     {manualOn ? (
                       <span className="p-cr-live">
-                        ● Live on {LIVE_PLATFORMS.find((p) => p.value === c.manual.platform)?.label ?? c.manual.platform} — set by staff until {time.format(new Date(c.manual.until))}
+                        ● Live on {LIVE_PLATFORMS.find((p) => p.value === c.manual.platform)?.label ?? c.manual.platform} — set by staff
+                        until {time.format(new Date(c.manual.until))}
                       </span>
                     ) : c.live?.on && checkable.includes(c.live.platform) ? (
                       <span className="p-cr-live">
@@ -292,6 +318,7 @@ export default function Creators() {
                         name: c.name,
                         tagline: c.tagline ?? '',
                         photo: c.photo,
+                        banner: c.banner ?? null,
                         links: { ...(c.links ?? {}) },
                         order: c.order,
                         visible: c.visible,

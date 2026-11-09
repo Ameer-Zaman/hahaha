@@ -256,13 +256,183 @@ async function run(force) {
   if (writes.length) await Creator.bulkWrite(writes)
 }
 
+/* ---------------- channel numbers and pictures (every 10 minutes) ---------------- */
+
+const STATS_MS = 10 * 60_000
+let statsRun = 0
+let statsRunning = null
+
+const num = (v) => (v === undefined || v === null || v === '' || Number.isNaN(Number(v)) ? null : Number(v))
+
+/** YouTube: subscribers (YouTube's own rounded public number), profile picture and banner. */
+async function youtubeStats(creators) {
+  const key = env.creators.youtubeKey
+  const base = env.creators.youtubeApiBase
+  const out = new Map() // creator id → stats
+  const byChannel = new Map() // channel id → creator ids
+  for (const c of creators) {
+    const link = c.links.youtube
+    let channelId = c.youtube?.source === link ? c.youtube.channelId : ''
+    if (!channelId) {
+      const ref = channelOf('youtube', link)
+      if (!ref) continue
+      const q = ref.startsWith('@') ? `forHandle=${encodeURIComponent(ref)}` : `id=${encodeURIComponent(ref)}`
+      const data = await getJson(`${base}/channels?part=contentDetails&${q}&key=${key}`)
+      const item = (data.items ?? [])[0]
+      channelId = item?.id ?? ''
+      await Creator.updateOne(
+        { _id: c._id },
+        { youtube: { source: link, channelId, uploads: item?.contentDetails?.relatedPlaylists?.uploads ?? '' } },
+      )
+    }
+    if (channelId) byChannel.set(channelId, [...(byChannel.get(channelId) ?? []), String(c._id)])
+  }
+  const ids = [...byChannel.keys()]
+  for (let i = 0; i < ids.length; i += 50) {
+    const data = await getJson(`${base}/channels?part=snippet,statistics,brandingSettings&id=${ids.slice(i, i + 50).join(',')}&key=${key}`)
+    for (const item of data.items ?? []) {
+      const banner = item.brandingSettings?.image?.bannerExternalUrl
+      const stats = {
+        subscribers: item.statistics?.hiddenSubscriberCount ? null : num(item.statistics?.subscriberCount),
+        avatar: item.snippet?.thumbnails?.high?.url ?? item.snippet?.thumbnails?.default?.url ?? '',
+        // the middle strip of the banner (the part every device shows), at a sensible size
+        banner: banner ? `${banner}=w1280-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj` : '',
+      }
+      for (const id of byChannel.get(item.id) ?? []) out.set(id, stats)
+    }
+  }
+  return out
+}
+
+/**
+ * Kick: the banner from the official API (with keys), and the follower count and profile
+ * picture from Kick's public channel page data (no keys; Kick may refuse it from some servers,
+ * in which case no number is shown — never a made-up one).
+ */
+async function kickStats(slugs) {
+  const out = new Map()
+  const support = liveSupport()
+  let token = null
+  if (support.kick) {
+    try {
+      token = await appToken('kick', `${env.creators.kickAuthBase}/oauth/token`, env.creators.kickId, env.creators.kickSecret)
+    } catch {
+      token = null
+    }
+  }
+  let refused = 0
+  for (const slug of slugs) {
+    const stats = { followers: null, avatar: '', banner: '' }
+    if (token) {
+      try {
+        const data = await getJson(`${env.creators.kickApiBase}/public/v1/channels?slug=${encodeURIComponent(slug)}`, {
+          headers: { authorization: `Bearer ${token}`, accept: 'application/json' },
+        })
+        stats.banner = (data.data ?? [])[0]?.banner_picture ?? ''
+      } catch {
+        /* keep going */
+      }
+    }
+    try {
+      const ch = await getJson(`${env.creators.kickSiteBase}/api/v2/channels/${encodeURIComponent(slug)}`, {
+        headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0 (compatible; RameirahEmpireSite/1.0)' },
+      })
+      stats.followers = num(ch.followers_count ?? ch.followersCount)
+      stats.avatar = ch.user?.profile_pic ?? ''
+      if (!stats.banner) stats.banner = ch.banner_image?.url ?? ''
+    } catch {
+      refused += 1
+    }
+    out.set(slug, stats)
+  }
+  if (refused && refused === slugs.length)
+    lastErrors.kickFollowers = 'Kick refused the follower-count lookup from the server, so Kick follower numbers are hidden for now.'
+  else delete lastErrors.kickFollowers
+  return out
+}
+
+/** Twitch: profile picture and offline banner (follower counts need the streamer's own login, so none). */
+async function twitchStats(logins) {
+  const out = new Map()
+  if (!logins.length) return out
+  const { twitchId, twitchSecret } = env.creators
+  const token = await appToken('twitch', `${env.creators.twitchAuthBase}/oauth2/token`, twitchId, twitchSecret)
+  for (let i = 0; i < logins.length; i += 100) {
+    const q = logins
+      .slice(i, i + 100)
+      .map((l) => `login=${encodeURIComponent(l)}`)
+      .join('&')
+    const data = await getJson(`${env.creators.twitchApiBase}/helix/users?${q}`, {
+      headers: { 'Client-Id': twitchId, authorization: `Bearer ${token}` },
+    })
+    for (const u of data.data ?? []) {
+      out.set(String(u.login).toLowerCase(), { avatar: u.profile_image_url ?? '', banner: u.offline_image_url ?? '' })
+    }
+  }
+  return out
+}
+
+export function refreshStats({ force = false } = {}) {
+  if (statsRunning) return statsRunning
+  if (!force && Date.now() - statsRun < STATS_MS) return Promise.resolve()
+  statsRun = Date.now()
+  statsRunning = runStats().finally(() => {
+    statsRunning = null
+  })
+  return statsRunning
+}
+
+async function runStats() {
+  const support = liveSupport()
+  const creators = await Creator.find({ visible: true }, 'links youtube stats').lean()
+  if (!creators.length) return
+  const [yt, kk, tw] = await Promise.all([
+    support.youtube
+      ? youtubeStats(creators.filter((c) => c.links?.youtube)).catch(
+          (e) => ((lastErrors.youtubeStats = `YouTube numbers failed (${e.message})`), null),
+        )
+      : null,
+    kickStats([...new Set(creators.map((c) => channelOf('kick', c.links?.kick)).filter(Boolean))]).catch(() => null),
+    support.twitch
+      ? twitchStats([...new Set(creators.map((c) => channelOf('twitch', c.links?.twitch)).filter(Boolean))]).catch(() => null)
+      : null,
+  ])
+  if (yt) delete lastErrors.youtubeStats
+  const empty = {
+    youtube: { subscribers: null, avatar: '', banner: '' },
+    kick: { followers: null, avatar: '', banner: '' },
+    twitch: { avatar: '', banner: '' },
+  }
+  const writes = creators.map((c) => {
+    const prev = c.stats ?? empty
+    const kSlug = channelOf('kick', c.links?.kick)
+    const tLogin = channelOf('twitch', c.links?.twitch)
+    const stats = {
+      // a failed round keeps the last good numbers; a removed link clears them
+      youtube: !c.links?.youtube ? empty.youtube : yt ? (yt.get(String(c._id)) ?? empty.youtube) : (prev.youtube ?? empty.youtube),
+      kick: !kSlug ? empty.kick : kk ? { ...(prev.kick ?? {}), ...pickKnown(kk.get(kSlug)) } : (prev.kick ?? empty.kick),
+      twitch: !tLogin ? empty.twitch : tw ? (tw.get(tLogin) ?? empty.twitch) : (prev.twitch ?? empty.twitch),
+      checkedAt: new Date(),
+    }
+    return { updateOne: { filter: { _id: c._id }, update: { stats } } }
+  })
+  await Creator.bulkWrite(writes)
+}
+
+/** Kick fields that came back this time (a refused lookup leaves the old follower count). */
+function pickKnown(s) {
+  if (!s) return {}
+  return Object.fromEntries(Object.entries(s).filter(([, v]) => v !== null && v !== ''))
+}
+
 export const liveErrors = () => ({ ...lastErrors })
 
 /** Keeps checking while the server is awake. */
 export function startLiveChecks() {
-  const support = liveSupport()
-  if (!support.twitch && !support.kick && !support.youtube) return
-  const tick = () => refreshLive().catch(() => {})
+  const tick = () => {
+    refreshLive().catch(() => {})
+    refreshStats().catch(() => {})
+  }
   setTimeout(tick, 5_000).unref?.()
   setInterval(tick, 30_000).unref?.()
 }
