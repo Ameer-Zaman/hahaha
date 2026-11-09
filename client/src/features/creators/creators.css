@@ -814,7 +814,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.2rem 0.65rem 0.2rem 0.35rem;
+  padding: 0.2rem 0.6rem 0.2rem 0.35rem;
   border: 1px solid rgb(255 255 255 / 0.16);
   border-radius: 999px;
   background: rgb(8 8 10 / 0.62);
@@ -831,10 +831,6 @@
   font-size: 0.8125rem;
   font-weight: 800;
   letter-spacing: 0.01em;
-}
-.cr-views__label {
-  font-size: 0.6875rem;
-  color: rgb(255 255 255 / 0.65);
 }
 .watch-eye {
   flex: none;

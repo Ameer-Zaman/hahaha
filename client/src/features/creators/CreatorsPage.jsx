@@ -242,7 +242,7 @@ export function CreatorCard({ creator: c, onOpen }) {
               <span className="cr-views">
                 <WatchEye />
                 <strong>{compact(c.live.viewers)}</strong>
-                <span className="cr-views__label">watching</span>
+                <span className="visually-hidden"> watching</span>
               </span>
             )}
           </>
