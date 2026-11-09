@@ -1206,6 +1206,13 @@
   top: 1.05rem;
   right: 1.1rem;
 }
+/* an uploaded frame covers the whole card: the tag comes in front of it, under its top edge */
+.cr-card.frame-custom .cr-live,
+.cr-card.frame-custom .cr-off {
+  z-index: 5;
+  top: 3.4rem;
+  right: 1.6rem;
+}
 /* filigree's corner scrolls are bigger: the tag sits further in */
 .cr-card.frame-filigree .cr-live,
 .cr-card.frame-filigree .cr-off {

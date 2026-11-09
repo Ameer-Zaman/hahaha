@@ -434,7 +434,7 @@ export default function Creators() {
                       value={form.look.frameImage}
                       onChange={(v) => setForm((f) => ({ ...f, look: { ...f.look, frameImage: v } }))}
                       fallback="Empty: no frame."
-                      hint="A transparent PNG or GIF, about 2:3 (the card's shape). Only use art you made or have the rights to."
+                      hint="A transparent PNG, GIF or animated WebP, about 10:11 (cards are nearly square). It stretches to fit each card, so keep the art near the edges. Only use art you made or have the rights to."
                     />
                   )}
                   <LookChips
