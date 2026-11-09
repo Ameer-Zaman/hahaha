@@ -108,8 +108,13 @@ export const integrations = {
 export const navigation = [
   { label: 'Home', to: '/' },
   { label: 'Story', to: '/story' },
-  { label: 'Staffs', to: '/staff' },
-  { label: 'Creators', to: '/creators' },
+  {
+    label: 'Community', // the dropdown's name — rename freely
+    children: [
+      { label: 'Staffs', to: '/staff', hint: 'The team that runs the city' },
+      { label: 'Creators', to: '/creators', hint: 'Streamers, and who is live' },
+    ],
+  },
   {
     label: 'Factions', // the dropdown's name — rename freely
     children: [
