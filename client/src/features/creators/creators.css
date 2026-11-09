@@ -905,6 +905,59 @@
   transform: translate(2px, -2px);
 }
 
+/* ---------- Watch on <platform>: the platform's own colours ---------- */
+.cr-watch--brand {
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 8px 22px -10px color-mix(in srgb, var(--brand) 80%, transparent);
+}
+.cr-watch--brand:hover {
+  background: var(--brand);
+  filter: brightness(1.1);
+  box-shadow: 0 10px 26px -8px color-mix(in srgb, var(--brand) 90%, transparent);
+}
+.cr-watch--brand svg path {
+  fill: currentColor;
+}
+/* light brand colours (Kick green, TikTok / X white) get dark text */
+.cr-watch--brand[data-platform='kick'],
+.cr-watch--brand[data-platform='tiktok'],
+.cr-watch--brand[data-platform='x'] {
+  color: #0a0a0a;
+}
+.cr-watch--brand[data-platform='instagram'] {
+  background: linear-gradient(45deg, #f9ce34, #ee2a7b 50%, #6228d7);
+}
+/* a small "● LIVE" tag at the end of the button */
+.cr-watch__live {
+  display: none;
+}
+.cr-watch--brand .cr-watch__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 0.25rem;
+  padding: 0.12rem 0.4rem;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 0.25);
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.cr-watch--brand .cr-watch__live .cr-dot {
+  width: 6px;
+  height: 6px;
+  background: currentColor;
+  box-shadow: none;
+  animation: cr-blink 1.4s ease-in-out infinite;
+}
+@keyframes cr-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
 /* ---------- the watching eye ---------- */
 .watch-eye {
   flex: none;
@@ -964,6 +1017,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .cr-watch--brand .cr-watch__live .cr-dot,
   .cr-dot,
   .cr-status--live::after,
   .cr-grid > li,

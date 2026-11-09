@@ -210,9 +210,7 @@ function CreatorCard({ creator: c, now, onOpen }) {
               {platformName(c.live.platform)}
               {c.live.since && <> · {liveFor(c.live.since, now)}</>}
             </p>
-            <a className="cr-watch" href={c.live.url} target="_blank" rel="noopener noreferrer nofollow">
-              <span className="cr-dot" aria-hidden="true" /> Watch live
-            </a>
+            <WatchButton live={c.live} />
           </div>
         )}
 
@@ -234,6 +232,31 @@ function Counts({ counts }) {
         </li>
       ))}
     </ul>
+  )
+}
+
+/**
+ * "Watch on Kick": the button wears the colours and logo of the platform they're streaming on
+ * (Kick green, Twitch purple, YouTube red …); an unknown platform gets the plain red "Watch live".
+ */
+function WatchButton({ live, wide = false }) {
+  const p = PLATFORM[live.platform]
+  return (
+    <a
+      className={`cr-watch ${wide ? 'cr-watch--wide' : ''} ${p ? `cr-watch--brand` : ''}`}
+      data-platform={p?.id}
+      style={p ? { '--brand': p.color } : undefined}
+      href={live.url}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+    >
+      {p ? <BrandIcon platform={p} size={16} /> : <span className="cr-dot" aria-hidden="true" />}
+      {p ? `Watch on ${p.label}` : 'Watch live'}
+      <span className="cr-watch__live" aria-hidden="true">
+        <span className="cr-dot" /> Live
+      </span>
+      <span className="visually-hidden"> (opens in a new tab)</span>
+    </a>
   )
 }
 
@@ -350,9 +373,7 @@ function ProfilePopout({ creator: c, now, onClose }) {
                       </p>
                     </div>
                   </div>
-                  <a className="cr-watch cr-watch--wide" href={c.live.url} target="_blank" rel="noopener noreferrer nofollow">
-                    <span className="cr-dot" aria-hidden="true" /> Watch live
-                  </a>
+                  <WatchButton live={c.live} wide />
                 </section>
               )}
 
