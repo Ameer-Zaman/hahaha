@@ -166,7 +166,7 @@
   position: absolute;
   z-index: 2;
   top: 0.65rem;
-  right: 0.65rem;
+  left: 0.65rem;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -191,15 +191,6 @@
   to {
     box-shadow: 0 0 0 6px rgb(255 255 255 / 0);
   }
-}
-.cr-live__viewers {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding-left: 0.4rem;
-  border-left: 1px solid rgb(255 255 255 / 0.45);
-  font-weight: 500;
-  letter-spacing: 0.02em;
 }
 .cr-off {
   background: rgb(0 0 0 / 0.6);
@@ -814,52 +805,56 @@
   }
 }
 
-/* ---------- the watching eye ---------- */
+/* ---------- the watching count: a glass pill on the right, with a realistic eye ---------- */
+.cr-views {
+  position: absolute;
+  z-index: 2;
+  top: 0.65rem;
+  right: 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.65rem 0.2rem 0.35rem;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: 999px;
+  background: rgb(8 8 10 / 0.62);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 18px -8px rgb(0 0 0 / 0.8);
+  color: #fff;
+  line-height: 1;
+}
+.cr-views .watch-eye {
+  width: 1.85rem;
+}
+.cr-views strong {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+.cr-views__label {
+  font-size: 0.6875rem;
+  color: rgb(255 255 255 / 0.65);
+}
 .watch-eye {
   flex: none;
-  width: 1.15em;
+  width: 1.5em;
   height: auto;
   overflow: visible;
-  vertical-align: -0.15em;
-}
-.watch-eye__white {
-  fill: #fff;
-}
-.watch-eye__outline {
-  fill: none;
-  stroke: #fff;
-  stroke-width: 1.4;
-}
-.watch-eye__iris {
-  fill: #2b1216;
-}
-.watch-eye__pupil {
-  fill: #000;
-}
-.watch-eye__glint {
-  fill: #fff;
+  vertical-align: -0.2em;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.5));
 }
 .watch-eye__look {
   transition-property: transform;
   transition-timing-function: cubic-bezier(0.3, 0.7, 0.3, 1);
 }
-.watch-eye__lid {
+.watch-eye__pupil {
   transform-box: fill-box;
   transform-origin: center;
+  transition: transform 0.6s ease;
+}
+.watch-eye__lid {
   transition: transform 70ms ease-in;
-}
-.watch-eye__lid.is-blink {
-  transform: scaleY(0.08);
-}
-/* on dark backgrounds (card text, pop-out): a softer eye */
-.watch-eye--muted .watch-eye__white {
-  fill: rgb(var(--rgb-ivory) / 0.9);
-}
-.watch-eye--muted .watch-eye__outline {
-  stroke: rgb(var(--rgb-ivory) / 0.9);
-}
-.watch-eye--muted .watch-eye__iris {
-  fill: var(--cr-live, #e2384d);
 }
 .cr-watching {
   display: inline-flex;
@@ -867,9 +862,6 @@
   gap: 0.3rem;
   white-space: nowrap;
   vertical-align: bottom;
-}
-.cr-live .watch-eye {
-  width: 1.45em;
 }
 
 /* =========================================================
@@ -1204,18 +1196,33 @@
 .cr-card.has-frame .cr-live,
 .cr-card.has-frame .cr-off {
   top: 1.05rem;
+  left: 1.1rem;
+}
+.cr-card.has-frame .cr-views {
+  top: 1.05rem;
   right: 1.1rem;
 }
 /* an uploaded frame covers the whole card: the tag comes in front of it, under its top edge */
 .cr-card.frame-custom .cr-live,
-.cr-card.frame-custom .cr-off {
+.cr-card.frame-custom .cr-off,
+.cr-card.frame-custom .cr-views {
   z-index: 5;
   top: 3.4rem;
+}
+.cr-card.frame-custom .cr-live,
+.cr-card.frame-custom .cr-off {
+  left: 1.6rem;
+}
+.cr-card.frame-custom .cr-views {
   right: 1.6rem;
 }
 /* filigree's corner scrolls are bigger: the tag sits further in */
 .cr-card.frame-filigree .cr-live,
 .cr-card.frame-filigree .cr-off {
+  top: 1.25rem;
+  left: 2.9rem;
+}
+.cr-card.frame-filigree .cr-views {
   top: 1.25rem;
   right: 2.9rem;
 }

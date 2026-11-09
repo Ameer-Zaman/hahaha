@@ -234,15 +234,18 @@ export function CreatorCard({ creator: c, onOpen }) {
         <Pic src={c.banner} still={c.bannerStill} />
         <CardFx effect={effect} seed={c.id} />
         {c.live.on ? (
-          <span className="cr-live">
-            <span className="cr-dot" aria-hidden="true" /> Live
+          <>
+            <span className="cr-live">
+              <span className="cr-dot" aria-hidden="true" /> Live
+            </span>
             {c.live.viewers > 0 && (
-              <span className="cr-live__viewers">
-                <WatchEye /> {compact(c.live.viewers)}
-                <span className="visually-hidden"> watching</span>
+              <span className="cr-views">
+                <WatchEye />
+                <strong>{compact(c.live.viewers)}</strong>
+                <span className="cr-views__label">watching</span>
               </span>
             )}
-          </span>
+          </>
         ) : c.tracked.length > 0 ? (
           <span className="cr-off">Offline</span>
         ) : null}
