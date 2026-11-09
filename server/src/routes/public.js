@@ -11,7 +11,7 @@ import { MEDIA_SLOTS, readChatBot, readSections, readSocials, Settings } from '.
 import { Staff } from '../models/Staff.js'
 import { TdmBoard } from '../models/TdmBoard.js'
 import { War } from '../models/War.js'
-import { resolveMediaUrls } from '../services/media.js'
+import { resolveMediaUrls, resolveStillUrls } from '../services/media.js'
 import { channelOf, liveSupport, refreshLive, refreshStats } from '../services/creatorLive.js'
 
 /**
@@ -212,6 +212,7 @@ router.get('/creators', async (req, res) => {
   const support = liveSupport()
   const creators = await Creator.find({ visible: true }).sort({ order: 1, createdAt: 1 }).lean()
   const mediaUrl = await resolveMediaUrls(creators.flatMap((c) => [c.photo, c.banner]))
+  const stillOf = await resolveStillUrls(creators.flatMap((c) => [c.photo, c.banner]))
   res.json({
     creators: creators.map((c) => {
       const links = c.links ?? {}
@@ -245,6 +246,9 @@ router.get('/creators', async (req, res) => {
         // uploaded here first, then the creator's own pictures from their channels
         photo: mediaUrl(c.photo) || st.youtube?.avatar || st.kick?.avatar || st.twitch?.avatar || null,
         banner: mediaUrl(c.banner) || st.kick?.banner || st.youtube?.banner || st.twitch?.banner || null,
+        // animated (GIF) uploads: a still frame to show until the card is hovered, like Discord
+        photoStill: c.photo ? stillOf(c.photo) : null,
+        bannerStill: c.banner ? stillOf(c.banner) : null,
         counts,
         links,
         tracked,

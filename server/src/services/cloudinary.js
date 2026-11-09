@@ -70,6 +70,11 @@ export async function destroy(resourceType, publicId) {
  * The address visitors load. Images get automatic format (AVIF/WebP) and quality, capped at
  * 2400 px wide; videos are delivered as uploaded (instant, no processing wait).
  */
+/** A still (first frame) of an animated GIF, for showing until hover. */
+export function stillUrl(m) {
+  return `${c().deliveryBase}/${c().cloudName}/image/upload/f_jpg,pg_1,q_auto,c_limit,w_1600/v${m.version}/${m.publicId}`
+}
+
 export function deliveryUrl(m, { thumb = false } = {}) {
   const base = `${c().deliveryBase}/${c().cloudName}/${m.resourceType}/upload`
   const file = `v${m.version}/${m.publicId}`

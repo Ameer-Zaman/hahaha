@@ -114,10 +114,31 @@
   border: 1px solid rgb(var(--rgb-ivory) / 0.1);
   border-radius: 12px;
   background: #0f0f10;
-  transition: border-color 0.25s ease;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.25s ease;
 }
 .cr-card:hover {
   border-color: rgb(var(--rgb-ivory) / 0.22);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px -18px rgb(0 0 0 / 0.9);
+}
+/* cards pop in one after another, with Discord's springy ease */
+.cr-grid > li {
+  animation: cr-pop 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+@keyframes cr-pop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 .cr-card.is-live {
   border-color: rgb(226 56 77 / 0.55);
@@ -130,12 +151,13 @@
   overflow: hidden;
   background: linear-gradient(135deg, #1b1a17, #121212 60%, #18150f);
 }
-.cr-card__banner img {
+.cr-card__banner .cr-pic {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.cr-card:hover .cr-card__banner .cr-pic {
+  transform: scale(1.04);
 }
 .cr-live,
 .cr-off {
@@ -186,33 +208,68 @@
   padding: 0 1.1rem 1.15rem;
   min-width: 0;
 }
-/* logo: a round picture overlapping the banner; a red ring while live */
-.cr-card__avatar {
-  display: grid;
-  place-items: center;
-  width: 4.75rem;
-  height: 4.75rem;
-  margin: -2.4rem 0 0.35rem;
-  overflow: hidden;
-  border: 4px solid #0f0f10;
-  border-radius: 50%;
-  background: #1d1c1a;
-  box-shadow: 0 0 0 1px rgb(var(--rgb-ivory) / 0.12);
+/* ---------- the logo, with a status dot cut into its corner (Discord style) ---------- */
+.cr-avatar {
+  --av: 4.75rem;
+  --ring: #0f0f10;
   position: relative;
+  width: var(--av);
+  height: var(--av);
+  margin: calc(var(--av) / -2) 0 0.35rem;
 }
-.cr-card.is-live .cr-card__avatar {
-  box-shadow: 0 0 0 2px var(--cr-live);
-}
-.cr-card__avatar img {
+.cr-avatar__img {
+  position: relative;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  overflow: hidden;
+  border: 5px solid var(--ring);
+  border-radius: 50%;
+  background: #1d1c1a;
+  transition: filter 0.2s ease;
 }
-.cr-card__avatar span {
+.cr-avatar__img .cr-pic {
+  position: absolute;
+  inset: 0;
+}
+.cr-avatar__initials {
+  display: grid;
+  place-items: center;
+  height: 100%;
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: calc(var(--av) * 0.32);
   color: var(--c-gold);
 }
+.cr-status {
+  position: absolute;
+  right: calc(var(--av) * 0.02);
+  bottom: calc(var(--av) * 0.02);
+  width: calc(var(--av) * 0.26);
+  height: calc(var(--av) * 0.26);
+  border: calc(var(--av) * 0.06) solid var(--ring);
+  border-radius: 50%;
+  background: #80848e;
+}
+.cr-status--live {
+  background: var(--cr-live, #e2384d);
+}
+.cr-status--live::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgb(226 56 77 / 0.7);
+  animation: cr-status-ping 1.8s ease-out infinite;
+}
+@keyframes cr-status-ping {
+  to {
+    box-shadow: 0 0 0 8px rgb(226 56 77 / 0);
+  }
+}
+.cr-avatar--lg {
+  --av: 6.25rem;
+  --ring: #141416;
+}
+
 .cr-card__name {
   margin: 0;
   font-family: var(--font-sans);
@@ -222,6 +279,24 @@
   letter-spacing: 0;
   text-transform: none;
   overflow-wrap: anywhere;
+}
+.cr-card__open {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.cr-card__open:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.cr-card__open:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 .cr-card__tagline {
   margin: 0;
@@ -289,10 +364,15 @@
   font-size: 0.875rem;
   font-weight: 700;
   text-decoration: none;
-  transition: background-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
 }
 .cr-watch:hover {
   background: #f04a5f;
+}
+.cr-watch:active {
+  transform: scale(0.97);
 }
 .cr-watch:focus-visible {
   outline: 2px solid var(--focus);
@@ -317,7 +397,9 @@
   border: 1px solid rgb(var(--rgb-ivory) / 0.12);
   border-radius: 50%;
   background: rgb(var(--rgb-ivory) / 0.03);
-  transition: border-color 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s cubic-bezier(0.34, 1.5, 0.64, 1);
 }
 .cr-card__links .social-links__link::after {
   content: '';
@@ -327,6 +409,10 @@
 }
 .cr-card__links .social-links__link:hover {
   border-color: var(--brand);
+  transform: translateY(-2px);
+}
+.cr-card__links .social-links__link:active {
+  transform: scale(0.94);
 }
 .cr-card__links .social-links__link:focus-visible {
   outline: 2px solid var(--focus);
@@ -338,8 +424,297 @@
   gap: 0.7rem;
 }
 
+/* ---------- pictures that may be animated: first frame until hover, like Discord ---------- */
+.cr-pic {
+  display: block;
+}
+.cr-pic img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cr-pic__still {
+  transition: opacity 0.15s ease;
+}
+.cr-card:hover .cr-pic__still,
+.cr-card:focus-within .cr-pic__still {
+  opacity: 0;
+}
+@media (hover: none) {
+  .cr-pic__still {
+    display: none; /* touch screens: just play */
+  }
+}
+
+/* ---------- the profile pop-out ---------- */
+.crp {
+  --cr-live: #e2384d;
+  --cr-muted: rgb(var(--rgb-ivory) / 0.6);
+  width: min(100% - 2rem, 25rem);
+  max-height: min(100dvh - 2rem, 46rem);
+  margin: auto;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+}
+.crp:focus {
+  outline: none;
+}
+.crp::backdrop {
+  background: rgb(0 0 0 / 0.7);
+}
+.crp[open] {
+  animation: crp-in 0.32s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+}
+.crp[open]::backdrop {
+  animation: crp-fade 0.2s ease both;
+}
+.crp.is-closing {
+  animation: crp-out 0.16s ease-in both;
+}
+.crp.is-closing::backdrop {
+  animation: crp-fade 0.16s ease reverse both;
+}
+@keyframes crp-in {
+  from {
+    opacity: 0;
+    transform: scale(0.88) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes crp-out {
+  to {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+@keyframes crp-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.crp__panel {
+  position: relative;
+  max-height: inherit;
+  overflow-y: auto;
+  border-radius: 14px;
+  background: #141416;
+  box-shadow:
+    0 0 0 1px rgb(var(--rgb-ivory) / 0.08),
+    0 24px 60px -12px rgb(0 0 0 / 0.85);
+  scrollbar-width: thin;
+}
+.crp__panel.is-live {
+  box-shadow:
+    0 0 0 1px rgb(226 56 77 / 0.45),
+    0 24px 60px -12px rgb(0 0 0 / 0.85);
+}
+.crp__banner {
+  position: relative;
+  aspect-ratio: 5 / 2;
+  overflow: hidden;
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(135deg, #1b1a17, #121212 60%, #18150f);
+}
+.crp__banner .cr-pic {
+  position: absolute;
+  inset: 0;
+}
+.crp__close {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.55);
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    transform 0.1s ease;
+}
+.crp__close:hover {
+  background: rgb(0 0 0 / 0.8);
+}
+.crp__close:active {
+  transform: scale(0.92);
+}
+.crp__close:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.crp__body {
+  padding: 0 1rem 1rem;
+}
+.crp__body .cr-avatar {
+  margin-left: 0.5rem;
+}
+/* the inner card holding name, numbers and sections, like Discord's */
+.crp__card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem 1rem 1rem;
+  border-radius: 10px;
+  background: #0d0d0e;
+}
+.crp__name {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+.crp__tagline {
+  margin: 0;
+  font-size: 0.875rem;
+  color: rgb(var(--rgb-ivory) / 0.6);
+}
+.crp__section {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.6rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgb(var(--rgb-ivory) / 0.08);
+}
+.crp__h {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(var(--rgb-ivory) / 0.7);
+}
+.crp__activity {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.crp__activity-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 10px;
+  background: rgb(var(--rgb-ivory) / 0.06);
+}
+.crp__activity-text {
+  min-width: 0;
+}
+.crp__activity-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.crp__activity-meta {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: rgb(var(--rgb-ivory) / 0.6);
+}
+.cr-watch--wide {
+  justify-self: stretch;
+  justify-content: center;
+}
+.crp__connections {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.crp__conn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 48px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgb(var(--rgb-ivory) / 0.08);
+  border-radius: 8px;
+  color: var(--fg);
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
+}
+.crp__conn:hover {
+  background: rgb(var(--rgb-ivory) / 0.05);
+  border-color: rgb(var(--rgb-ivory) / 0.16);
+}
+.crp__conn:active {
+  transform: scale(0.98);
+}
+.crp__conn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.crp__conn-text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+.crp__conn-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.crp__conn-site {
+  font-size: 0.75rem;
+  color: rgb(var(--rgb-ivory) / 0.55);
+}
+.crp__conn-out {
+  flex: none;
+  color: rgb(var(--rgb-ivory) / 0.5);
+  transition:
+    transform 0.15s ease,
+    color 0.15s ease;
+}
+.crp__conn:hover .crp__conn-out {
+  color: var(--fg);
+  transform: translate(2px, -2px);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .cr-dot {
+  .cr-dot,
+  .cr-status--live::after,
+  .cr-grid > li,
+  .crp[open],
+  .crp[open]::backdrop {
     animation: none;
+  }
+  .cr-card,
+  .cr-card__banner .cr-pic,
+  .cr-card__links .social-links__link {
+    transition: none;
+  }
+  .cr-card:hover,
+  .cr-card:hover .cr-card__banner .cr-pic {
+    transform: none;
   }
 }

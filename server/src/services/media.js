@@ -5,7 +5,7 @@ import { env } from '../config/env.js'
 import { mediaBucket } from '../db.js'
 import { HttpError } from '../middleware/errors.js'
 import { Media } from '../models/Media.js'
-import { ALLOWED_FORMATS, deliveryUrl, destroy, fetchResource, verifyUploadSignature } from './cloudinary.js'
+import { ALLOWED_FORMATS, deliveryUrl, destroy, fetchResource, stillUrl, verifyUploadSignature } from './cloudinary.js'
 
 /**
  * Accepted upload types, recognised by their first bytes (not just the file name), so a
@@ -175,4 +175,15 @@ export async function resolveMediaUrls(ids) {
     for (const d of docs) map.set(d._id.toString(), deliveryUrl(d))
   }
   return (id) => (id ? (map.get(String(id)) ?? mediaUrl(id)) : null)
+}
+
+/** For animated GIFs among these ids: id → a still first-frame URL (others are left out). */
+export async function resolveStillUrls(ids) {
+  const wanted = [...new Set(ids.filter((id) => id && mongoose.isValidObjectId(id)).map(String))]
+  const map = new Map()
+  if (wanted.length) {
+    const docs = await Media.find({ _id: { $in: wanted }, resourceType: 'image', format: 'gif', publicId: { $exists: true, $ne: '' } }).lean()
+    for (const d of docs) map.set(d._id.toString(), stillUrl(d))
+  }
+  return (id) => (id ? (map.get(String(id)) ?? null) : null)
 }
