@@ -208,8 +208,9 @@
 }
 
 .cr-card__body {
-  display: grid;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 0.35rem;
   padding: 0 1.1rem 1.15rem;
   min-width: 0;
@@ -277,6 +278,7 @@
 }
 
 .cr-card__name {
+  max-width: 100%;
   margin: 0;
   font-family: var(--font-sans);
   font-size: 1.2rem;
@@ -331,9 +333,35 @@
   font-weight: 700;
 }
 
+/* the Watch / Not live button: full width, and on the same line in every card of a row */
 .cr-card__now {
   display: flex;
-  margin-top: 0.7rem;
+  align-self: stretch;
+  margin-top: auto;
+  padding-top: 0.8rem;
+}
+.cr-card__now .cr-watch {
+  flex: 1;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 0;
+}
+.cr-watch.cr-watch--off {
+  border: 1px solid rgb(var(--rgb-ivory) / 0.1);
+  background: rgb(var(--rgb-ivory) / 0.04);
+  color: rgb(var(--rgb-ivory) / 0.45);
+  font-weight: 600;
+  cursor: not-allowed;
+  user-select: none;
+}
+.cr-watch.cr-watch--off:hover {
+  background: rgb(var(--rgb-ivory) / 0.04);
+}
+.cr-watch.cr-watch--off:active {
+  transform: none;
+}
+.cr-watch.cr-watch--off svg path {
+  fill: currentColor;
 }
 .cr-card__title {
   margin: 0;
@@ -386,6 +414,7 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-self: stretch;
   gap: 0.5rem;
   margin: 0.85rem 0 0;
   padding: 0.95rem 0 0;

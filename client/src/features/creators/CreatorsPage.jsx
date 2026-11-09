@@ -259,11 +259,7 @@ export function CreatorCard({ creator: c, onOpen }) {
 
         <Counts counts={c.counts} />
 
-        {c.live.on && (
-          <div className="cr-card__now">
-            <WatchButton live={c.live} />
-          </div>
-        )}
+        <div className="cr-card__now">{c.live.on ? <WatchButton live={c.live} /> : <NotLiveButton creator={c} />}</div>
 
         <SocialLinks links={c.links} name={c.name} className="cr-card__links" order={CHANNEL_ORDER} />
       </div>
@@ -308,6 +304,20 @@ function WatchButton({ live, wide = false }) {
       </span>
       <span className="visually-hidden"> (opens in a new tab)</span>
     </a>
+  )
+}
+
+/**
+ * The same spot as Watch, greyed out when they're not live. "Not live right now" only when one
+ * of their channels is actually checked; otherwise it says the live status isn't tracked.
+ */
+function NotLiveButton({ creator: c }) {
+  const main = c.tracked[0] ? PLATFORM[c.tracked[0]] : null
+  return (
+    <span className="cr-watch cr-watch--off" aria-disabled="true">
+      {main && <BrandIcon platform={main} size={16} />}
+      {c.tracked.length ? 'Not live right now' : 'Live status not tracked'}
+    </span>
   )
 }
 
