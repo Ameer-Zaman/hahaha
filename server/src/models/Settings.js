@@ -1,15 +1,7 @@
 import mongoose from 'mongoose'
 
 /** Media slots used around the site. Each value is a GridFS media id or null. */
-export const MEDIA_SLOTS = [
-  'heroVideo',
-  'welcomeVideo',
-  'posterAdministration',
-  'posterGangs',
-  'posterWars',
-  'posterRules',
-  'joinImage',
-]
+export const MEDIA_SLOTS = ['heroVideo', 'welcomeVideo', 'posterAdministration', 'posterGangs', 'posterWars', 'posterRules', 'joinImage']
 
 /**
  * Story page media, set in Panel → Story media. Each place in a chapter (the big scene, the two
@@ -81,6 +73,10 @@ const settingsSchema = new mongoose.Schema(
       name: { type: String, default: DEFAULT_BOT_NAME, maxlength: 30 },
       avatar: { type: String, default: null },
     },
+    /** The community's logo (a media id): header, footer, maintenance screen and browser tab. */
+    brand: {
+      logo: { type: String, default: null },
+    },
     /** Rules for every panel account, set by a Super Admin. Never sent to the website. */
     security: {
       /** Everyone must finish setting up two-step sign-in before they can use the panel. */
@@ -91,3 +87,6 @@ const settingsSchema = new mongoose.Schema(
 )
 
 export const Settings = mongoose.model('Settings', settingsSchema)
+
+/** The site logo's media id, or null (the website then shows its placeholder mark). */
+export const readBrandLogo = (settings) => settings?.brand?.logo ?? null

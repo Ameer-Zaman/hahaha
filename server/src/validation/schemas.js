@@ -120,6 +120,9 @@ export const eventSchema = z
   })
   .refine((e) => !e.endsAt || e.endsAt > e.startsAt, { message: 'the finish must be after the start', path: ['endsAt'] })
 
+/** The site logo: a picture from the media library, or null to go back to the placeholder. */
+export const settingsBrandSchema = z.object({ logo: mediaId })
+
 export const settingsChatBotSchema = z.object({
   name: text(30).min(1, 'give the bot a name'),
   avatar: mediaId.default(null),

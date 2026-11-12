@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useAuth } from '../authContext'
 
-import { formatWhen } from '../format'
+import { formatWhen, mediaUrl } from '../format'
+import { MediaField } from '../mediaKit'
+import { site } from '../../../config/site'
 import { useAction, useResource } from '../hooks'
 import { adminApi } from '../panelApi'
 import { ConfirmButton, ErrorNote, Loading, PageHead, Panel, SelectField, Switch, TextField } from '../ui'
@@ -138,6 +140,8 @@ function SettingsForm({ data, setData }) {
           )}
         </div>
       </Panel>
+
+      <SiteLogo initial={data.brand?.logo ?? null} onSaved={(logo) => setData((d) => ({ ...d, brand: { logo } }))} />
 
       <Panel title="Sections">
         <p className="p-text">
@@ -298,6 +302,66 @@ function CommunityLinks({ initial }) {
         <button type="button" className="pbtn pbtn--gold" onClick={save} disabled={busy || !changed}>
           {busy ? 'Saving…' : 'Save links'}
         </button>
+      </div>
+    </Panel>
+  )
+}
+
+/**
+ * The community's logo: shown in the website's header, footer and maintenance screen, and as
+ * the browser-tab icon. Without one the website shows its placeholder diamond.
+ */
+function SiteLogo({ initial, onSaved }) {
+  const [logo, setLogo] = useState(initial)
+  const [run, busy] = useAction()
+  const dirty = logo !== initial
+
+  async function save() {
+    const res = await run(
+      () => adminApi.put('/settings/brand', { logo }),
+      logo ? 'Logo saved — the website shows it within a minute' : 'Logo removed — the placeholder is back',
+    )
+    if (res) onSaved(res.brand.logo)
+  }
+
+  return (
+    <Panel title="Site logo" sub="Shown in the website’s header, footer and maintenance screen, and as the icon on the browser tab.">
+      <div className="p-logo">
+        <MediaField
+          label="Logo"
+          value={logo}
+          onChange={setLogo}
+          fallback="Empty: the website shows its placeholder diamond."
+          hint="A PNG with a transparent background works best (WebP, JPG or GIF also work). Square or wide; it shows small, so keep it simple."
+        />
+        <div className="p-logo__preview" aria-label="Preview of the website header">
+          <span className="p-field__label">Preview</span>
+          <div className="p-logo__bar">
+            {logo ? (
+              <img src={mediaUrl(logo)} alt="" className="p-logo__img" />
+            ) : (
+              <svg className="p-logo__img" viewBox="0 0 32 32" aria-hidden="true">
+                <rect x="6" y="6" width="20" height="20" transform="rotate(45 16 16)" fill="none" stroke="currentColor" strokeWidth="2" />
+                <rect x="12" y="12" width="8" height="8" transform="rotate(45 16 16)" fill="currentColor" />
+              </svg>
+            )}
+            <span className="p-logo__name">{site.name}</span>
+          </div>
+          <div className="p-logo__tab">
+            {logo ? <img src={mediaUrl(logo)} alt="" /> : <span className="p-logo__tab-dot" />}
+            <span>{site.name}</span>
+          </div>
+        </div>
+      </div>
+      <div className="p-row">
+        <button type="button" className="pbtn pbtn--gold" onClick={save} disabled={busy || !dirty}>
+          {busy ? 'Saving…' : 'Save logo'}
+        </button>
+        {dirty && (
+          <button type="button" className="pbtn pbtn--ghost" onClick={() => setLogo(initial)} disabled={busy}>
+            Undo
+          </button>
+        )}
       </div>
     </Panel>
   )

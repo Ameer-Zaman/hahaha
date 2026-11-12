@@ -15,10 +15,21 @@ import { usePublic } from './publicData'
  * itself out because the server is asleep).
  */
 const STORAGE_KEY = 'shy-site-settings'
-const ALL_ON = { story: true, staff: true, creators: true, gangs: true, clubs: true, dhadhas: true, events: true, leaderboard: true, rules: true, chat: true }
+const ALL_ON = {
+  story: true,
+  staff: true,
+  creators: true,
+  gangs: true,
+  clubs: true,
+  dhadhas: true,
+  events: true,
+  leaderboard: true,
+  rules: true,
+  chat: true,
+}
 /** The chat assistant, until the panel says otherwise (Panel → Rules help chat → The bot). */
 export const DEFAULT_BOT = { name: 'Vexy', avatar: null }
-const DEFAULTS = { sections: ALL_ON, maintenance: { on: false, message: '' }, chatBot: DEFAULT_BOT, socials: null }
+const DEFAULTS = { sections: ALL_ON, maintenance: { on: false, message: '' }, chatBot: DEFAULT_BOT, socials: null, logo: null }
 
 /** The section a path belongs to, or null for pages that are always on. */
 export function sectionOf(path = '') {
@@ -45,6 +56,8 @@ function normalise(data) {
     chatBot: { name: data?.chatBot?.name?.trim() || DEFAULT_BOT.name, avatar: data?.chatBot?.avatar ?? null },
     // null = never set in the panel: the links in config/site.js are used instead
     socials: Array.isArray(data?.socials) ? data.socials : null,
+    // the community logo from Panel → Site settings; null = the placeholder mark
+    logo: typeof data?.logo === 'string' ? data.logo : (data?.brand?.logo ?? null),
   }
 }
 
@@ -60,12 +73,39 @@ export function useSiteSettings({ watch = false } = {}) {
     } catch {
       /* storage unavailable: fine */
     }
-  }, [live?.maintenance.on, live?.maintenance.message, JSON.stringify(live?.sections), live?.chatBot.name, live?.chatBot.avatar, JSON.stringify(live?.socials)]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [
+    live?.maintenance.on,
+    live?.maintenance.message,
+    JSON.stringify(live?.sections),
+    live?.chatBot.name,
+    live?.chatBot.avatar,
+    JSON.stringify(live?.socials),
+    live?.logo,
+  ]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!USE_API) return DEFAULTS
   if (live) return live
   if (entry.status === 'loading') return normalise(readStored() ?? DEFAULTS)
   return DEFAULTS // API unreachable: keep the whole site open
+}
+
+/** The browser-tab icon follows the site logo (back to the built-in icon when there is none). */
+export function useLogoFavicon(logo) {
+  useEffect(() => {
+    const link = document.querySelector('link[rel="icon"]')
+    if (!link) return
+    if (!link.dataset.original) {
+      link.dataset.original = link.getAttribute('href') ?? ''
+      link.dataset.originalType = link.getAttribute('type') ?? ''
+    }
+    if (logo) {
+      link.setAttribute('href', logo)
+      link.removeAttribute('type')
+    } else {
+      link.setAttribute('href', link.dataset.original)
+      if (link.dataset.originalType) link.setAttribute('type', link.dataset.originalType)
+    }
+  }, [logo])
 }
 
 /** Is the section for this path switched on? (Paths outside any section are always on.) */

@@ -13,7 +13,7 @@ import { setIntroActive, shouldShowIntro } from '../../lib/intro'
 import WelcomeGate from '../intro/WelcomeGate'
 import LoadingScreen from '../intro/LoadingScreen'
 import MaintenanceScreen, { MaintenancePreviewNotice } from '../site/MaintenanceScreen'
-import { useSiteSettings, useStaffPreview } from '../../lib/siteSettings'
+import { useLogoFavicon, useSiteSettings, useStaffPreview } from '../../lib/siteSettings'
 import { preloadHomeAssets, preloadHomeInBackground } from '../../lib/preload'
 
 /** Pages whose first screen is light (none: the site is black and gold throughout). */
@@ -85,8 +85,9 @@ export default function Layout() {
 
   // Maintenance mode (Panel → Site settings): visitors get the "be right back" screen;
   // signed-in panel accounts still see the site, with a notice.
-  const { maintenance } = useSiteSettings({ watch: true })
+  const { maintenance, logo } = useSiteSettings({ watch: true })
   const preview = useStaffPreview(maintenance.on)
+  useLogoFavicon(logo)
   if (maintenance.on && !preview.staff) {
     return preview.checked ? <MaintenanceScreen message={maintenance.message} /> : <div className="route-loading" aria-busy="true" />
   }

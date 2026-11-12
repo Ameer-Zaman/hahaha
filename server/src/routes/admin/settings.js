@@ -2,18 +2,24 @@ import { Router } from 'express'
 
 import { HttpError } from '../../middleware/errors.js'
 import { validateBody } from '../../middleware/validate.js'
-import { MEDIA_SLOTS, readChatBot, readSections, readSocials, SECTION_KEYS, Settings } from '../../models/Settings.js'
+import { MEDIA_SLOTS, readBrandLogo, readChatBot, readSections, readSocials, SECTION_KEYS, Settings } from '../../models/Settings.js'
 import { audit } from '../../services/audit.js'
 import { findFile } from '../../services/media.js'
 import { requireRole } from '../../middleware/auth.js'
-import { settingsChatBotSchema, settingsMediaSchema, settingsSecuritySchema, settingsSiteSchema, settingsSocialsSchema } from '../../validation/schemas.js'
+import {
+  settingsBrandSchema,
+  settingsChatBotSchema,
+  settingsMediaSchema,
+  settingsSecuritySchema,
+  settingsSiteSchema,
+  settingsSocialsSchema,
+} from '../../validation/schemas.js'
 
 const router = Router()
 
 const VIDEO_SLOTS = new Set(MEDIA_SLOTS.filter((slot) => slot.endsWith('Video')))
 
-const getSettings = async () =>
-  (await Settings.findOne({ key: 'main' })) ?? (await Settings.create({ key: 'main' }))
+const getSettings = async () => (await Settings.findOne({ key: 'main' })) ?? (await Settings.create({ key: 'main' }))
 
 const securityState = (settings) => ({ requireTwoFactor: Boolean(settings.security?.requireTwoFactor) })
 
@@ -34,8 +40,26 @@ router.get('/', async (req, res) => {
     ...siteState(settings),
     chatBot: readChatBot(settings),
     socials: readSocials(settings),
+    brand: { logo: readBrandLogo(settings) },
     security: securityState(settings),
   })
+})
+
+/** The site logo (header, footer, maintenance screen, browser tab). Must be a picture from the media library. */
+router.put('/brand', validateBody(settingsBrandSchema), async (req, res) => {
+  const { logo } = req.body
+  if (logo) {
+    const file = await findFile(logo)
+    if (!file) throw new HttpError(400, 'That picture is not in the media library.')
+    if (file.kind !== 'image') throw new HttpError(400, 'The logo needs to be a picture, not a video.')
+  }
+  const settings = await getSettings()
+  const before = readBrandLogo(settings)
+  settings.brand = { ...(settings.brand ?? {}), logo: logo ?? null }
+  settings.markModified('brand')
+  await settings.save()
+  if (before !== (logo ?? null)) await audit(req, 'settings.logo', 'site', logo ? 'new logo' : 'logo removed (placeholder back)')
+  res.json({ brand: { logo: readBrandLogo(settings) } })
 })
 
 /** The community links in the header, footer and phone menu, in this order. */
@@ -46,7 +70,8 @@ router.put('/socials', validateBody(settingsSocialsSchema), async (req, res) => 
   settings.markModified('socials')
   await settings.save()
   const now = readSocials(settings)
-  if (JSON.stringify(before) !== JSON.stringify(now)) await audit(req, 'settings.socials', 'site', now.map((l) => l.platform).join(', ') || 'all removed')
+  if (JSON.stringify(before) !== JSON.stringify(now))
+    await audit(req, 'settings.socials', 'site', now.map((l) => l.platform).join(', ') || 'all removed')
   res.json({ socials: now })
 })
 
@@ -63,7 +88,10 @@ router.put('/chat-bot', validateBody(settingsChatBotSchema), async (req, res) =>
   settings.chatBot = { name, avatar: avatar ?? null }
   settings.markModified('chatBot')
   await settings.save()
-  const changes = [name !== before.name && `name ${before.name} → ${name}`, avatar !== before.avatar && (avatar ? 'new picture' : 'picture removed')].filter(Boolean)
+  const changes = [
+    name !== before.name && `name ${before.name} → ${name}`,
+    avatar !== before.avatar && (avatar ? 'new picture' : 'picture removed'),
+  ].filter(Boolean)
   if (changes.length) await audit(req, 'settings.chat_bot', 'chat', changes.join(', '))
   res.json({ chatBot: readChatBot(settings) })
 })

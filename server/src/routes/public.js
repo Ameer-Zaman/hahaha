@@ -7,7 +7,7 @@ import { endOf, Event, eventState } from '../models/Event.js'
 import { Gang } from '../models/Gang.js'
 import { LiveAlert } from '../models/LiveAlert.js'
 import { RuleBook } from '../models/RuleBook.js'
-import { MEDIA_SLOTS, readChatBot, readSections, readSocials, Settings } from '../models/Settings.js'
+import { MEDIA_SLOTS, Settings, readBrandLogo, readChatBot, readSections, readSocials } from '../models/Settings.js'
 import { Staff } from '../models/Staff.js'
 import { TdmBoard } from '../models/TdmBoard.js'
 import { War } from '../models/War.js'
@@ -333,12 +333,14 @@ router.get('/site', async (req, res) => {
   res.set('Cache-Control', 'public, max-age=10') // maintenance and sections should land quickly
   const settings = await Settings.findOne({ key: 'main' }).lean()
   const bot = readChatBot(settings)
-  const mediaUrl = await resolveMediaUrls([...Object.values(settings?.media ?? {}), bot.avatar])
+  const logo = readBrandLogo(settings)
+  const mediaUrl = await resolveMediaUrls([...Object.values(settings?.media ?? {}), bot.avatar, logo])
   const media = Object.fromEntries(MEDIA_SLOTS.map((slot) => [slot, mediaUrl(settings?.media?.[slot] ?? null)]))
   res.json({
     media,
     sections: readSections(settings),
     chatBot: { name: bot.name, avatar: mediaUrl(bot.avatar) },
+    brand: { logo: logo ? mediaUrl(logo) : null },
     socials: readSocials(settings),
     maintenance: { on: Boolean(settings?.maintenance?.on), message: settings?.maintenance?.message ?? '' },
   })

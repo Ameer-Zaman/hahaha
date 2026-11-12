@@ -1,8 +1,12 @@
+import { useSiteSettings } from '../../lib/siteSettings'
+
 /**
- * PLACEHOLDER mark — a plain gold diamond, not a logo. Replace this component's contents
- * with the community's official logo (SVG or <img>) once one is supplied.
+ * The community's mark: the logo uploaded in Panel → Site settings → Site logo, or, until one
+ * is set, a plain gold diamond placeholder.
  */
 export default function BrandMark({ className = '' }) {
+  const { logo } = useSiteSettings()
+  if (logo) return <img className={`brand-mark brand-mark--img ${className}`} src={logo} alt="" decoding="async" />
   return (
     <svg className={`brand-mark ${className}`} viewBox="0 0 32 32" aria-hidden="true" focusable="false">
       <rect x="6" y="6" width="20" height="20" transform="rotate(45 16 16)" fill="none" stroke="currentColor" strokeWidth="2" />

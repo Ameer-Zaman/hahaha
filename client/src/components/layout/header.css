@@ -701,3 +701,12 @@
     margin-left: 0;
   }
 }
+
+/* the uploaded site logo (Panel → Site settings): same height as the placeholder mark,
+   and as wide as its shape needs (up to a limit), never stretched */
+.brand-mark--img {
+  width: auto !important;
+  max-width: 7rem;
+  object-fit: contain;
+  object-position: left center;
+}
