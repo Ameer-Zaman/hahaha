@@ -934,3 +934,59 @@
   text-transform: uppercase;
   color: var(--st-muted);
 }
+
+/* ---- Each product is its own box: a thin border around the picture and the text ---- */
+.st-card,
+.st-spot {
+  height: 100%;
+  padding: 0.6rem;
+  border: 1px solid var(--st-line-strong);
+  border-radius: calc(var(--radius-md) + 0.6rem);
+  background: rgb(var(--rgb-ivory) / 0.018);
+  transition:
+    border-color var(--dur-base) ease,
+    background-color var(--dur-base) ease;
+}
+.st-card:hover,
+.st-card:focus-visible,
+.st-spot:hover,
+.st-spot:focus-visible {
+  border-color: rgb(var(--rgb-gold) / 0.45);
+  background: rgb(var(--rgb-ivory) / 0.03);
+}
+.st-card:focus-visible,
+.st-spot:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.st-card:focus-visible .st-card__frame,
+.st-spot:focus-visible .st-spot__frame {
+  outline: none;
+}
+.st-card__body {
+  padding: 0.2rem 0.5rem 0.4rem;
+  padding-top: 1rem;
+}
+.st-spot__body {
+  padding: 0.75rem clamp(0.5rem, 0.2rem + 1.5vw, 1.75rem) 0.75rem 0;
+}
+@media (max-width: 52rem) {
+  .st-spot__body {
+    padding: 0.25rem 0.5rem 0.5rem;
+  }
+}
+/* the price row sits at the bottom of every box, so boxes in a row line up */
+.st-card {
+  display: flex;
+  flex-direction: column;
+}
+.st-card__body {
+  flex: 1;
+  grid-template-rows: auto auto 1fr auto;
+}
+.st-card__tag {
+  align-self: start;
+}
+.st-card__foot {
+  align-self: end;
+}
