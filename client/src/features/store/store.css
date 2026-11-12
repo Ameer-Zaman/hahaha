@@ -1228,3 +1228,19 @@
 .st-spot.is-vip:hover {
   border-color: rgb(var(--rgb-gold) / 0.7);
 }
+
+/* a filter with nothing in it */
+.st-none {
+  padding: var(--sp-6) 0;
+  border-block: 1px solid var(--st-line);
+}
+.st-none__reset {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--c-gold-light);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}

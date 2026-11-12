@@ -67,11 +67,9 @@ export default function StorePage() {
   usePageTitle(slug ? (open?.name ?? 'Store') : 'Store')
 
   const kindsHere = new Set(products.map((p) => p.kind))
-  const bothKinds = kindsHere.size > 1
-  const ofKindOnly = kind === 'all' || !bothKinds ? products : products.filter((p) => p.kind === kind)
-  const hasVip = ofKindOnly.some((p) => p.tier === 'vip')
-  const hasNormal = ofKindOnly.some((p) => p.tier !== 'vip')
-  const activeTier = hasVip ? tier : 'all'
+  // the tabs, VIP / Normal and the categories always show, so visitors can see how the store is laid out
+  const ofKindOnly = kind === 'all' ? products : products.filter((p) => p.kind === kind)
+  const activeTier = tier
   const ofKind = activeTier === 'all' ? ofKindOnly : ofKindOnly.filter((p) => (activeTier === 'vip' ? p.tier === 'vip' : p.tier !== 'vip'))
   const categories = [...new Set(ofKind.map((p) => p.category).filter(Boolean))]
   const activeCat = categories.includes(category) ? category : 'all'
@@ -104,7 +102,7 @@ export default function StorePage() {
           {entry.status === 'ok' && !soon && products.length > 0 && (
             <>
               <div className="st-bar">
-                {bothKinds && (
+                {kindsHere && (
                   <div className="st-kinds" role="group" aria-label="Show">
                     {KINDS.map((k) => {
                       const count = k.id === 'all' ? products.length : products.filter((p) => p.kind === k.id).length
@@ -130,12 +128,12 @@ export default function StorePage() {
                     })}
                   </div>
                 )}
-                {hasVip && (
+                {
                   <div className="st-tiers" role="group" aria-label="VIP or Normal">
                     {[
                       { id: 'all', label: 'All' },
                       { id: 'vip', label: 'VIP' },
-                      ...(hasNormal ? [{ id: 'normal', label: 'Normal' }] : []),
+                      { id: 'normal', label: 'Normal' },
                     ].map((t) => (
                       <button
                         key={t.id}
@@ -149,8 +147,8 @@ export default function StorePage() {
                       </button>
                     ))}
                   </div>
-                )}
-                {categories.length > 1 && (
+                }
+                {categories.length > 0 && (
                   <div className="st-cats" role="group" aria-label="Category">
                     {['all', ...categories].map((c) => (
                       <button
@@ -168,6 +166,24 @@ export default function StorePage() {
               </div>
 
               {spotlight && <Spotlight product={spotlight} />}
+
+              {shown.length === 0 && (
+                <p className="st-note st-none" role="status">
+                  Nothing here yet — try another tab, or{' '}
+                  <button
+                    type="button"
+                    className="st-none__reset"
+                    onClick={() => {
+                      setKind('all')
+                      setTier('all')
+                      setCategory('all')
+                    }}
+                  >
+                    show everything
+                  </button>
+                  .
+                </p>
+              )}
 
               {grid.length > 0 && (
                 <ul className="st-grid" role="list">
