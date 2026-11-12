@@ -41,3 +41,12 @@ export function ago(iso, now) {
   const h = Math.floor(min / 60)
   return `Started ${h} h ${min % 60} min ago`
 }
+
+/** "Now", "12 min", "1 h 4 min" — how long it has been live, for the small timer. */
+export function liveFor(iso, now) {
+  const min = Math.max(0, Math.round((now - new Date(iso).getTime()) / 60_000))
+  if (min < 1) return 'Now'
+  if (min < 60) return `${min} min`
+  const h = Math.floor(min / 60)
+  return min % 60 ? `${h} h ${min % 60} min` : `${h} h`
+}

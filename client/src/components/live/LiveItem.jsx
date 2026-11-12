@@ -1,10 +1,9 @@
-import { ago, watchLabel } from './liveData'
+import { ago, liveFor, watchLabel } from './liveData'
 import Side from './LiveSide'
 
 /**
- * One live gang situation, set the same way in the corner card and the bell's list: a LIVE
- * line with how long it's been on, the two gangs stacked like a fixture, the title, and a
- * full-width "Watch on …" link along the bottom.
+ * One live gang situation, the same in the corner card and the bell's list: a LIVE pill with
+ * how long it's been on, the two gangs face to face, the title, and one Watch button.
  */
 export default function LiveItem({ alert: a, now, onClose }) {
   return (
@@ -14,11 +13,13 @@ export default function LiveItem({ alert: a, now, onClose }) {
           <span className="live__dot" aria-hidden="true" />
           Live
         </span>
-        <span className="live__when">{ago(a.startedAt, now)}</span>
+        <time className="live__when" dateTime={a.startedAt} title={ago(a.startedAt, now)}>
+          {liveFor(a.startedAt, now)}
+        </time>
         {onClose && (
           <button type="button" className="live__close" onClick={onClose} aria-label="Hide this live notification">
-            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-              <path d="M3.5 3.5l9 9m0-9-9 9" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
+            <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+              <path d="M3.5 3.5l9 9m0-9-9 9" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
             </svg>
           </button>
         )}
@@ -27,7 +28,7 @@ export default function LiveItem({ alert: a, now, onClose }) {
       <div className="live__fixture">
         <Side side={a.a} />
         <span className="live__vs" aria-label="versus">
-          VS
+          vs
         </span>
         <Side side={a.b} />
       </div>
@@ -40,10 +41,10 @@ export default function LiveItem({ alert: a, now, onClose }) {
       )}
 
       <a className="live__watch" href={a.url} target="_blank" rel="noopener noreferrer">
-        <span>{watchLabel(a.url)}</span>
-        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-          <path d="M5 11 11 5M6 5h5v5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
+        <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+          <path d="M4.5 2.8v10.4L13 8z" fill="currentColor" />
         </svg>
+        <span>{watchLabel(a.url)}</span>
         <span className="visually-hidden"> (opens in a new tab)</span>
       </a>
     </article>

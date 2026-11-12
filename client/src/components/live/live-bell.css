@@ -76,11 +76,13 @@
   max-height: min(34rem, calc(100svh - var(--top-chrome, 4.5rem) - 1.5rem));
   padding: 0;
   overflow-y: auto;
-  border: 1px solid rgb(var(--rgb-ivory) / 0.16);
-  border-radius: 4px;
-  background: #0a0a0a;
+  border: 1px solid rgb(var(--rgb-ivory) / 0.12);
+  border-radius: 18px;
+  background: #0c0c0e;
   color: var(--fg);
-  box-shadow: 0 24px 50px -20px rgb(0 0 0 / 0.9);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 30px 60px -24px rgb(0 0 0 / 0.95);
   visibility: hidden;
   opacity: 0;
   transform: translateY(-4px);
@@ -103,16 +105,16 @@
   align-items: center;
   gap: 0.55rem;
   margin: 0;
-  padding: 0.85rem 1rem;
-  border-bottom: 1px solid rgb(var(--rgb-ivory) / 0.1);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid rgb(var(--rgb-ivory) / 0.08);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--fg-muted);
 }
 .bell.has-live .bell__head {
-  color: #ff6b7d;
+  color: #ff8a98;
 }
 .bell__empty {
   margin: 0;
@@ -128,7 +130,7 @@
   list-style: none;
 }
 .bell__item + .bell__item {
-  border-top: 1px solid rgb(var(--rgb-ivory) / 0.16);
+  border-top: 1px solid rgb(var(--rgb-ivory) / 0.08);
 }
 .bell__item .live__meta .live__badge {
   display: none; /* the list's heading already says LIVE NOW */
