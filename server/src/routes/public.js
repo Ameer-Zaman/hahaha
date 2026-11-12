@@ -291,15 +291,14 @@ router.get('/creators', async (req, res) => {
  * link from the panel, then the community Discord. Nothing is paid for on the website.
  */
 router.get('/store', async (req, res) => {
-  const [products, settings] = await Promise.all([
-    Product.find({ visible: true }).sort({ order: 1, createdAt: 1 }).lean(),
-    Settings.findOne({ key: 'main' }, 'store socials').lean(),
-  ])
+  const settings = await Settings.findOne({ key: 'main' }, 'store socials').lean()
   const store = readStore(settings)
+  // coming soon: nothing is listed yet, not even to someone reading the API
+  const products = store.comingSoon ? [] : await Product.find({ visible: true }).sort({ order: 1, createdAt: 1 }).lean()
   const discord = readSocials(settings)?.find((l) => l.platform === 'discord')?.url ?? ''
   const mediaUrl = await resolveMediaUrls(products.flatMap((p) => [p.cover, p.video, ...(p.gallery ?? [])]))
   res.json({
-    store: { note: store.note, buyUrl: store.buyUrl || discord || null },
+    store: { comingSoon: store.comingSoon, note: store.note, buyUrl: store.buyUrl || discord || null },
     products: products.map((p) => ({
       id: p.slug,
       name: p.name,

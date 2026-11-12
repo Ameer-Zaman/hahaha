@@ -102,9 +102,10 @@ export function StoreList() {
 
 /** Where every Buy button goes unless a product has its own link, and a line under the title. */
 function StoreSettings({ store, onSaved }) {
-  const [form, setForm] = useState({ buyUrl: store.buyUrl ?? '', note: store.note ?? '' })
+  const [form, setForm] = useState({ comingSoon: store.comingSoon !== false, buyUrl: store.buyUrl ?? '', note: store.note ?? '' })
   const [run, busy] = useAction()
-  const changed = form.buyUrl !== (store.buyUrl ?? '') || form.note !== (store.note ?? '')
+  const changed =
+    form.comingSoon !== (store.comingSoon !== false) || form.buyUrl !== (store.buyUrl ?? '') || form.note !== (store.note ?? '')
 
   async function save(e) {
     e.preventDefault()
@@ -115,14 +116,26 @@ function StoreSettings({ store, onSaved }) {
   return (
     <form onSubmit={save}>
       <Panel
-        title="Buying"
-        sub="The website takes no payments. Buy opens this link — a Discord ticket channel, for example — and staff handle payment and delivery there."
+        title="Store page"
+        sub="The website takes no payments. Buy opens the link below — a Discord ticket channel, for example — and staff handle payment and delivery there."
         actions={
           <button type="submit" className="pbtn pbtn--gold pbtn--sm" disabled={busy || !changed}>
             {busy ? 'Saving…' : 'Save'}
           </button>
         }
       >
+        <div className="p-st-soon">
+          <Switch
+            checked={form.comingSoon}
+            onChange={(comingSoon) => setForm((f) => ({ ...f, comingSoon }))}
+            label="Coming soon — the Store page shows “Coming soon” and lists no products"
+          />
+          <p className="p-field__hint">
+            {form.comingSoon
+              ? 'Add and prepare products while it’s on; nobody can see them. Switch it off and save to open the store.'
+              : 'The store is open: visible products are listed on the Store page.'}
+          </p>
+        </div>
         <div className="p-form-grid">
           <TextField
             label="Buy link"

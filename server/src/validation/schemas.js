@@ -388,6 +388,7 @@ export const productSchema = z
 
 /** Panel → Store: where Buy buttons go by default, and a short line under the title. */
 export const storeSettingsSchema = z.object({
+  comingSoon: z.boolean().optional().default(true),
   buyUrl: buyLink.optional().default(''),
   note: text(200).optional().default(''),
 })

@@ -2391,3 +2391,10 @@ svg.p-logo__img {
 .p-spot-cover .p-media-field__thumb {
   width: 4.5rem;
 }
+.p-st-soon {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: var(--sp-5);
+  padding-bottom: var(--sp-5);
+  border-bottom: 1px solid var(--p-line);
+}

@@ -61,7 +61,9 @@ export default function StorePage() {
 
   const products = useMemo(() => (entry.status === 'ok' ? (entry.data?.products ?? []) : []), [entry])
   const store = entry.status === 'ok' ? (entry.data?.store ?? {}) : {}
-  const open = slug && entry.status === 'ok' ? (products.find((p) => p.id === slug) ?? null) : null
+  // "Coming soon" until the team switches it off in Panel → Store (also while the store can't be reached)
+  const soon = entry.status === 'ok' ? store.comingSoon !== false : entry.status !== 'loading'
+  const open = slug && entry.status === 'ok' && !soon ? (products.find((p) => p.id === slug) ?? null) : null
   usePageTitle(slug ? (open?.name ?? 'Store') : 'Store')
 
   const kindsHere = new Set(products.map((p) => p.kind))
@@ -94,19 +96,15 @@ export default function StorePage() {
       <div className="st theme-black">
         <div className="container">
           {entry.status === 'loading' && <StoreSkeleton />}
-          {(entry.status === 'error' || entry.status === 'off' || entry.status === 'missing') && (
-            <p className="st-note" role="status">
-              The store can’t be loaded right now. Try again in a moment.
-            </p>
-          )}
-          {entry.status === 'ok' && products.length === 0 && (
+          {soon && <ComingSoon discord={discord} />}
+          {entry.status === 'ok' && !soon && products.length === 0 && (
             <div className="st-empty">
               <p className="st-empty__title">The store is being stocked</p>
               <p className="st-note">Scripts, maps and in-game items will show up here once the team lists them.</p>
             </div>
           )}
 
-          {entry.status === 'ok' && products.length > 0 && (
+          {entry.status === 'ok' && !soon && products.length > 0 && (
             <>
               <div className="st-bar">
                 {bothKinds && (
@@ -174,12 +172,62 @@ export default function StorePage() {
       </div>
 
       <ProductSheet
-        open={Boolean(slug) && entry.status !== 'loading'}
+        open={Boolean(slug) && entry.status !== 'loading' && !soon}
         product={open}
         buy={open ? buyFor(open, store.buyUrl, discord) : null}
         onClose={close}
       />
     </>
+  )
+}
+
+/* ------------------------------------------------------------ coming soon */
+
+const SOON_SHELVES = [
+  { word: 'Assets', hint: 'For server owners', items: ['Scripts', 'MLO', 'Vehicles', 'Clothing'] },
+  { word: 'In-game', hint: 'For players in the city', items: ['VIP', 'Vehicles', 'Properties', 'Perks'] },
+]
+
+/** The store isn't open yet: what it will hold, and where to hear when it opens. */
+function ComingSoon({ discord }) {
+  return (
+    <section className="st-soon" aria-labelledby="st-soon-title">
+      <p className="st-soon__eyebrow">
+        <span className="st-spot__star" aria-hidden="true" />
+        Opening soon
+      </p>
+      <h2 id="st-soon-title" className="st-soon__title">
+        Coming soon
+      </h2>
+      <p className="st-soon__text">
+        The shelves are being stocked. Scripts, maps and vehicles for server owners — and perks for players in the city.
+      </p>
+
+      <ul className="st-soon__shelves" role="list">
+        {SOON_SHELVES.map((s, i) => (
+          <li key={s.word} className="st-soon__shelf" style={{ '--i': i }}>
+            <span className="st-soon__no" aria-hidden="true">
+              N°{String(i + 1).padStart(2, '0')}
+            </span>
+            <span className="st-soon__word">{s.word}</span>
+            <span className="st-soon__hint">{s.hint}</span>
+            <span className="st-soon__items">{s.items.join(' · ')}</span>
+          </li>
+        ))}
+      </ul>
+
+      {discord && (
+        <a className="st-soon__cta" href={discord} target="_blank" rel="noopener noreferrer">
+          {DISCORD_ICON && (
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path d={DISCORD_ICON.path} fill="currentColor" />
+            </svg>
+          )}
+          Get notified on Discord
+          <span className="visually-hidden"> (opens in a new tab)</span>
+        </a>
+      )}
+    </section>
   )
 }
 

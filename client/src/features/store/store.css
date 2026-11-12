@@ -990,3 +990,166 @@
 .st-card__foot {
   align-self: end;
 }
+
+/* ---- Coming soon ---- */
+.st-soon {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-4);
+  padding: clamp(1rem, 0.5rem + 2vw, 2.5rem) 0 clamp(1rem, 0.5rem + 2vw, 2rem);
+  text-align: center;
+  animation: st-rise 0.8s var(--ease-out) both;
+}
+.st-soon__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--c-gold-light);
+}
+.st-soon__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(3.25rem, 1.5rem + 8vw, 8rem);
+  line-height: 0.9;
+  text-transform: uppercase;
+  /* ivory, with a slow gold light passing across */
+  background: linear-gradient(100deg, var(--fg) 0%, var(--fg) 40%, #f2cf80 50%, var(--fg) 60%, var(--fg) 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: st-soon-light 6s ease-in-out infinite;
+}
+@keyframes st-soon-light {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
+}
+.st-soon__text {
+  max-width: 44ch;
+  margin: 0;
+  color: var(--fg-muted);
+}
+.st-soon__shelves {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(0.75rem, 0.5rem + 1vw, 1.25rem);
+  width: min(100%, 46rem);
+  margin: var(--sp-5) 0 var(--sp-3);
+  padding: 0;
+  list-style: none;
+}
+.st-soon__shelf {
+  position: relative;
+  display: grid;
+  justify-items: start;
+  gap: 0.35rem;
+  padding: 1.4rem 1.35rem 1.3rem;
+  overflow: hidden;
+  border: 1px solid var(--st-line-strong);
+  border-radius: calc(var(--radius-md) + 0.6rem);
+  background: rgb(var(--rgb-ivory) / 0.018);
+  text-align: left;
+  animation: st-rise 0.8s var(--ease-out) both;
+  animation-delay: calc(150ms + var(--i) * 90ms);
+}
+/* a faint light moving across each shelf, like something being set out behind glass */
+.st-soon__shelf::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, rgb(var(--rgb-gold) / 0.07) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: st-soon-pass 5s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 1.2s);
+  pointer-events: none;
+}
+@keyframes st-soon-pass {
+  0%,
+  20% {
+    transform: translateX(-100%);
+  }
+  60%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+.st-soon__no {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  color: var(--st-muted);
+}
+.st-soon__word {
+  margin-top: 0.4rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 1.3rem + 1.5vw, 2.5rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+.st-soon__hint {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-gold-light);
+}
+.st-soon__items {
+  margin-top: 0.6rem;
+  padding-top: 0.75rem;
+  width: 100%;
+  border-top: 1px solid var(--st-line);
+  font-size: var(--fs-sm);
+  color: var(--fg-muted);
+}
+.st-soon__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 3.1rem;
+  padding: 0 1.6rem;
+  border-radius: var(--radius-pill);
+  background: #5865f2;
+  color: #fff;
+  font: 700 0.8125rem / 1 var(--font-sans);
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition:
+    background-color var(--dur-base) ease,
+    transform var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) ease;
+}
+.st-soon__cta:hover {
+  background: #4752c4;
+  box-shadow: 0 12px 32px -12px rgb(88 101 242 / 0.7);
+  transform: translateY(-1px);
+}
+.st-soon__cta:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+@media (max-width: 34rem) {
+  .st-soon__shelves {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .st-soon,
+  .st-soon__shelf,
+  .st-soon__shelf::after,
+  .st-soon__title {
+    animation: none;
+  }
+  .st-soon__shelf::after {
+    display: none;
+  }
+}

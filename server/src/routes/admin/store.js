@@ -35,11 +35,12 @@ router.get('/', async (req, res) => {
 router.put('/settings', validateBody(storeSettingsSchema), async (req, res) => {
   const settings = await getSettings()
   const before = readStore(settings)
-  settings.store = { buyUrl: req.body.buyUrl, note: req.body.note }
+  settings.store = { comingSoon: req.body.comingSoon, buyUrl: req.body.buyUrl, note: req.body.note }
   settings.markModified('store')
   await settings.save()
-  const changed = ['buyUrl', 'note'].filter((k) => before[k] !== req.body[k])
-  if (changed.length) await audit(req, 'store.settings', 'store', changed.map((k) => (k === 'buyUrl' ? 'buy link' : 'note')).join(', '))
+  const label = { comingSoon: req.body.comingSoon ? 'coming soon on' : 'open (coming soon off)', buyUrl: 'buy link', note: 'note' }
+  const changed = ['comingSoon', 'buyUrl', 'note'].filter((k) => before[k] !== req.body[k])
+  if (changed.length) await audit(req, 'store.settings', 'store', changed.map((k) => label[k]).join(', '))
   res.json({ store: readStore(settings) })
 })
 
