@@ -2381,3 +2381,13 @@ svg.p-logo__img {
   display: block;
   margin-top: 0.15rem;
 }
+
+/* Story media: a video's optional cover picture, under it */
+.p-spot-cover {
+  margin-top: var(--sp-3);
+  padding-left: var(--sp-4);
+  border-left: 1px solid var(--p-line-strong);
+}
+.p-spot-cover .p-media-field__thumb {
+  width: 4.5rem;
+}

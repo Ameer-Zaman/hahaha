@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import { MediaField, Thumb, UploadButton } from '../mediaKit'
+import { MediaField, MediaPicker, Thumb, UploadButton } from '../mediaKit'
 import { adminApi, formatBytes, getStorage } from '../panelApi'
 import { formatWhen } from '../format'
 import { useAction, useResource } from '../hooks'
@@ -47,7 +47,13 @@ export function MediaLibrary() {
 
       <div className="p-tabs" role="group" aria-label="Show">
         {['all', 'image', 'video'].map((f) => (
-          <button key={f} type="button" className={`p-tab ${filter === f ? 'is-active' : ''}`} aria-pressed={filter === f} onClick={() => setFilter(f)}>
+          <button
+            key={f}
+            type="button"
+            className={`p-tab ${filter === f ? 'is-active' : ''}`}
+            aria-pressed={filter === f}
+            onClick={() => setFilter(f)}
+          >
             {f === 'all' ? `All (${data.files.length})` : f === 'image' ? 'Images' : 'Videos'}
           </button>
         ))}
@@ -85,12 +91,42 @@ export function MediaLibrary() {
 
 const SLOTS = [
   { group: 'Homepage', slot: 'heroVideo', kind: 'video', label: 'Hero video', fallback: 'public/assets/video/home.mp4' },
-  { group: 'Homepage', slot: 'welcomeVideo', kind: 'video', label: '“Welcome to the city” video', fallback: 'public/assets/video/welcome.mp4' },
+  {
+    group: 'Homepage',
+    slot: 'welcomeVideo',
+    kind: 'video',
+    label: '“Welcome to the city” video',
+    fallback: 'public/assets/video/welcome.mp4',
+  },
   { group: 'Homepage', slot: 'joinImage', kind: 'image', label: 'Application section background', fallback: 'public/media/home/join.jpg' },
-  { group: '“More than a server” posters', slot: 'posterAdministration', kind: 'image', label: 'Administration poster', fallback: 'public/media/home/administration.jpg' },
-  { group: '“More than a server” posters', slot: 'posterGangs', kind: 'image', label: 'Gangs poster', fallback: 'public/media/home/gangs.jpg' },
-  { group: '“More than a server” posters', slot: 'posterWars', kind: 'image', label: 'Wars poster', fallback: 'public/media/home/wars.jpg' },
-  { group: '“More than a server” posters', slot: 'posterRules', kind: 'image', label: 'Rules poster', fallback: 'public/media/home/rules.jpg' },
+  {
+    group: '“More than a server” posters',
+    slot: 'posterAdministration',
+    kind: 'image',
+    label: 'Administration poster',
+    fallback: 'public/media/home/administration.jpg',
+  },
+  {
+    group: '“More than a server” posters',
+    slot: 'posterGangs',
+    kind: 'image',
+    label: 'Gangs poster',
+    fallback: 'public/media/home/gangs.jpg',
+  },
+  {
+    group: '“More than a server” posters',
+    slot: 'posterWars',
+    kind: 'image',
+    label: 'Wars poster',
+    fallback: 'public/media/home/wars.jpg',
+  },
+  {
+    group: '“More than a server” posters',
+    slot: 'posterRules',
+    kind: 'image',
+    label: 'Rules poster',
+    fallback: 'public/media/home/rules.jpg',
+  },
 ]
 
 /* Story page: each place has a video and an image (the video plays; the image shows while it loads, or alone) */
@@ -101,40 +137,136 @@ const STORY_CHAPTERS = [
 ]
 // The quotes between the chapters are words on their own, so they take no picture.
 const STORY_PLACES = [
-  { key: 'Scene', label: 'Main picture', file: (f) => f },
-  { key: 'CardA', label: 'Small picture 1', file: (f) => `${f}-a` },
-  { key: 'CardB', label: 'Small picture 2', file: (f) => `${f}-b` },
+  { key: 'Scene', label: 'Main', file: (f) => f },
+  { key: 'CardA', label: 'Small card 1', file: (f) => `${f}-a` },
+  { key: 'CardB', label: 'Small card 2', file: (f) => `${f}-b` },
 ]
-const STORY_SLOTS = STORY_CHAPTERS.flatMap((ch) =>
-  STORY_PLACES.flatMap((p) => [
-    {
-      group: ch.name,
-      slot: `story${ch.key}${p.key}Video`,
-      kind: 'video',
-      label: `${p.label} — video`,
-      fallback: `public/assets/video/story/${p.file(ch.file)}.mp4`,
-    },
-    {
-      group: ch.name,
-      slot: `story${ch.key}${p.key}Image`,
-      kind: 'image',
-      label: `${p.label} — image`,
-      fallback: 'the video above',
-    },
-  ]),
+/** One entry per place: it holds either a video (with an optional cover picture) or a picture. */
+const STORY_SPOTS = STORY_CHAPTERS.flatMap((ch) =>
+  STORY_PLACES.map((p) => ({
+    group: ch.name,
+    label: p.label,
+    video: `story${ch.key}${p.key}Video`,
+    image: `story${ch.key}${p.key}Image`,
+    fallback: `public/assets/video/story/${p.file(ch.file)}.mp4`,
+  })),
 )
+const STORY_SLOTS = STORY_SPOTS.flatMap((s) => [{ slot: s.video }, { slot: s.image }])
 
 export function SiteMedia() {
-  return <MediaSlotsScreen slots={SLOTS} title="Homepage media" sub="Swap the homepage videos and pictures without a new deploy. Empty slots keep the file shipped with the website." />
+  return (
+    <MediaSlotsScreen
+      slots={SLOTS}
+      title="Homepage media"
+      sub="Swap the homepage videos and pictures without a new deploy. Empty slots keep the file shipped with the website."
+    />
+  )
 }
 
 export function StoryMedia() {
+  const { data, error, loading, reload } = useResource(() => adminApi.get('/settings'))
+  if (error) return <ErrorNote message={error} onRetry={reload} />
+  if (loading || !data) return <Loading />
+  return <StoryMediaForm initial={data.media ?? {}} />
+}
+
+/**
+ * Story media: each place on the Story page takes a video or a picture — whichever is chosen.
+ * A video can also have a cover picture, shown while it loads.
+ */
+function StoryMediaForm({ initial }) {
+  const [media, setMedia] = useState(initial)
+  const pick = (all) => JSON.stringify(STORY_SLOTS.map(({ slot }) => all[slot] ?? null))
+  const [savedJson, setSavedJson] = useState(() => pick(initial))
+  const [run, busy] = useAction()
+  const dirty = pick(media) !== savedJson
+
+  async function save() {
+    const body = Object.fromEntries(STORY_SLOTS.map(({ slot }) => [slot, media[slot] ?? null]))
+    const result = await run(() => adminApi.put('/settings/media', { media: body }), 'Story media saved')
+    if (result) {
+      setMedia(result.media)
+      setSavedJson(pick(result.media))
+    }
+  }
+
+  const groups = [...new Set(STORY_SPOTS.map((s) => s.group))]
   return (
-    <MediaSlotsScreen
-      slots={STORY_SLOTS}
-      title="Story media"
-      sub="Videos and pictures for each chapter of the Story page. Each place takes a video, an image, or both (the image shows while the video loads). Videos play quietly on a loop while they are on screen."
-    />
+    <>
+      <PageHead
+        title="Story media"
+        sub="Each place on the Story page takes a video or a picture — choose either. A video plays quietly on a loop while it is on screen; a picture stays still."
+      >
+        <button type="button" className="pbtn pbtn--gold" onClick={save} disabled={busy || !dirty}>
+          {busy ? 'Saving…' : 'Save'}
+        </button>
+      </PageHead>
+      {groups.map((group) => (
+        <Panel key={group} title={group}>
+          <div className="p-slots">
+            {STORY_SPOTS.filter((s) => s.group === group).map((spot) => (
+              <StorySpotField
+                key={spot.video}
+                spot={spot}
+                video={media[spot.video] ?? null}
+                image={media[spot.image] ?? null}
+                onChange={(next) => setMedia((m) => ({ ...m, [spot.video]: next.video, [spot.image]: next.image }))}
+              />
+            ))}
+          </div>
+        </Panel>
+      ))}
+    </>
+  )
+}
+
+function StorySpotField({ spot, video, image, onChange }) {
+  const [open, setOpen] = useState(false)
+  const kind = video ? 'video' : image ? 'image' : null
+  return (
+    <div className="p-field p-media-field">
+      <span className="p-field__label">
+        {spot.label} {kind && <span className="p-tag">{kind === 'video' ? 'Video' : 'Picture'}</span>}
+      </span>
+      <div className="p-media-field__body">
+        <Thumb id={video ?? image} kind={kind ?? 'image'} alt={spot.label} className="p-media-field__thumb" />
+        <div className="p-media-field__actions">
+          <button type="button" className="pbtn pbtn--ghost pbtn--sm" onClick={() => setOpen(true)}>
+            {kind ? 'Change' : 'Choose'}
+          </button>
+          {kind && (
+            <button type="button" className="pbtn pbtn--quiet pbtn--sm" onClick={() => onChange({ video: null, image: null })}>
+              Remove
+            </button>
+          )}
+        </div>
+      </div>
+      <p className="p-field__hint">
+        {kind
+          ? 'A video or a picture — Change to swap for either.'
+          : `Video or picture. Empty: uses ${spot.fallback} (or the illustrated skyline).`}
+      </p>
+      {video && (
+        <div className="p-spot-cover">
+          <MediaField
+            label="Cover picture (optional)"
+            value={image}
+            onChange={(id) => onChange({ video, image: id })}
+            fallback="Shown while the video loads."
+          />
+        </div>
+      )}
+      <MediaPicker
+        open={open}
+        kind={null}
+        onClose={() => setOpen(false)}
+        onPick={(file) => {
+          // a video keeps the picture that was there as its cover; a picture replaces the video
+          onChange(file.kind === 'video' ? { video: file.id, image } : { video: null, image: file.id })
+          setOpen(false)
+        }}
+      />
+    </div>
   )
 }
 
@@ -179,7 +311,11 @@ function SiteMediaForm({ initial, slots: SLOTS, title, sub }) {
                 kind={s.kind}
                 value={media[s.slot] ?? null}
                 onChange={(id) => setMedia((m) => ({ ...m, [s.slot]: id }))}
-                fallback={s.fallback === 'the video above' ? 'Optional: shown while the video loads, or on its own without a video.' : `Empty: uses ${s.fallback} (or the illustrated skyline).`}
+                fallback={
+                  s.fallback === 'the video above'
+                    ? 'Optional: shown while the video loads, or on its own without a video.'
+                    : `Empty: uses ${s.fallback} (or the illustrated skyline).`
+                }
               />
             ))}
           </div>
