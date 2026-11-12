@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 
 import { site } from '../../config/site'
-import { useCommunityLinks, useNavigation } from '../../lib/siteSettings'
+import { useCommunityLinks, useNavigation, useSiteSettings } from '../../lib/siteSettings'
 import BrandMark from '../ui/BrandMark'
 import SocialIcon from '../ui/SocialIcon'
 import './header.css'
@@ -23,6 +23,7 @@ const YEAR = new Date().getFullYear()
 export default function SiteHeader({ tone = 'dark' }) {
   const socials = useCommunityLinks()
   const { navigation } = useNavigation()
+  const { logo } = useSiteSettings() // with a logo uploaded, the picture alone is the brand
   const [scrolled, setScrolled] = useState(false)
   const [tucked, setTucked] = useState(false)
   const headerRef = useRef(null)
@@ -105,9 +106,9 @@ export default function SiteHeader({ tone = 'dark' }) {
   return (
     <header ref={headerRef} className={className} onFocus={() => setTucked(false)}>
       <div className="site-header__bar container">
-        <Link to="/" className="site-header__brand" aria-label={`${site.name} — home`}>
+        <Link to="/" className={`site-header__brand ${logo ? 'has-logo' : ''}`} aria-label={`${site.name} — home`}>
           <BrandMark className="site-header__mark" />
-          <span>{site.name}</span>
+          <span className={logo ? 'visually-hidden' : undefined}>{site.name}</span>
         </Link>
 
         <nav className="site-nav" aria-label="Main">

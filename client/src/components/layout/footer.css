@@ -87,3 +87,9 @@
     justify-content: space-between;
   }
 }
+
+/* the logo on its own (no name next to it) */
+.site-footer__name.has-logo .site-footer__mark {
+  height: 3rem;
+  max-width: 12rem;
+}

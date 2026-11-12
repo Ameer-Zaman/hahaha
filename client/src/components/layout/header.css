@@ -710,3 +710,15 @@
   object-fit: contain;
   object-position: left center;
 }
+
+/* the logo on its own (no name next to it): a little larger, so it carries the brand */
+.site-header__brand.has-logo .site-header__mark {
+  height: 2.6rem;
+  max-width: 11rem;
+}
+@media (max-width: 26rem) {
+  .site-header__brand.has-logo .site-header__mark {
+    height: 2.25rem;
+    max-width: 8.5rem;
+  }
+}

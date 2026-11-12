@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 
 import { site } from '../../config/site'
-import { useCommunityLinks } from '../../lib/siteSettings'
+import { useCommunityLinks, useSiteSettings } from '../../lib/siteSettings'
 import { BrandIcon } from '../ui/BrandIcons'
 import { SOCIAL_PLATFORMS } from '../ui/socialPlatforms'
 import BrandMark from '../ui/BrandMark'
@@ -12,14 +12,15 @@ const YEAR = new Date().getFullYear()
 /** A compact footer: the name, the community links, and the small print. */
 export default function SiteFooter() {
   // community links from the panel (or config/site.js until it has saved some), with their real logos
+  const { logo } = useSiteSettings() // with a logo uploaded, the picture alone is the brand
   const socials = useCommunityLinks().map((link) => ({ ...link, platform: SOCIAL_PLATFORMS.find((p) => p.id === link.id) }))
 
   return (
     <footer className="site-footer theme-black">
       <div className="container site-footer__row">
-        <Link to="/" className="site-footer__name">
+        <Link to="/" className={`site-footer__name ${logo ? 'has-logo' : ''}`}>
           <BrandMark className="site-footer__mark" />
-          {site.name}
+          <span className={logo ? 'visually-hidden' : undefined}>{site.name}</span>
         </Link>
 
         {socials.length > 0 && (
