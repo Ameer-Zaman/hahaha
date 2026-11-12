@@ -367,6 +367,7 @@ export const productSchema = z
     oldPrice: money,
     currency: z.enum(STORE_CURRENCIES).default('USD'),
     priceNote: text(30).optional().default(''),
+    noPrice: z.enum(['request', 'soon']).optional().default('request'),
     badge: z.enum(STORE_BADGES).optional().default(''),
     cover: mediaId,
     gallery: z

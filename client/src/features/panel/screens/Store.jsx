@@ -76,7 +76,7 @@ export function StoreList() {
                   </td>
                   <td>{KIND_LABEL[p.kind]}</td>
                   <td>{p.category || '—'}</td>
-                  <td>{formatPrice(p.price, p.currency)}</td>
+                  <td>{formatPrice(p.price, p.currency, p.noPrice)}</td>
                   <td>
                     <span className="p-st-tags">
                       {!p.visible && <span className="p-tag">Hidden</span>}
@@ -167,6 +167,7 @@ const EMPTY = {
   oldPrice: null,
   currency: 'USD',
   priceNote: '',
+  noPrice: 'request',
   badge: '',
   cover: null,
   gallery: [],
@@ -272,6 +273,7 @@ function ProductForm({ initial, isNew }) {
     oldPrice: badPrice ? null : body.oldPrice,
     currency: form.currency,
     priceNote: form.priceNote,
+    noPrice: form.noPrice,
     badge: form.badge,
     cover: mediaUrl(form.cover),
     video: null,
@@ -370,12 +372,28 @@ function ProductForm({ initial, isNew }) {
             <div className="p-form-grid">
               <TextField
                 label="Price"
-                hint="Empty = “Price on request”. 0 = Free."
+                hint="Leave empty for no price yet (choose what shows below). 0 = Free."
                 value={form.price}
                 onChange={set('price')}
                 inputMode="decimal"
                 placeholder="e.g. 25"
               />
+              {String(form.price).trim() === '' && (
+                <SelectField
+                  label="With no price, show"
+                  hint={
+                    form.noPrice === 'soon'
+                      ? 'Visitors can look at it, but Buy is off until you add a price.'
+                      : 'Buy opens the buy link so they can ask.'
+                  }
+                  value={form.noPrice}
+                  onChange={set('noPrice')}
+                  options={[
+                    { value: 'request', label: 'Price on request' },
+                    { value: 'soon', label: 'Coming soon' },
+                  ]}
+                />
+              )}
               <SelectField
                 label="Currency"
                 value={form.currency}

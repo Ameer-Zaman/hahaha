@@ -7,7 +7,7 @@ import { site } from '../../config/site'
 import usePageTitle from '../../hooks/usePageTitle'
 import { usePublic } from '../../lib/publicData'
 import { useCommunityLinks } from '../../lib/siteSettings'
-import { formatPrice } from './price'
+import { formatPrice, isSoon } from './price'
 import './store.css'
 
 /**
@@ -40,6 +40,7 @@ function buyFor(product, storeLink, discord) {
   }
   const isDiscord = /(^|\.)(discord\.com|discord\.gg|discordapp\.com)$/.test(host)
   if (product.soldOut) return { url: null, label: 'Sold out', discord: false }
+  if (isSoon(product)) return { url: null, label: 'Coming soon', discord: false }
   if (!url) return { url: null, label: 'Not on sale yet', discord: false }
   return {
     url,
@@ -235,8 +236,8 @@ function trackPointer(e) {
 function Price({ product: p, size = 'md' }) {
   const off = discountOf(p)
   return (
-    <span className={`st-price st-price--${size} ${p.price === null ? 'is-ask' : ''}`}>
-      <span className="st-price__now">{formatPrice(p.price, p.currency)}</span>
+    <span className={`st-price st-price--${size} ${p.price === null ? 'is-ask' : ''} ${isSoon(p) ? 'is-soon' : ''}`}>
+      <span className="st-price__now">{formatPrice(p.price, p.currency, p.noPrice)}</span>
       {off > 0 && (
         <s className="st-price__was">
           <span className="visually-hidden">was </span>
@@ -412,7 +413,7 @@ function ProductSheet({ open, product: p, buy, onClose }) {
   const current = shots[Math.min(shot, shots.length - 1)]
 
   async function copyOrder() {
-    const line = `Order: ${p.name} — ${formatPrice(p.price, p.currency)}${p.priceNote && p.price !== null ? ` ${p.priceNote}` : ''} — ${window.location.origin}/store/${p.id}`
+    const line = `Order: ${p.name} — ${formatPrice(p.price, p.currency, p.noPrice)}${p.priceNote && p.price !== null ? ` ${p.priceNote}` : ''} — ${window.location.origin}/store/${p.id}`
     try {
       await navigator.clipboard.writeText(line)
       setCopiedId(p.id)

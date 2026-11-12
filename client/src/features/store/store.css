@@ -1158,3 +1158,8 @@
 .st--top {
   padding-top: calc(var(--top-chrome, 4.5rem) + clamp(2rem, 1rem + 4vw, 4.5rem));
 }
+
+/* "Coming soon" instead of a price: gold, quiet */
+.st-price.is-soon .st-price__now {
+  color: var(--c-gold-light);
+}

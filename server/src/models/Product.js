@@ -28,6 +28,8 @@ const productSchema = new mongoose.Schema(
     currency: { type: String, default: 'USD' },
     /** After the price: "one-time", "/ month", "30 days" … */
     priceNote: { type: String, trim: true, default: '' },
+    /** What shows when there is no price: 'request' ("Price on request") or 'soon' ("Coming soon", not buyable yet). */
+    noPrice: { type: String, enum: ['request', 'soon'], default: 'request' },
     badge: { type: String, default: '' }, // '' | new | popular | limited | sale
     cover: { type: String, default: null }, // media id (GIFs work)
     gallery: { type: [String], default: [] }, // media ids

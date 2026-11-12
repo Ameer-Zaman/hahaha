@@ -312,6 +312,7 @@ router.get('/store', async (req, res) => {
       oldPrice: p.oldPrice ?? null,
       currency: p.currency || 'USD',
       priceNote: p.priceNote,
+      noPrice: p.noPrice === 'soon' ? 'soon' : 'request',
       badge: p.badge || '',
       cover: mediaUrl(p.cover),
       gallery: (p.gallery ?? []).map((id) => mediaUrl(id)).filter(Boolean),
