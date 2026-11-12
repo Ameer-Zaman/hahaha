@@ -60,7 +60,8 @@ export default function StorePage() {
   const products = useMemo(() => (entry.status === 'ok' ? (entry.data?.products ?? []) : []), [entry])
   const store = entry.status === 'ok' ? (entry.data?.store ?? {}) : {}
   // "Coming soon" until the team switches it off in Panel → Store (also while the store can't be reached)
-  const soon = entry.status === 'ok' ? store.comingSoon !== false : entry.status !== 'loading'
+  // the store is open; "Coming soon" only when it's switched on in Panel → Store
+  const soon = entry.status === 'ok' && store.comingSoon === true
   const open = slug && entry.status === 'ok' && !soon ? (products.find((p) => p.id === slug) ?? null) : null
   usePageTitle(slug ? (open?.name ?? 'Store') : 'Store')
 
@@ -83,7 +84,12 @@ export default function StorePage() {
         <div className="container">
           {entry.status === 'loading' && <StoreSkeleton />}
           {soon && <ComingSoon discord={discord} />}
-          {entry.status === 'ok' && !soon && products.length === 0 && (
+          {(entry.status === 'error' || entry.status === 'off') && (
+            <p className="st-note" role="status">
+              The store can’t be loaded right now. Try again in a moment.
+            </p>
+          )}
+          {(entry.status === 'missing' || (entry.status === 'ok' && !soon && products.length === 0)) && (
             <div className="st-empty">
               <p className="st-empty__title">The store is being stocked</p>
               <p className="st-note">Scripts, maps and in-game items will show up here once the team lists them.</p>

@@ -80,7 +80,7 @@ const settingsSchema = new mongoose.Schema(
     /** The Store: where Buy buttons go unless a product has its own link, and a line under the title. */
     store: {
       /** "Coming soon": the Store page shows no products until this is switched off. */
-      comingSoon: { type: Boolean, default: true },
+      comingSoon: { type: Boolean, default: false },
       buyUrl: { type: String, default: '' },
       note: { type: String, default: '' },
     },
@@ -100,7 +100,7 @@ export const readBrandLogo = (settings) => settings?.brand?.logo ?? null
 
 /** The Store's settings, with the defaults filled in. */
 export const readStore = (settings) => ({
-  comingSoon: settings?.store?.comingSoon !== false,
+  comingSoon: settings?.store?.comingSoon === true, // open unless a Super Admin/Admin switched it on
   buyUrl: settings?.store?.buyUrl ?? '',
   note: settings?.store?.note ?? '',
 })

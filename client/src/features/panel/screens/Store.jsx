@@ -102,10 +102,10 @@ export function StoreList() {
 
 /** Where every Buy button goes unless a product has its own link, and a line under the title. */
 function StoreSettings({ store, onSaved }) {
-  const [form, setForm] = useState({ comingSoon: store.comingSoon !== false, buyUrl: store.buyUrl ?? '', note: store.note ?? '' })
+  const [form, setForm] = useState({ comingSoon: store.comingSoon === true, buyUrl: store.buyUrl ?? '', note: store.note ?? '' })
   const [run, busy] = useAction()
   const changed =
-    form.comingSoon !== (store.comingSoon !== false) || form.buyUrl !== (store.buyUrl ?? '') || form.note !== (store.note ?? '')
+    form.comingSoon !== (store.comingSoon === true) || form.buyUrl !== (store.buyUrl ?? '') || form.note !== (store.note ?? '')
 
   async function save(e) {
     e.preventDefault()
