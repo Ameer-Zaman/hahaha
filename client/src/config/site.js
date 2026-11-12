@@ -70,12 +70,12 @@ export const media = {
     /** Muted, looping background video for the banner — drop the file in public/assets/video/. */
     video: '/assets/video/welcome.mp4',
     /** "Watch on YouTube" button. Empty = no button. */
-    youtubeUrl: 'https://www.youtube.com/watch?v=Fb04ewMi1Wg',
+    youtubeUrl: 'https://www.youtube.com/watch?v=NM3BcpmAJtM',
     /**
      * Credit shown on the banner, so a third-party video is never passed off as our own.
      * Clear it ('') if the video is the community's own footage.
      */
-    credit: 'Video: “The Raid” by Marco Studios',
+    credit: '',
   },
   /** Images for the feature rows on the homepage. */
   features: {
