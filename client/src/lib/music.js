@@ -6,9 +6,10 @@ import { getAudioContext } from './introSound'
  * Background music: an original dark cinematic loop in A minor (media.music in config/site.js,
  * default /assets/audio/music.mp3 — swap in any MP3; a seamless loop works best).
  *
- * After the welcome sound it fades in underneath the intro's tail and keeps looping quietly.
- * The header's music button turns it off / on, and the choice is remembered. Like all web
- * audio it only plays once the browser allows sound (after a click, tap or key press).
+ * It plays on every visit: after the welcome sound it fades in underneath the intro's tail,
+ * and on any other page it starts with the visitor's first click, tap or key press (browsers
+ * only allow sound after one). The header's music button turns it off for the rest of that
+ * visit; the next visit plays it again.
  */
 const PREF_KEY = 'shyastha:music'
 const VOLUME = 0.32
@@ -25,18 +26,33 @@ const emit = (next) => {
   listeners.forEach((fn) => fn())
 }
 
+// "off" lasts for this visit only (this tab), so every new visit starts with the music on
 const prefersOff = () => {
   try {
-    return window.localStorage.getItem(PREF_KEY) === 'off'
+    return window.sessionStorage.getItem(PREF_KEY) === 'off'
   } catch {
     return false
   }
 }
 const remember = (on) => {
   try {
-    window.localStorage.setItem(PREF_KEY, on ? 'on' : 'off')
+    window.sessionStorage.setItem(PREF_KEY, on ? 'on' : 'off')
   } catch {
     /* storage unavailable */
+  }
+}
+try {
+  window.localStorage.removeItem(PREF_KEY) // the old "off for good" choice no longer applies
+} catch {
+  /* storage unavailable */
+}
+
+// while the welcome screen is up, the music waits for it (it fades in under the intro sound)
+let heldForIntro = false
+export function holdMusicForIntro() {
+  heldForIntro = true
+  return () => {
+    heldForIntro = false
   }
 }
 
@@ -103,6 +119,7 @@ function stop(fade = 1.2) {
 
 /** Called as the visitor enters through the welcome screen: the music blends in under the intro. */
 export function startMusicAfterIntro() {
+  heldForIntro = false
   if (prefersOff()) return
   load() // start downloading now, while the intro plays
   start({ delay: 2, fade: 4 })
@@ -118,6 +135,30 @@ export function toggleMusic() {
     remember(true)
     c?.resume().catch(() => {})
     start({ delay: 0, fade: 1.5 })
+  }
+}
+
+/**
+ * Every visit: try to start straight away (some browsers allow it), and otherwise on the first
+ * click, tap or key press anywhere on the page. Called once when the site loads.
+ */
+export function armMusic() {
+  if (typeof window === 'undefined') return
+  const events = ['pointerdown', 'keydown', 'touchend']
+  const done = () => events.forEach((e) => window.removeEventListener(e, wake, true))
+  function wake() {
+    if (state.playing) return done()
+    if (heldForIntro || prefersOff()) return
+    const c = getAudioContext()
+    c?.resume().catch(() => {}) // inside the gesture: this is what unlocks sound
+    start({ delay: 0, fade: 2.5 }).then(() => state.playing && done())
+  }
+  events.forEach((e) => window.addEventListener(e, wake, { capture: true, passive: true }))
+  if (!prefersOff()) {
+    load()
+    setTimeout(() => {
+      if (!heldForIntro && !prefersOff()) start({ delay: 0, fade: 2.5 }).then(() => state.playing && done())
+    }, 600)
   }
 }
 

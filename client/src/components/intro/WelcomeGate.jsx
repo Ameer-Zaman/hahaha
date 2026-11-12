@@ -5,7 +5,7 @@ import '@fontsource/sacramento/latin-400.css'
 import { media, site } from '../../config/site'
 import { enterSite, markIntroSeen } from '../../lib/intro'
 import { loadIntroSound, playIntroSound, primeIntroSound, scrubIntroSound } from '../../lib/introSound'
-import { startMusicAfterIntro } from '../../lib/music'
+import { holdMusicForIntro, startMusicAfterIntro } from '../../lib/music'
 import { createRipple, paintWelcome } from './rippleRenderer'
 import './welcome-gate.css'
 
@@ -52,6 +52,8 @@ export default function WelcomeGate({ onDone, paused = false }) {
   useEffect(() => {
     loadIntroSound(media.introSound)
   }, [])
+  // the music waits for the visitor to enter, then fades in under the intro sound
+  useEffect(() => holdMusicForIntro(), [])
 
   const switchMode = (next) => {
     modeRef.current = next
