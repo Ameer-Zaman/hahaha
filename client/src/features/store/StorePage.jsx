@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { Skeleton, SkeletonGroup } from '../../components/ui/Skeleton'
 import { SOCIAL_PLATFORMS } from '../../components/ui/socialPlatforms'
-import { site } from '../../config/site'
 import usePageTitle from '../../hooks/usePageTitle'
 import { usePublic } from '../../lib/publicData'
 import { useCommunityLinks } from '../../lib/siteSettings'
