@@ -713,12 +713,12 @@
 
 /* the logo on its own (no name next to it): a little larger, so it carries the brand */
 .site-header__brand.has-logo .site-header__mark {
-  height: 2.6rem;
-  max-width: 11rem;
+  height: 3.3rem;
+  max-width: 14rem;
 }
 @media (max-width: 26rem) {
   .site-header__brand.has-logo .site-header__mark {
-    height: 2.25rem;
-    max-width: 8.5rem;
+    height: 2.75rem;
+    max-width: 10rem;
   }
 }
