@@ -150,3 +150,23 @@ test('store products: https buy links only, a sale price below the old one, pict
   assert.equal(storeSettingsSchema.safeParse({ buyUrl: 'https://discord.gg/abc', note: 'x' }).success, true)
   assert.equal(storeSettingsSchema.safeParse({ buyUrl: 'ftp://x' }).success, false)
 })
+
+test('panel areas: Super Admins open everything, Admins only what was ticked, unset = all', async () => {
+  const { canOpen, requireArea } = await import('../src/middleware/access.js')
+  const { createUserSchema, updateUserSchema } = await import('../src/validation/schemas.js')
+  assert.equal(canOpen({ role: 'superadmin', access: [] }, 'store'), true)
+  assert.equal(canOpen({ role: 'admin', access: ['store'] }, 'store'), true)
+  assert.equal(canOpen({ role: 'admin', access: ['store'] }, 'gangs'), false)
+  assert.equal(canOpen({ role: 'admin', access: [] }, 'gangs'), false)
+  assert.equal(canOpen({ role: 'admin' }, 'gangs'), true) // accounts from before this setting
+  assert.equal(canOpen(null, 'gangs'), false)
+  assert.throws(() => requireArea('nonsense'))
+  let status = 0
+  const res = { status: (s) => ((status = s), { json: () => {} }) }
+  requireArea('store')({ user: { role: 'admin', access: ['gangs'] } }, res, () => (status = 200))
+  assert.equal(status, 403)
+  const base = { email: 'a@b.co', name: 'A', password: '0123456789' }
+  assert.deepEqual(createUserSchema.parse(base).access, []) // nothing unless ticked
+  assert.equal(createUserSchema.safeParse({ ...base, access: ['users'] }).success, false)
+  assert.equal(updateUserSchema.safeParse({ access: ['store', 'rules'] }).success, true)
+})

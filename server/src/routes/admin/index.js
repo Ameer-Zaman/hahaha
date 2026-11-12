@@ -1,6 +1,8 @@
 import { Router } from 'express'
 
+import { areaGate, requireArea } from '../../middleware/access.js'
 import { authenticate, requireRole } from '../../middleware/auth.js'
+import { PANEL_AREAS } from '../../models/User.js'
 import { twoFactorRequired } from '../../services/twoFactor.js'
 import { Club } from '../../models/Club.js'
 import { Event } from '../../models/Event.js'
@@ -89,20 +91,26 @@ router.get('/overview', staffRoles, async (req, res) => {
   })
 })
 
-router.use('/announcements', staffRoles, announcements)
-router.use('/live', staffRoles, live)
-router.use('/gangs', staffRoles, gangs)
-router.use('/clubs', staffRoles, clubs)
-router.use('/events', staffRoles, events)
-router.use('/chat', staffRoles, chat)
-router.use('/wars', staffRoles, wars)
-router.use('/staff', staffRoles, staff)
-router.use('/creators', staffRoles, creators)
-router.use('/store', staffRoles, store)
-router.use('/tdm', staffRoles, tdm)
-router.use('/rules', staffRoles, rules)
-router.use('/media', staffRoles, media)
-router.use('/settings', staffRoles, settings)
+// Each part of the panel also needs the area a Super Admin opened for the account
+// (Panel → Accounts → Pages). Super Admins pass every area check.
+router.use('/announcements', staffRoles, requireArea('announcements'), announcements)
+router.use('/live', staffRoles, requireArea('live'), live)
+router.use('/gangs', staffRoles, areaGate('gangs', ['wars', 'live']), gangs) // the gang list feeds the Wars and Live pickers
+router.use('/clubs', staffRoles, requireArea('clubs'), clubs)
+router.use('/events', staffRoles, requireArea('events'), events)
+router.use('/chat', staffRoles, requireArea('chat'), chat)
+router.use('/wars', staffRoles, requireArea('wars'), wars)
+router.use('/staff', staffRoles, requireArea('staff'), staff)
+router.use('/creators', staffRoles, requireArea('creators'), creators)
+router.use('/store', staffRoles, requireArea('store'), store)
+router.use('/tdm', staffRoles, requireArea('tdm'), tdm)
+router.use('/rules', staffRoles, requireArea('rules'), rules)
+// choosing and uploading pictures is part of every area; deleting files is the Media library's
+router.use('/media', staffRoles, requireArea(...PANEL_AREAS), (req, res, next) =>
+  req.method === 'DELETE' ? requireArea('media')(req, res, next) : next(),
+)
+router.use('/media', media)
+router.use('/settings', staffRoles, settings) // each change checks its own area (settings.js)
 router.use('/backup', superOnly, backup)
 router.use('/users', superOnly, users)
 router.use('/audit', superOnly, auditRoutes)

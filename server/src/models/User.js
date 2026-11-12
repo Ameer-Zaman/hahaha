@@ -1,6 +1,30 @@
 import mongoose from 'mongoose'
 
 /**
+ * The parts of the panel a Super Admin can open or close for each Admin account
+ * (Panel → Accounts → Pages). Super Admins can always open everything. Overview and the
+ * person's own Account page are always open.
+ */
+export const PANEL_AREAS = [
+  'site',
+  'live',
+  'announcements',
+  'chat',
+  'gangs',
+  'wars',
+  'clubs',
+  'events',
+  'tdm',
+  'staff',
+  'creators',
+  'store',
+  'rules',
+  'media',
+  'homeMedia',
+  'storyMedia',
+]
+
+/**
  * A website account. Roles are website-only and have nothing to do with in-game ranks:
  * 'admin' manages content; 'superadmin' also manages accounts and reads the audit log.
  * There is no public sign-up — accounts are created by a Super Admin.
@@ -12,6 +36,11 @@ const userSchema = new mongoose.Schema(
     passwordHash: { type: String, required: true, select: false },
     role: { type: String, enum: ['admin', 'superadmin'], default: 'admin' },
     active: { type: Boolean, default: true },
+    /**
+     * The panel areas this Admin may open (see PANEL_AREAS). Not set = every area: that is
+     * how accounts made before this setting existed keep working until a Super Admin picks.
+     */
+    access: { type: [String], default: undefined },
     /** Bumped on password change / disable, so existing sessions stop working. */
     tokenVersion: { type: Number, default: 0 },
     lastLoginAt: { type: Date, default: null },
@@ -44,6 +73,7 @@ userSchema.methods.toSafeJSON = function toSafeJSON() {
     name: this.name,
     role: this.role,
     active: this.active,
+    access: Array.isArray(this.access) ? this.access.filter((a) => PANEL_AREAS.includes(a)) : null, // null = every area
     twoFactor: Boolean(this.totp?.enabled),
     lastLoginAt: this.lastLoginAt,
     createdAt: this.createdAt,

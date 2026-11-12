@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { SECTION_KEYS } from '../models/Settings.js'
+import { PANEL_AREAS } from '../models/User.js'
 
 const text = (max) => z.string().trim().max(max)
 const mediaId = z
@@ -142,6 +143,7 @@ export const createUserSchema = z.object({
   name: text(80).min(1),
   role: z.enum(['admin', 'superadmin']).default('admin'),
   password: passwordSchema,
+  access: z.array(z.enum(PANEL_AREAS)).max(PANEL_AREAS.length).optional().default([]),
 })
 
 export const updateUserSchema = z.object({
@@ -149,6 +151,7 @@ export const updateUserSchema = z.object({
   role: z.enum(['admin', 'superadmin']).optional(),
   active: z.boolean().optional(),
   password: passwordSchema.optional(),
+  access: z.array(z.enum(PANEL_AREAS)).max(PANEL_AREAS.length).optional(),
 })
 
 const memberSchema = z.object({

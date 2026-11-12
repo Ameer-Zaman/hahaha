@@ -4,6 +4,7 @@ import { Navigate, NavLink, Route, Routes } from 'react-router-dom'
 import { site } from '../../config/site'
 import { USE_API } from '../../lib/api'
 import { AuthProvider } from './auth'
+import { canOpen } from './access'
 import { useAuth } from './authContext'
 import { Account, Accounts, AuditLog } from './screens/Accounts'
 import { AnnouncementEditor, AnnouncementList } from './screens/Announcements'
@@ -32,32 +33,32 @@ const NAV = [
   {
     group: 'Website',
     items: [
-      { to: '/panel/site', label: 'Sections & maintenance' },
-      { to: '/panel/live', label: 'Live now' },
-      { to: '/panel/announcements', label: 'Announcements' },
-      { to: '/panel/chat', label: 'Rules help chat' },
+      { to: '/panel/site', area: 'site', label: 'Sections & maintenance' },
+      { to: '/panel/live', area: 'live', label: 'Live now' },
+      { to: '/panel/announcements', area: 'announcements', label: 'Announcements' },
+      { to: '/panel/chat', area: 'chat', label: 'Rules help chat' },
     ],
   },
   {
     group: 'Content',
     items: [
-      { to: '/panel/gangs', label: 'Gangs & players' },
-      { to: '/panel/wars', label: 'Wars' },
-      { to: '/panel/clubs', label: 'Clubs' },
-      { to: '/panel/events', label: 'Events' },
-      { to: '/panel/tdm', label: 'TDM leaderboard' },
-      { to: '/panel/staff', label: 'Staff' },
-      { to: '/panel/creators', label: 'Creators' },
-      { to: '/panel/store', label: 'Store' },
-      { to: '/panel/rules', label: 'Rules' },
+      { to: '/panel/gangs', area: 'gangs', label: 'Gangs & players' },
+      { to: '/panel/wars', area: 'wars', label: 'Wars' },
+      { to: '/panel/clubs', area: 'clubs', label: 'Clubs' },
+      { to: '/panel/events', area: 'events', label: 'Events' },
+      { to: '/panel/tdm', area: 'tdm', label: 'TDM leaderboard' },
+      { to: '/panel/staff', area: 'staff', label: 'Staff' },
+      { to: '/panel/creators', area: 'creators', label: 'Creators' },
+      { to: '/panel/store', area: 'store', label: 'Store' },
+      { to: '/panel/rules', area: 'rules', label: 'Rules' },
     ],
   },
   {
     group: 'Media',
     items: [
-      { to: '/panel/media', label: 'Media library' },
-      { to: '/panel/site-media', label: 'Homepage media' },
-      { to: '/panel/story-media', label: 'Story media' },
+      { to: '/panel/media', area: 'media', label: 'Media library' },
+      { to: '/panel/site-media', area: 'homeMedia', label: 'Homepage media' },
+      { to: '/panel/story-media', area: 'storyMedia', label: 'Story media' },
     ],
   },
   {
@@ -162,9 +163,15 @@ function NotConnected({ reason }) {
           {reason === 'off' ? ' (it was built with VITE_USE_API=false).' : ' yet.'}
         </p>
         <ol className="p-steps">
-          <li>Deploy the <code>server/</code> folder (Render web service) with a MongoDB Atlas database.</li>
-          <li>Forward this website's <code>/api/*</code> to that server, and remove <code>VITE_USE_API=false</code>.</li>
-          <li>Redeploy the website, then come back to <code>/panel</code>.</li>
+          <li>
+            Deploy the <code>server/</code> folder (Render web service) with a MongoDB Atlas database.
+          </li>
+          <li>
+            Forward this website's <code>/api/*</code> to that server, and remove <code>VITE_USE_API=false</code>.
+          </li>
+          <li>
+            Redeploy the website, then come back to <code>/panel</code>.
+          </li>
         </ol>
         <p className="p-login__sub">The public website works without it, using its built-in content.</p>
         <a className="pbtn pbtn--ghost pbtn--block" href="/">
@@ -204,20 +211,23 @@ function Shell() {
           <span>Panel</span>
         </p>
         <nav aria-label="Panel">
-          {NAV.filter((g) => !g.superOnly || isSuper).map((g) => (
-            <div key={g.group ?? 'main'} className="p-nav__group">
-              {g.group && <p className="p-nav__heading">{g.group}</p>}
-              <ul role="list">
-                {g.items.map((item) => (
-                  <li key={item.to}>
-                    <NavLink to={item.to} end={item.end} className="p-nav__link">
-                      {item.label}
-                    </NavLink>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {NAV.filter((g) => !g.superOnly || isSuper)
+            .map((g) => ({ ...g, items: g.items.filter((item) => !item.area || canOpen(user, item.area)) }))
+            .filter((g) => g.items.length > 0)
+            .map((g) => (
+              <div key={g.group ?? 'main'} className="p-nav__group">
+                {g.group && <p className="p-nav__heading">{g.group}</p>}
+                <ul role="list">
+                  {g.items.map((item) => (
+                    <li key={item.to}>
+                      <NavLink to={item.to} end={item.end} className="p-nav__link">
+                        {item.label}
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
         </nav>
         <div className="p-side__foot">
           <NavLink to="/panel/account" className="p-side__user">
@@ -236,27 +246,174 @@ function Shell() {
       <main className="p-main" id="panel-main">
         <Routes>
           <Route index element={<Dashboard />} />
-          <Route path="gangs" element={<GangList />} />
-          <Route path="gangs/:id" element={<GangEditor />} />
-          <Route path="wars" element={<Wars />} />
-          <Route path="clubs" element={<ClubList />} />
-          <Route path="clubs/:id" element={<ClubEditor />} />
-          <Route path="events" element={<EventList />} />
-          <Route path="events/:id" element={<EventEditor />} />
-          <Route path="tdm" element={<Tdm />} />
-          <Route path="staff" element={<Staff />} />
-          <Route path="creators" element={<Creators />} />
-          <Route path="store" element={<StoreList />} />
-          <Route path="store/:id" element={<ProductEditor />} />
-          <Route path="rules" element={<Rules />} />
-          <Route path="media" element={<MediaLibrary />} />
-          <Route path="site-media" element={<SiteMedia />} />
-          <Route path="story-media" element={<StoryMedia />} />
-          <Route path="site" element={<SiteSettings />} />
-          <Route path="announcements" element={<AnnouncementList />} />
-          <Route path="announcements/:id" element={<AnnouncementEditor />} />
-          <Route path="chat" element={<Chat />} />
-          <Route path="live" element={<Live />} />
+          <Route
+            path="gangs"
+            element={
+              <Area name="gangs">
+                <GangList />
+              </Area>
+            }
+          />
+          <Route
+            path="gangs/:id"
+            element={
+              <Area name="gangs">
+                <GangEditor />
+              </Area>
+            }
+          />
+          <Route
+            path="wars"
+            element={
+              <Area name="wars">
+                <Wars />
+              </Area>
+            }
+          />
+          <Route
+            path="clubs"
+            element={
+              <Area name="clubs">
+                <ClubList />
+              </Area>
+            }
+          />
+          <Route
+            path="clubs/:id"
+            element={
+              <Area name="clubs">
+                <ClubEditor />
+              </Area>
+            }
+          />
+          <Route
+            path="events"
+            element={
+              <Area name="events">
+                <EventList />
+              </Area>
+            }
+          />
+          <Route
+            path="events/:id"
+            element={
+              <Area name="events">
+                <EventEditor />
+              </Area>
+            }
+          />
+          <Route
+            path="tdm"
+            element={
+              <Area name="tdm">
+                <Tdm />
+              </Area>
+            }
+          />
+          <Route
+            path="staff"
+            element={
+              <Area name="staff">
+                <Staff />
+              </Area>
+            }
+          />
+          <Route
+            path="creators"
+            element={
+              <Area name="creators">
+                <Creators />
+              </Area>
+            }
+          />
+          <Route
+            path="store"
+            element={
+              <Area name="store">
+                <StoreList />
+              </Area>
+            }
+          />
+          <Route
+            path="store/:id"
+            element={
+              <Area name="store">
+                <ProductEditor />
+              </Area>
+            }
+          />
+          <Route
+            path="rules"
+            element={
+              <Area name="rules">
+                <Rules />
+              </Area>
+            }
+          />
+          <Route
+            path="media"
+            element={
+              <Area name="media">
+                <MediaLibrary />
+              </Area>
+            }
+          />
+          <Route
+            path="site-media"
+            element={
+              <Area name="homeMedia">
+                <SiteMedia />
+              </Area>
+            }
+          />
+          <Route
+            path="story-media"
+            element={
+              <Area name="storyMedia">
+                <StoryMedia />
+              </Area>
+            }
+          />
+          <Route
+            path="site"
+            element={
+              <Area name="site">
+                <SiteSettings />
+              </Area>
+            }
+          />
+          <Route
+            path="announcements"
+            element={
+              <Area name="announcements">
+                <AnnouncementList />
+              </Area>
+            }
+          />
+          <Route
+            path="announcements/:id"
+            element={
+              <Area name="announcements">
+                <AnnouncementEditor />
+              </Area>
+            }
+          />
+          <Route
+            path="chat"
+            element={
+              <Area name="chat">
+                <Chat />
+              </Area>
+            }
+          />
+          <Route
+            path="live"
+            element={
+              <Area name="live">
+                <Live />
+              </Area>
+            }
+          />
           <Route path="account" element={<Account />} />
           {isSuper && <Route path="accounts" element={<Accounts />} />}
           {isSuper && <Route path="backup" element={<Backup />} />}
@@ -264,6 +421,18 @@ function Shell() {
           <Route path="*" element={<Navigate to="/panel" replace />} />
         </Routes>
       </main>
+    </div>
+  )
+}
+
+/** A page the account may not open: say so plainly (the server refuses its data anyway). */
+function Area({ name, children }) {
+  const { user } = useAuth()
+  if (canOpen(user, name)) return children
+  return (
+    <div className="p-closed">
+      <h1 className="p-closed__title">Not open for your account</h1>
+      <p className="p-text">A Super Admin decides which parts of the panel each Admin can use. Ask one if you need this page.</p>
     </div>
   )
 }

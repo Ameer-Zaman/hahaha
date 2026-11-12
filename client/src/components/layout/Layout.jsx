@@ -23,6 +23,8 @@ const LIGHT_TOP = []
 const NO_FOOTER = ['/gangs']
 /** Paths that are the same page with a pop-up open (moving between them keeps the scroll). */
 const OVERLAY_ROUTES = [/^\/events(\/[^/]+)?\/?$/, /^\/store(\/[^/]+)?\/?$/]
+/** "/store/drift-pack" and "/store" are the same page underneath the pop-up. */
+const pageKey = (path) => (OVERLAY_ROUTES.some((re) => re.test(path)) ? `/${path.split('/')[1]}` : path)
 
 export default function Layout() {
   const { pathname, hash, key } = useLocation()
@@ -103,8 +105,9 @@ export default function Layout() {
       <AnnouncementBar />
       <SiteHeader tone={tone} />
       <main id="main" tabIndex={-1}>
-        {/* keyed by path so each page fades in once on arrival */}
-        <div key={pathname} className="page-enter">
+        {/* keyed by page so each page fades in once on arrival — opening a pop-up with its own
+            address (a product, an event) keeps the page as it is underneath */}
+        <div key={pageKey(pathname)} className="page-enter">
           <Outlet />
         </div>
       </main>

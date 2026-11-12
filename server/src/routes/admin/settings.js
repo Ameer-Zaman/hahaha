@@ -1,8 +1,18 @@
 import { Router } from 'express'
 
+import { canOpen, requireArea } from '../../middleware/access.js'
 import { HttpError } from '../../middleware/errors.js'
 import { validateBody } from '../../middleware/validate.js'
-import { MEDIA_SLOTS, readBrandLogo, readChatBot, readSections, readSocials, SECTION_KEYS, Settings } from '../../models/Settings.js'
+import {
+  MEDIA_SLOTS,
+  STORY_SLOTS,
+  readBrandLogo,
+  readChatBot,
+  readSections,
+  readSocials,
+  SECTION_KEYS,
+  Settings,
+} from '../../models/Settings.js'
 import { audit } from '../../services/audit.js'
 import { findFile } from '../../services/media.js'
 import { requireRole } from '../../middleware/auth.js'
@@ -46,7 +56,7 @@ router.get('/', async (req, res) => {
 })
 
 /** The site logo (header, footer, maintenance screen, browser tab). Must be a picture from the media library. */
-router.put('/brand', validateBody(settingsBrandSchema), async (req, res) => {
+router.put('/brand', requireArea('site'), validateBody(settingsBrandSchema), async (req, res) => {
   const { logo } = req.body
   if (logo) {
     const file = await findFile(logo)
@@ -63,7 +73,7 @@ router.put('/brand', validateBody(settingsBrandSchema), async (req, res) => {
 })
 
 /** The community links in the header, footer and phone menu, in this order. */
-router.put('/socials', validateBody(settingsSocialsSchema), async (req, res) => {
+router.put('/socials', requireArea('site'), validateBody(settingsSocialsSchema), async (req, res) => {
   const settings = await getSettings()
   const before = readSocials(settings) ?? []
   settings.socials = req.body.links.map(({ platform, url }) => ({ platform, url }))
@@ -76,7 +86,7 @@ router.put('/socials', validateBody(settingsSocialsSchema), async (req, res) => 
 })
 
 /** The chat assistant's name and picture. The picture must be an image from the media library. */
-router.put('/chat-bot', validateBody(settingsChatBotSchema), async (req, res) => {
+router.put('/chat-bot', requireArea('chat'), validateBody(settingsChatBotSchema), async (req, res) => {
   const { name, avatar } = req.body
   if (avatar) {
     const file = await findFile(avatar)
@@ -97,7 +107,7 @@ router.put('/chat-bot', validateBody(settingsChatBotSchema), async (req, res) =>
 })
 
 /** Sections on/off and maintenance mode. Each change is written to the audit log. */
-router.put('/site', validateBody(settingsSiteSchema), async (req, res) => {
+router.put('/site', requireArea('site'), validateBody(settingsSiteSchema), async (req, res) => {
   const settings = await getSettings()
   const before = siteState(settings)
   const entries = [] // audit entries, written once the change is saved
@@ -147,6 +157,11 @@ router.put('/security', requireRole('superadmin'), validateBody(settingsSecurity
 })
 
 router.put('/media', validateBody(settingsMediaSchema), async (req, res) => {
+  // story slots belong to Story media, the rest to Homepage media
+  for (const slot of Object.keys(req.body.media)) {
+    const area = STORY_SLOTS.includes(slot) ? 'storyMedia' : 'homeMedia'
+    if (!canOpen(req.user, area)) throw new HttpError(403, 'A Super Admin has not given your account this part of the panel.')
+  }
   const settings = await getSettings()
   const next = { ...settings.media }
   const changed = []

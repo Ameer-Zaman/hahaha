@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import { ALL_AREAS, AREA_GROUPS } from '../access'
 import { useAuth } from '../authContext'
 import { adminApi, authApi } from '../panelApi'
 import { formatWhen } from '../format'
@@ -28,6 +29,7 @@ export function Accounts() {
   const { data, error, loading, reload, setData } = useResource(() => adminApi.get('/users'))
   const [form, setForm] = useState(null)
   const [reset, setReset] = useState(null) // { id, password }
+  const [pages, setPages] = useState(null) // { id, name, access } — the Pages editor for one Admin
   const [run, busy] = useAction()
 
   if (error) return <ErrorNote message={error} onRetry={reload} />
@@ -74,7 +76,11 @@ export function Accounts() {
         title="Accounts"
         sub="Website accounts for the panel. There is no public sign-up, and in-game ranks never grant access here."
       >
-        <button type="button" className="pbtn pbtn--gold" onClick={() => setForm({ name: '', email: '', role: 'admin', password: generatePassword() })}>
+        <button
+          type="button"
+          className="pbtn pbtn--gold"
+          onClick={() => setForm({ name: '', email: '', role: 'admin', password: generatePassword(), access: [...ALL_AREAS] })}
+        >
           New account
         </button>
       </PageHead>
@@ -85,6 +91,12 @@ export function Accounts() {
             <TextField label="Name" value={form.name} onChange={set('name')} required maxLength={80} />
             <TextField label="Email" type="email" value={form.email} onChange={set('email')} required maxLength={200} autoComplete="off" />
             <SelectField label="Role" value={form.role} onChange={set('role')} options={ROLE_OPTIONS} />
+            {form.role === 'admin' && (
+              <div className="p-field p-field--wide">
+                <span className="p-field__label">Pages they can open</span>
+                <AccessPicker value={form.access} onChange={set('access')} />
+              </div>
+            )}
             <TextField
               label="First password"
               hint="Share it privately (not in a public channel). They should change it under Account after signing in."
@@ -112,9 +124,12 @@ export function Accounts() {
             <tr>
               <th scope="col">Name</th>
               <th scope="col">Role</th>
+              <th scope="col">Pages</th>
               <th scope="col">Status</th>
               <th scope="col">Last sign-in</th>
-              <th scope="col"><span className="p-sr-only">Actions</span></th>
+              <th scope="col">
+                <span className="p-sr-only">Actions</span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -128,6 +143,15 @@ export function Accounts() {
                     <span className="p-muted">{u.email}</span>
                   </td>
                   <td>{ROLE_LABEL[u.role]}</td>
+                  <td>
+                    {u.role === 'superadmin' ? (
+                      <span className="p-muted">Everything</span>
+                    ) : u.access === null ? (
+                      'All'
+                    ) : (
+                      `${u.access.length} of ${ALL_AREAS.length}`
+                    )}
+                  </td>
                   <td>
                     {u.active ? 'Active' : <span className="p-muted">Disabled</span>}
                     {u.twoFactor && (
@@ -146,7 +170,11 @@ export function Accounts() {
                           className="pbtn pbtn--ghost pbtn--sm"
                           disabled={busy}
                           onClick={() =>
-                            update(u, { role: u.role === 'admin' ? 'superadmin' : 'admin' }, `${u.name} is now ${u.role === 'admin' ? 'a Super Admin' : 'an Admin'}`)
+                            update(
+                              u,
+                              { role: u.role === 'admin' ? 'superadmin' : 'admin' },
+                              `${u.name} is now ${u.role === 'admin' ? 'a Super Admin' : 'an Admin'}`,
+                            )
                           }
                         >
                           Make {u.role === 'admin' ? 'Super Admin' : 'Admin'}
@@ -155,11 +183,26 @@ export function Accounts() {
                           type="button"
                           className="pbtn pbtn--ghost pbtn--sm"
                           disabled={busy}
-                          onClick={() => update(u, { active: !u.active }, u.active ? `${u.name} disabled and signed out` : `${u.name} enabled`)}
+                          onClick={() =>
+                            update(u, { active: !u.active }, u.active ? `${u.name} disabled and signed out` : `${u.name} enabled`)
+                          }
                         >
                           {u.active ? 'Disable' : 'Enable'}
                         </button>
-                        <button type="button" className="pbtn pbtn--ghost pbtn--sm" onClick={() => setReset({ id: u.id, name: u.name, password: generatePassword() })}>
+                        {u.role === 'admin' && (
+                          <button
+                            type="button"
+                            className="pbtn pbtn--ghost pbtn--sm"
+                            onClick={() => setPages({ id: u.id, name: u.name, access: u.access ?? [...ALL_AREAS] })}
+                          >
+                            Pages
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="pbtn pbtn--ghost pbtn--sm"
+                          onClick={() => setReset({ id: u.id, name: u.name, password: generatePassword() })}
+                        >
                           Reset password
                         </button>
                         {u.twoFactor && (
@@ -184,6 +227,34 @@ export function Accounts() {
         </ListTable>
       </div>
 
+      {pages && (
+        <Panel
+          title={`Pages ${pages.name} can open`}
+          sub="Overview and their own Account page are always open. Changes apply on their next click — no need to sign them out."
+        >
+          <form
+            className="p-form-grid"
+            onSubmit={async (e) => {
+              e.preventDefault()
+              const user = data.users.find((u) => u.id === pages.id)
+              if (await update(user, { access: pages.access }, `Pages saved for ${pages.name}`)) setPages(null)
+            }}
+          >
+            <div className="p-field p-field--wide">
+              <AccessPicker value={pages.access} onChange={(access) => setPages((p) => ({ ...p, access }))} />
+            </div>
+            <div className="p-row p-field--wide">
+              <button type="submit" className="pbtn pbtn--gold" disabled={busy}>
+                Save pages
+              </button>
+              <button type="button" className="pbtn pbtn--ghost" onClick={() => setPages(null)}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        </Panel>
+      )}
+
       {reset && (
         <Panel title={`New password for ${reset.name}`}>
           <form
@@ -191,10 +262,18 @@ export function Accounts() {
             onSubmit={async (e) => {
               e.preventDefault()
               const user = data.users.find((u) => u.id === reset.id)
-              if (await update(user, { password: reset.password }, `Password reset — ${reset.name} was signed out everywhere`)) setReset(null)
+              if (await update(user, { password: reset.password }, `Password reset — ${reset.name} was signed out everywhere`))
+                setReset(null)
             }}
           >
-            <TextField label="New password" value={reset.password} onChange={(v) => setReset((r) => ({ ...r, password: v }))} minLength={10} required autoComplete="new-password" />
+            <TextField
+              label="New password"
+              value={reset.password}
+              onChange={(v) => setReset((r) => ({ ...r, password: v }))}
+              minLength={10}
+              required
+              autoComplete="new-password"
+            />
             <div className="p-row p-field--wide">
               <button type="submit" className="pbtn pbtn--gold" disabled={busy || reset.password.length < 10}>
                 Set password
@@ -207,6 +286,43 @@ export function Accounts() {
         </Panel>
       )}
     </>
+  )
+}
+
+/** Tick the parts of the panel an Admin may open, grouped like the panel's menu. */
+function AccessPicker({ value, onChange }) {
+  const on = new Set(value)
+  const toggle = (key) => onChange(ALL_AREAS.filter((k) => (k === key ? !on.has(k) : on.has(k))))
+  return (
+    <div className="p-access">
+      <div className="p-row">
+        <button type="button" className="pbtn pbtn--ghost pbtn--sm" onClick={() => onChange([...ALL_AREAS])}>
+          All
+        </button>
+        <button type="button" className="pbtn pbtn--ghost pbtn--sm" onClick={() => onChange([])}>
+          None
+        </button>
+        <span className="p-muted">
+          {value.length} of {ALL_AREAS.length}
+        </span>
+      </div>
+      <div className="p-access__groups">
+        {AREA_GROUPS.map((g) => (
+          <fieldset key={g.group} className="p-access__group">
+            <legend className="p-nav__heading">{g.group}</legend>
+            {g.areas.map((a) => (
+              <label key={a.key} className="p-access__item">
+                <input type="checkbox" checked={on.has(a.key)} onChange={() => toggle(a.key)} />
+                <span>
+                  {a.label}
+                  {a.hint && <small className="p-field__hint">{a.hint}</small>}
+                </span>
+              </label>
+            ))}
+          </fieldset>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -284,12 +400,40 @@ export function Account() {
       <TwoFactor />
       <Panel title="Change password">
         <form className="p-form-grid p-form-grid--narrow" onSubmit={submit}>
-          <TextField label="Current password" type="password" value={fields.current} onChange={set('current')} autoComplete="current-password" required wide />
-          <TextField label="New password" hint="At least 10 characters." type="password" value={fields.next} onChange={set('next')} autoComplete="new-password" minLength={10} required />
-          <TextField label="Repeat new password" type="password" value={fields.confirm} onChange={set('confirm')} autoComplete="new-password" required />
+          <TextField
+            label="Current password"
+            type="password"
+            value={fields.current}
+            onChange={set('current')}
+            autoComplete="current-password"
+            required
+            wide
+          />
+          <TextField
+            label="New password"
+            hint="At least 10 characters."
+            type="password"
+            value={fields.next}
+            onChange={set('next')}
+            autoComplete="new-password"
+            minLength={10}
+            required
+          />
+          <TextField
+            label="Repeat new password"
+            type="password"
+            value={fields.confirm}
+            onChange={set('confirm')}
+            autoComplete="new-password"
+            required
+          />
           {mismatch && <p className="p-form-error">The new passwords don't match.</p>}
           <div className="p-row p-field--wide">
-            <button type="submit" className="pbtn pbtn--gold" disabled={busy || !fields.current || fields.next.length < 10 || fields.next !== fields.confirm}>
+            <button
+              type="submit"
+              className="pbtn pbtn--gold"
+              disabled={busy || !fields.current || fields.next.length < 10 || fields.next !== fields.confirm}
+            >
               Change password
             </button>
           </div>

@@ -18,7 +18,12 @@ router.get('/', async (req, res) => {
 router.post('/', validateBody(createUserSchema), async (req, res) => {
   const { password, ...rest } = req.body
   const user = await User.create({ ...rest, passwordHash: await bcrypt.hash(password, 12) })
-  await audit(req, 'user.create', user.email, `${user.name} · ${user.role}`)
+  await audit(
+    req,
+    'user.create',
+    user.email,
+    `${user.name} · ${user.role}${user.role === 'admin' ? ` · pages: ${user.access.join(', ') || 'none'}` : ''}`,
+  )
   res.status(201).json({ user: user.toSafeJSON() })
 })
 
@@ -31,8 +36,7 @@ router.patch('/:id', validateBody(updateUserSchema), async (req, res) => {
   if (isSelf && changes.active === false) throw new HttpError(400, "You can't disable your own account.")
   if (isSelf && changes.role && changes.role !== user.role) throw new HttpError(400, "You can't change your own role.")
 
-  const losingSuper =
-    user.role === 'superadmin' && user.active && (changes.role === 'admin' || changes.active === false)
+  const losingSuper = user.role === 'superadmin' && user.active && (changes.role === 'admin' || changes.active === false)
   if (losingSuper) {
     const supers = await User.countDocuments({ role: 'superadmin', active: true })
     if (supers <= 1) throw new HttpError(400, 'Keep at least one active Super Admin.')
@@ -42,6 +46,7 @@ router.patch('/:id', validateBody(updateUserSchema), async (req, res) => {
   user.set(changes)
   if (changes.role) notes.push(`role ${changes.role}`)
   if (changes.active !== undefined) notes.push(changes.active ? 'enabled' : 'disabled')
+  if (changes.access) notes.push(`pages: ${changes.access.join(', ') || 'none'}`)
   if (password) {
     user.passwordHash = await bcrypt.hash(password, 12)
     notes.push('password reset')
