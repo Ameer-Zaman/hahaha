@@ -572,6 +572,7 @@ function RulesChat({ bot }) {
                 </svg>
               </button>
             </div>
+            {!inStaffChat && <p className="chatw__disclaimer">{bot.name} is AI and can make mistakes. Check the rule book for the exact wording.</p>}
           </form>
         )}
       </section>

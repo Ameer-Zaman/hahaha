@@ -651,3 +651,12 @@
 .chatw__chip--join:hover {
   background: #4752c4;
 }
+
+/* under the message box: the bot can be wrong */
+.chatw__disclaimer {
+  margin: 0.1rem 0 0;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--cw-muted, rgb(255 255 255 / 0.5));
+}
