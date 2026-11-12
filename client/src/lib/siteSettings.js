@@ -66,22 +66,16 @@ export function useSiteSettings({ watch = false } = {}) {
   const entry = usePublic('/site', { refreshMs: watch ? 60_000 : 0 })
   const live = entry.status === 'ok' && entry.data?.sections ? normalise(entry.data) : null
 
+  // remember the last answer (as text, so the effect only runs when something changed)
+  const liveKey = live ? JSON.stringify(live) : ''
   useEffect(() => {
-    if (!live) return
+    if (!liveKey) return
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(live))
+      localStorage.setItem(STORAGE_KEY, liveKey)
     } catch {
       /* storage unavailable: fine */
     }
-  }, [
-    live?.maintenance.on,
-    live?.maintenance.message,
-    JSON.stringify(live?.sections),
-    live?.chatBot.name,
-    live?.chatBot.avatar,
-    JSON.stringify(live?.socials),
-    live?.logo,
-  ]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [liveKey])
 
   if (!USE_API) return DEFAULTS
   if (live) return live

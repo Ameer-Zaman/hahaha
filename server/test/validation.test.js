@@ -120,3 +120,12 @@ test('community links: known platforms only, https on that platform, each once',
   assert.equal(ok([{ platform: 'discord', url: '' }]), false)
   assert.equal(ok([{ platform: 'discord', url: 'https://discord.gg/a' }, { platform: 'discord', url: 'https://discord.gg/A' }]), false)
 })
+
+test('site settings accept every section switch, including Creators', async () => {
+  const { settingsSiteSchema } = await import('../src/validation/schemas.js')
+  const { SECTION_KEYS } = await import('../src/models/Settings.js')
+  const sections = Object.fromEntries(SECTION_KEYS.map((k) => [k, false]))
+  assert.equal(settingsSiteSchema.safeParse({ sections }).success, true)
+  assert.equal(settingsSiteSchema.safeParse({ sections: { creators: true } }).success, true)
+  assert.equal(settingsSiteSchema.safeParse({ sections: { nonsense: true } }).success, false)
+})

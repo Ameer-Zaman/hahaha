@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { SECTION_KEYS } from '../models/Settings.js'
+
 const text = (max) => z.string().trim().max(max)
 const mediaId = z
   .string()
@@ -398,7 +400,7 @@ export const ruleBookSchema = z.object({
 export const settingsSiteSchema = z
   .object({
     sections: z
-      .partialRecord(z.enum(['story', 'staff', 'gangs', 'clubs', 'dhadhas', 'events', 'leaderboard', 'rules', 'chat']), z.boolean())
+      .partialRecord(z.enum(SECTION_KEYS), z.boolean()) // the same list as the model, so a new section can't be missed
       .optional(),
     maintenance: z
       .object({
