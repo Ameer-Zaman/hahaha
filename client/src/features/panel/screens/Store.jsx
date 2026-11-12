@@ -146,13 +146,6 @@ function StoreSettings({ store, onSaved }) {
             maxLength={500}
             type="url"
           />
-          <TextField
-            label="Line under the title"
-            hint="Optional, e.g. opening hours of the store tickets."
-            value={form.note}
-            onChange={(note) => setForm((f) => ({ ...f, note }))}
-            maxLength={200}
-          />
         </div>
       </Panel>
     </form>

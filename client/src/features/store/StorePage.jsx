@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 
-import ParallaxScope from '../../components/ui/ParallaxScope'
-import ParallaxWord from '../../components/ui/ParallaxWord'
 import { Skeleton, SkeletonGroup } from '../../components/ui/Skeleton'
 import { SOCIAL_PLATFORMS } from '../../components/ui/socialPlatforms'
 import { site } from '../../config/site'
@@ -80,20 +78,8 @@ export default function StorePage() {
 
   return (
     <>
-      <ParallaxScope as="section" className="page-head page-head--word theme-dark" aria-labelledby="store-title">
-        <ParallaxWord text="Store" motion="x:6%:-10%" className="page-head__word" />
-        <div className="container">
-          <h1 id="store-title" className="page-head__title">
-            Store
-          </h1>
-          <p className="lede">
-            Scripts, maps and vehicles for server owners — and perks for players in the city. Every order is handled by our team on Discord.
-          </p>
-          {store.note && <p className="st-note-line">{store.note}</p>}
-        </div>
-      </ParallaxScope>
-
-      <div className="st theme-black">
+      <div className="st st--top theme-black">
+        <h1 className="visually-hidden">Store</h1>
         <div className="container">
           {entry.status === 'loading' && <StoreSkeleton />}
           {soon && <ComingSoon discord={discord} />}

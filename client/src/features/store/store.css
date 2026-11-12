@@ -1153,3 +1153,8 @@
     display: none;
   }
 }
+
+/* no title block above: the store starts right under the header */
+.st--top {
+  padding-top: calc(var(--top-chrome, 4.5rem) + clamp(2rem, 1rem + 4vw, 4.5rem));
+}
