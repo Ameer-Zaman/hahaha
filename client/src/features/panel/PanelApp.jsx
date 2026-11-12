@@ -6,6 +6,7 @@ import { USE_API } from '../../lib/api'
 import { AuthProvider } from './auth'
 import { canOpen } from './access'
 import { useAuth } from './authContext'
+import { silenceMusicInPanel } from '../../lib/music'
 import { Account, Accounts, AuditLog } from './screens/Accounts'
 import { AnnouncementEditor, AnnouncementList } from './screens/Announcements'
 import Backup from './screens/Backup'
@@ -82,7 +83,9 @@ export default function PanelApp() {
     const title = document.title
     document.title = `Panel — ${site.name}`
     document.documentElement.classList.add('is-panel')
+    const unsilence = silenceMusicInPanel() // the admins don't need the music
     return () => {
+      unsilence()
       meta.remove()
       document.title = title
       document.documentElement.classList.remove('is-panel')

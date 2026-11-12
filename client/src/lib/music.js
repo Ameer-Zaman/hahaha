@@ -142,24 +142,41 @@ export function toggleMusic() {
  * Every visit: try to start straight away (some browsers allow it), and otherwise on the first
  * click, tap or key press anywhere on the page. Called once when the site loads.
  */
+// never in the admin panel: it's a place to work, not part of the visit
+const inPanel = () => typeof window !== 'undefined' && /^\/panel(\/|$)/.test(window.location.pathname)
+let armed = false
+
 export function armMusic() {
-  if (typeof window === 'undefined') return
+  if (typeof window === 'undefined' || armed) return
+  armed = true
   const events = ['pointerdown', 'keydown', 'touchend']
-  const done = () => events.forEach((e) => window.removeEventListener(e, wake, true))
+  const done = () => {
+    armed = false
+    events.forEach((e) => window.removeEventListener(e, wake, true))
+  }
   function wake() {
     if (state.playing) return done()
-    if (heldForIntro || prefersOff()) return
+    if (heldForIntro || prefersOff() || inPanel()) return
     const c = getAudioContext()
     c?.resume().catch(() => {}) // inside the gesture: this is what unlocks sound
     start({ delay: 0, fade: 2.5 }).then(() => state.playing && done())
   }
   events.forEach((e) => window.addEventListener(e, wake, { capture: true, passive: true }))
-  if (!prefersOff()) {
+  if (!prefersOff() && !inPanel()) {
     load()
     setTimeout(() => {
-      if (!heldForIntro && !prefersOff()) start({ delay: 0, fade: 2.5 }).then(() => state.playing && done())
+      if (!heldForIntro && !prefersOff() && !inPanel()) start({ delay: 0, fade: 2.5 }).then(() => state.playing && done())
     }, 600)
   }
+}
+
+/**
+ * The admin panel: the music fades out while it's open (and doesn't start there). Leaving the
+ * panel for the website arms it again, so it comes back with the next click.
+ */
+export function silenceMusicInPanel() {
+  stop(0.6)
+  return () => armMusic()
 }
 
 // Pause with the tab: nothing plays while the visitor is elsewhere.
