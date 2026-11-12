@@ -129,3 +129,24 @@ test('site settings accept every section switch, including Creators', async () =
   assert.equal(settingsSiteSchema.safeParse({ sections: { creators: true } }).success, true)
   assert.equal(settingsSiteSchema.safeParse({ sections: { nonsense: true } }).success, false)
 })
+
+test('store products: https buy links only, a sale price below the old one, pictures by id', async () => {
+  const { productSchema, storeSettingsSchema } = await import('../src/validation/schemas.js')
+  const base = { slug: 'drift-pack', name: 'Drift pack', kind: 'asset', price: 25, currency: 'USD' }
+  const ok = (extra) => productSchema.safeParse({ ...base, ...extra }).success
+  assert.equal(ok({}), true)
+  assert.equal(ok({ price: null }), true) // price on request
+  assert.equal(ok({ price: 0 }), true) // free
+  assert.equal(ok({ price: -1 }), false)
+  assert.equal(ok({ oldPrice: 40 }), true)
+  assert.equal(ok({ oldPrice: 20 }), false)
+  assert.equal(ok({ buyUrl: 'https://discord.com/channels/1/2' }), true)
+  assert.equal(ok({ buyUrl: 'http://example.com' }), false)
+  assert.equal(ok({ buyUrl: 'javascript:alert(1)' }), false)
+  assert.equal(ok({ gallery: [id(1), id(2)] }), true)
+  assert.equal(ok({ gallery: ['../x'] }), false)
+  assert.equal(ok({ kind: 'crypto' }), false)
+  assert.equal(ok({ currency: 'XYZ' }), false)
+  assert.equal(storeSettingsSchema.safeParse({ buyUrl: 'https://discord.gg/abc', note: 'x' }).success, true)
+  assert.equal(storeSettingsSchema.safeParse({ buyUrl: 'ftp://x' }).success, false)
+})

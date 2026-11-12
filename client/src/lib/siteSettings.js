@@ -25,6 +25,7 @@ const ALL_ON = {
   events: true,
   leaderboard: true,
   rules: true,
+  store: true,
   chat: true,
 }
 /** The chat assistant, until the panel says otherwise (Panel → Rules help chat → The bot). */

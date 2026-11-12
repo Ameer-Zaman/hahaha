@@ -7,7 +7,8 @@ import { endOf, Event, eventState } from '../models/Event.js'
 import { Gang } from '../models/Gang.js'
 import { LiveAlert } from '../models/LiveAlert.js'
 import { RuleBook } from '../models/RuleBook.js'
-import { MEDIA_SLOTS, Settings, readBrandLogo, readChatBot, readSections, readSocials } from '../models/Settings.js'
+import { Product } from '../models/Product.js'
+import { MEDIA_SLOTS, Settings, readBrandLogo, readChatBot, readSections, readSocials, readStore } from '../models/Settings.js'
 import { Staff } from '../models/Staff.js'
 import { TdmBoard } from '../models/TdmBoard.js'
 import { War } from '../models/War.js'
@@ -282,6 +283,44 @@ router.get('/creators', async (req, res) => {
         checkedAt: tracked.length ? (c.live?.checkedAt ?? null) : null,
       }
     }),
+  })
+})
+
+/**
+ * The Store: visible products, and where Buy goes. A product's own link wins, then the store's
+ * link from the panel, then the community Discord. Nothing is paid for on the website.
+ */
+router.get('/store', async (req, res) => {
+  const [products, settings] = await Promise.all([
+    Product.find({ visible: true }).sort({ order: 1, createdAt: 1 }).lean(),
+    Settings.findOne({ key: 'main' }, 'store socials').lean(),
+  ])
+  const store = readStore(settings)
+  const discord = readSocials(settings)?.find((l) => l.platform === 'discord')?.url ?? ''
+  const mediaUrl = await resolveMediaUrls(products.flatMap((p) => [p.cover, p.video, ...(p.gallery ?? [])]))
+  res.json({
+    store: { note: store.note, buyUrl: store.buyUrl || discord || null },
+    products: products.map((p) => ({
+      id: p.slug,
+      name: p.name,
+      kind: p.kind,
+      category: p.category,
+      tagline: p.tagline,
+      description: p.description,
+      features: p.features ?? [],
+      specs: (p.specs ?? []).map(({ label, value }) => ({ label, value })),
+      price: p.price ?? null,
+      oldPrice: p.oldPrice ?? null,
+      currency: p.currency || 'USD',
+      priceNote: p.priceNote,
+      badge: p.badge || '',
+      cover: mediaUrl(p.cover),
+      gallery: (p.gallery ?? []).map((id) => mediaUrl(id)).filter(Boolean),
+      video: mediaUrl(p.video),
+      buyUrl: p.buyUrl || null,
+      featured: Boolean(p.featured),
+      soldOut: Boolean(p.soldOut),
+    })),
   })
 })
 

@@ -22,7 +22,7 @@ const LIGHT_TOP = []
 /** Full-screen pages with no footer (the Gangs reel loops endlessly instead of ending). */
 const NO_FOOTER = ['/gangs']
 /** Paths that are the same page with a pop-up open (moving between them keeps the scroll). */
-const OVERLAY_ROUTES = [/^\/events(\/[^/]+)?\/?$/]
+const OVERLAY_ROUTES = [/^\/events(\/[^/]+)?\/?$/, /^\/store(\/[^/]+)?\/?$/]
 
 export default function Layout() {
   const { pathname, hash, key } = useLocation()

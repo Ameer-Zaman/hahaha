@@ -126,6 +126,7 @@ export const navigation = [
   { label: 'Events', to: '/events' },
   { label: 'Leaderboard', to: '/leaderboard' },
   { label: 'Rules', to: '/rules' },
+  { label: 'Store', to: '/store' },
 ]
 
 /** Every page link in the navigation, dropdowns flattened (footer, sitemaps). */

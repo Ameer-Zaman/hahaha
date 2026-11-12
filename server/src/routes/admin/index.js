@@ -23,6 +23,7 @@ import media from './media.js'
 import rules from './rules.js'
 import settings from './settings.js'
 import staff from './staff.js'
+import store from './store.js'
 import tdm from './tdm.js'
 import users from './users.js'
 import wars from './wars.js'
@@ -97,6 +98,7 @@ router.use('/chat', staffRoles, chat)
 router.use('/wars', staffRoles, wars)
 router.use('/staff', staffRoles, staff)
 router.use('/creators', staffRoles, creators)
+router.use('/store', staffRoles, store)
 router.use('/tdm', staffRoles, tdm)
 router.use('/rules', staffRoles, rules)
 router.use('/media', staffRoles, media)

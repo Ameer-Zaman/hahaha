@@ -2295,3 +2295,37 @@ svg.p-logo__img {
   rotate: 45deg;
   border: 1.5px solid var(--c-gold);
 }
+
+/* ---------- store ---------- */
+.p-st-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.p-st-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.p-st-gallery__item {
+  position: relative;
+  display: inline-block;
+}
+.p-st-gallery__item .p-icon-btn {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+}
+.p-st-switches {
+  display: grid;
+  gap: var(--sp-3);
+}
+/* the real card, at the size it has on the Store */
+.p-st-preview {
+  max-width: 21rem;
+  margin-inline: auto;
+  padding: var(--sp-4);
+  border-radius: var(--radius-md);
+  background: var(--c-ink);
+}

@@ -327,6 +327,68 @@ export const creatorSchema = z.object({
   visible: z.boolean().optional().default(true),
 })
 
+/** A link a Buy button may open: https only (a Discord ticket channel, Tebex, a DM link …). */
+const buyLink = z
+  .string()
+  .trim()
+  .max(500)
+  .refine((v) => {
+    if (!v) return true
+    try {
+      return new URL(v).protocol === 'https:'
+    } catch {
+      return false
+    }
+  }, 'the buy link must start with https://')
+
+export const STORE_CURRENCIES = ['USD', 'EUR', 'GBP', 'INR', 'AED', 'SAR', 'CAD', 'AUD', 'MYR', 'LKR', 'PKR', 'BDT']
+export const STORE_BADGES = ['', 'new', 'popular', 'limited', 'sale']
+const money = z.number().min(0).max(1_000_000).nullable().optional().default(null)
+
+/** A product in the Store (see models/Product.js). */
+export const productSchema = z
+  .object({
+    slug,
+    name: text(70).min(1),
+    kind: z.enum(['asset', 'item']).default('asset'),
+    category: text(30).optional().default(''),
+    tagline: text(140).optional().default(''),
+    description: text(3000).optional().default(''),
+    features: z.array(text(120).min(1)).max(12, 'at most 12 points').optional().default([]),
+    specs: z
+      .array(z.object({ label: text(30).min(1), value: text(80).min(1) }))
+      .max(10, 'at most 10 rows')
+      .optional()
+      .default([]),
+    price: money,
+    oldPrice: money,
+    currency: z.enum(STORE_CURRENCIES).default('USD'),
+    priceNote: text(30).optional().default(''),
+    badge: z.enum(STORE_BADGES).optional().default(''),
+    cover: mediaId,
+    gallery: z
+      .array(z.string().regex(/^[a-f0-9]{24}$/, 'invalid media id'))
+      .max(8, 'at most 8 pictures')
+      .optional()
+      .default([]),
+    video: mediaId,
+    buyUrl: buyLink.optional().default(''),
+    featured: z.boolean().optional().default(false),
+    soldOut: z.boolean().optional().default(false),
+    visible: z.boolean().optional().default(true),
+    order: z.number().int().min(0).max(9999).optional().default(0),
+  })
+  .refine((p) => p.oldPrice === null || p.price === null || p.oldPrice > p.price, {
+    path: ['oldPrice'],
+    message: 'the old price must be higher than the price',
+  })
+
+/** Panel → Store: where Buy buttons go by default, and a short line under the title. */
+export const storeSettingsSchema = z.object({
+  buyUrl: buyLink.optional().default(''),
+  note: text(200).optional().default(''),
+})
+
 /** Staff switching a creator to "live now" by hand, for a while, with where to watch. */
 export const creatorManualLiveSchema = z.object({
   minutes: z.number().int().min(15).max(720),

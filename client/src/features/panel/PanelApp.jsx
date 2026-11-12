@@ -21,6 +21,7 @@ import Rules from './screens/Rules'
 import SiteSettings from './screens/SiteSettings'
 import Staff from './screens/Staff'
 import Creators from './screens/Creators'
+import { ProductEditor, StoreList } from './screens/Store'
 import Tdm from './screens/Tdm'
 import Wars from './screens/Wars'
 import { ErrorNote, Loading, ToastProvider } from './ui'
@@ -47,6 +48,7 @@ const NAV = [
       { to: '/panel/tdm', label: 'TDM leaderboard' },
       { to: '/panel/staff', label: 'Staff' },
       { to: '/panel/creators', label: 'Creators' },
+      { to: '/panel/store', label: 'Store' },
       { to: '/panel/rules', label: 'Rules' },
     ],
   },
@@ -244,6 +246,8 @@ function Shell() {
           <Route path="tdm" element={<Tdm />} />
           <Route path="staff" element={<Staff />} />
           <Route path="creators" element={<Creators />} />
+          <Route path="store" element={<StoreList />} />
+          <Route path="store/:id" element={<ProductEditor />} />
           <Route path="rules" element={<Rules />} />
           <Route path="media" element={<MediaLibrary />} />
           <Route path="site-media" element={<SiteMedia />} />

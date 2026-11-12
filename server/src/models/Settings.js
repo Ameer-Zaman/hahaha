@@ -24,7 +24,7 @@ export const STORY_SLOTS = Object.entries(STORY_PLACES).flatMap(([chapter, place
 MEDIA_SLOTS.push(...STORY_SLOTS)
 
 /** Website sections that can be switched off from the panel (Home is always on). */
-export const SECTION_KEYS = ['story', 'staff', 'creators', 'gangs', 'clubs', 'dhadhas', 'events', 'leaderboard', 'rules', 'chat']
+export const SECTION_KEYS = ['story', 'staff', 'creators', 'gangs', 'clubs', 'dhadhas', 'events', 'leaderboard', 'rules', 'store', 'chat']
 
 /** The saved community links, or null when the panel has never set them. */
 export const readSocials = (settings) =>
@@ -77,6 +77,11 @@ const settingsSchema = new mongoose.Schema(
     brand: {
       logo: { type: String, default: null },
     },
+    /** The Store: where Buy buttons go unless a product has its own link, and a line under the title. */
+    store: {
+      buyUrl: { type: String, default: '' },
+      note: { type: String, default: '' },
+    },
     /** Rules for every panel account, set by a Super Admin. Never sent to the website. */
     security: {
       /** Everyone must finish setting up two-step sign-in before they can use the panel. */
@@ -90,3 +95,6 @@ export const Settings = mongoose.model('Settings', settingsSchema)
 
 /** The site logo's media id, or null (the website then shows its placeholder mark). */
 export const readBrandLogo = (settings) => settings?.brand?.logo ?? null
+
+/** The Store's settings, with the defaults filled in. */
+export const readStore = (settings) => ({ buyUrl: settings?.store?.buyUrl ?? '', note: settings?.store?.note ?? '' })

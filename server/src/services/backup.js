@@ -1,7 +1,9 @@
 import { Announcement } from '../models/Announcement.js'
 import { Club } from '../models/Club.js'
+import { Creator } from '../models/Creator.js'
 import { Event } from '../models/Event.js'
 import { Gang } from '../models/Gang.js'
+import { Product } from '../models/Product.js'
 import { RuleBook } from '../models/RuleBook.js'
 import { Settings } from '../models/Settings.js'
 import { Staff } from '../models/Staff.js'
@@ -26,6 +28,8 @@ const PARTS = [
   { key: 'wars', model: War, label: 'Wars' },
   { key: 'clubs', model: Club, label: 'Clubs' },
   { key: 'staff', model: Staff, label: 'Staff' },
+  { key: 'creators', model: Creator, label: 'Creators' },
+  { key: 'products', model: Product, label: 'Store products' },
   { key: 'events', model: Event, label: 'Events' },
   { key: 'announcements', model: Announcement, label: 'Announcements' },
   { key: 'rules', model: RuleBook, label: 'Rules' },

@@ -21,6 +21,7 @@ const DhadhasPage = lazy(() => import('../features/dhadhas/DhadhasPage'))
 const StoryPage = lazy(() => import('../features/story/StoryPage'))
 const LeaderboardPage = lazy(() => import('../features/leaderboard/LeaderboardPage'))
 const EventsPage = lazy(() => import('../features/events/EventsPage'))
+const StorePage = lazy(() => import('../features/store/StorePage'))
 const NotFoundPage = lazy(() => import('../features/notfound/NotFoundPage'))
 // The admin panel is its own chunk: visitors never download it.
 const PanelApp = lazy(() => import('../features/panel/PanelApp'))
@@ -44,6 +45,8 @@ export default function App() {
         <Route path="events/:slug?" element={<Section to="/events"><EventsPage /></Section>} />
         <Route path="leaderboard" element={<Section to="/leaderboard"><LeaderboardPage /></Section>} />
         <Route path="rules" element={<Section to="/rules"><RulesPage /></Section>} />
+        {/* a product's details open as a panel over the list, with their own link */}
+        <Route path="store/:slug?" element={<Section to="/store"><StorePage /></Section>} />
         {/* old /apply links: straight on to the Discord invite (or home if it isn't set yet) */}
         <Route path="apply" element={<ApplyRedirect />} />
         <Route path="*" element={<Lazy><NotFoundPage /></Lazy>} />

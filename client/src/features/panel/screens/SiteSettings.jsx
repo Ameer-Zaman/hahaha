@@ -23,6 +23,7 @@ const SECTIONS = [
   { key: 'events', label: 'Events', path: '/events' },
   { key: 'leaderboard', label: 'Leaderboard', path: '/leaderboard' },
   { key: 'rules', label: 'Rules', path: '/rules' },
+  { key: 'store', label: 'Store', path: '/store' },
   { key: 'chat', label: 'Rules help chat', path: '', note: 'The chat button on every page' },
 ]
 
