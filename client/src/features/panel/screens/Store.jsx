@@ -74,7 +74,10 @@ export function StoreList() {
                       <strong>{p.name}</strong>
                     </span>
                   </td>
-                  <td>{KIND_LABEL[p.kind]}</td>
+                  <td>
+                    {KIND_LABEL[p.kind]}
+                    {p.tier === 'vip' && <span className="p-tag p-tag--ok"> VIP</span>}
+                  </td>
                   <td>{p.category || '—'}</td>
                   <td>{formatPrice(p.price, p.currency, p.noPrice)}</td>
                   <td>
@@ -158,6 +161,7 @@ const EMPTY = {
   name: '',
   slug: '',
   kind: 'asset',
+  tier: 'normal',
   category: '',
   tagline: '',
   description: '',
@@ -267,6 +271,7 @@ function ProductForm({ initial, isNew }) {
     id: form.slug || 'preview',
     name: form.name || 'Product name',
     kind: form.kind,
+    tier: form.tier,
     category: form.category,
     tagline: form.tagline,
     price: badPrice ? null : body.price,
@@ -323,6 +328,16 @@ function ProductForm({ initial, isNew }) {
                 options={[
                   { value: 'asset', label: 'Asset — for server owners (script, map, vehicle …)' },
                   { value: 'item', label: 'In-game — for players (VIP, car, house …)' },
+                ]}
+              />
+              <SelectField
+                label="VIP or Normal"
+                hint="VIP products get a gold VIP tag, and visitors can filter by VIP or Normal."
+                value={form.tier}
+                onChange={set('tier')}
+                options={[
+                  { value: 'normal', label: 'Normal' },
+                  { value: 'vip', label: 'VIP' },
                 ]}
               />
               <TextField

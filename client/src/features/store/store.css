@@ -1163,3 +1163,68 @@
 .st-price.is-soon .st-price__now {
   color: var(--c-gold-light);
 }
+
+/* ---- VIP / Normal ---- */
+.st-tiers {
+  display: inline-flex;
+  justify-self: start;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid var(--st-line-strong);
+  border-radius: var(--radius-pill);
+}
+.st-tier {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.4rem;
+  padding: 0 1.15rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--st-muted);
+  font: 600 0.8125rem / 1 var(--font-sans);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) ease,
+    background-color var(--dur-base) ease;
+}
+.st-tier:hover {
+  color: var(--fg);
+}
+.st-tier.is-active {
+  background: var(--fg);
+  color: #0b0b0b;
+}
+.st-tier--vip {
+  color: var(--c-gold-light);
+}
+.st-tier--vip.is-active {
+  background: var(--gold-gradient);
+  color: #1a1206;
+}
+.st-tier:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.st-crown {
+  flex: none;
+}
+
+/* the VIP tag on a picture, and a warmer edge on VIP products */
+.st-badge--vip {
+  gap: 0.3rem;
+  border-color: transparent;
+  background: var(--gold-gradient);
+  color: #1a1206;
+  font-weight: 700;
+}
+.st-card.is-vip,
+.st-spot.is-vip {
+  border-color: rgb(var(--rgb-gold) / 0.35);
+}
+.st-card.is-vip:hover,
+.st-spot.is-vip:hover {
+  border-color: rgb(var(--rgb-gold) / 0.7);
+}

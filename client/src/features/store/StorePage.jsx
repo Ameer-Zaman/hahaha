@@ -57,6 +57,7 @@ export default function StorePage() {
   const location = useLocation()
   const [kind, setKind] = useState('all')
   const [category, setCategory] = useState('all')
+  const [tier, setTier] = useState('all') // all | vip | normal
 
   const products = useMemo(() => (entry.status === 'ok' ? (entry.data?.products ?? []) : []), [entry])
   const store = entry.status === 'ok' ? (entry.data?.store ?? {}) : {}
@@ -68,7 +69,11 @@ export default function StorePage() {
 
   const kindsHere = new Set(products.map((p) => p.kind))
   const bothKinds = kindsHere.size > 1
-  const ofKind = kind === 'all' || !bothKinds ? products : products.filter((p) => p.kind === kind)
+  const ofKindOnly = kind === 'all' || !bothKinds ? products : products.filter((p) => p.kind === kind)
+  const hasVip = ofKindOnly.some((p) => p.tier === 'vip')
+  const hasNormal = ofKindOnly.some((p) => p.tier !== 'vip')
+  const activeTier = hasVip ? tier : 'all'
+  const ofKind = activeTier === 'all' ? ofKindOnly : ofKindOnly.filter((p) => (activeTier === 'vip' ? p.tier === 'vip' : p.tier !== 'vip'))
   const categories = [...new Set(ofKind.map((p) => p.category).filter(Boolean))]
   const activeCat = categories.includes(category) ? category : 'all'
   const shown = activeCat === 'all' ? ofKind : ofKind.filter((p) => p.category === activeCat)
@@ -113,6 +118,7 @@ export default function StorePage() {
                           onClick={() => {
                             setKind(k.id)
                             setCategory('all')
+                            setTier('all')
                           }}
                         >
                           <span className="st-kind__word">
@@ -123,6 +129,26 @@ export default function StorePage() {
                         </button>
                       )
                     })}
+                  </div>
+                )}
+                {hasVip && (
+                  <div className="st-tiers" role="group" aria-label="VIP or Normal">
+                    {[
+                      { id: 'all', label: 'All' },
+                      { id: 'vip', label: 'VIP' },
+                      ...(hasNormal ? [{ id: 'normal', label: 'Normal' }] : []),
+                    ].map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        className={`st-tier st-tier--${t.id} ${activeTier === t.id ? 'is-active' : ''}`}
+                        aria-pressed={activeTier === t.id}
+                        onClick={() => setTier(t.id)}
+                      >
+                        {t.id === 'vip' && <Crown />}
+                        {t.label}
+                      </button>
+                    ))}
                   </div>
                 )}
                 {categories.length > 1 && (
@@ -249,6 +275,25 @@ function Price({ product: p, size = 'md' }) {
   )
 }
 
+function Crown() {
+  return (
+    <svg className="st-crown" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+      <path d="M2 12.5h12l1-7.5-4 3.2L8 3 5 8.2 1 5z" fill="currentColor" />
+    </svg>
+  )
+}
+
+/** The VIP tag, next to the other tags on the picture. */
+function VipTag({ product: p }) {
+  if (p.tier !== 'vip') return null
+  return (
+    <span className="st-badge st-badge--vip">
+      <Crown />
+      VIP
+    </span>
+  )
+}
+
 function Badge({ product: p }) {
   if (p.soldOut) return <span className="st-badge st-badge--out">Sold out</span>
   const off = discountOf(p)
@@ -292,7 +337,7 @@ export function ProductCard({ product: p, index }) {
     <Link
       to={`/store/${p.id}`}
       state={{ fromList: true }}
-      className={`st-card ${p.soldOut ? 'is-out' : ''}`}
+      className={`st-card ${p.soldOut ? 'is-out' : ''} ${p.tier === 'vip' ? 'is-vip' : ''}`}
       onPointerMove={trackPointer}
       onPointerEnter={() => setHover(true)}
       onPointerLeave={() => setHover(false)}
@@ -305,6 +350,7 @@ export function ProductCard({ product: p, index }) {
           N°{String(index).padStart(2, '0')}
         </span>
         <span className="st-card__tags">
+          <VipTag product={p} />
           <Badge product={p} />
         </span>
       </div>
@@ -333,7 +379,7 @@ function Spotlight({ product: p }) {
     <Link
       to={`/store/${p.id}`}
       state={{ fromList: true }}
-      className={`st-spot ${p.soldOut ? 'is-out' : ''}`}
+      className={`st-spot ${p.soldOut ? 'is-out' : ''} ${p.tier === 'vip' ? 'is-vip' : ''}`}
       onPointerMove={trackPointer}
       onPointerEnter={() => setHover(true)}
       onPointerLeave={() => setHover(false)}
@@ -343,6 +389,7 @@ function Spotlight({ product: p }) {
       <div className="st-spot__frame">
         <Media product={p} playing={hover} eager />
         <span className="st-card__tags">
+          <VipTag product={p} />
           <Badge product={p} />
         </span>
       </div>
@@ -479,6 +526,7 @@ function ProductSheet({ open, product: p, buy, onClose }) {
                     </span>
                   )}
                   <span className="st-card__tags">
+                    <VipTag product={p} />
                     <Badge product={p} />
                   </span>
                 </div>

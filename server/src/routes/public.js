@@ -303,6 +303,7 @@ router.get('/store', async (req, res) => {
       id: p.slug,
       name: p.name,
       kind: p.kind,
+      tier: p.tier === 'vip' ? 'vip' : 'normal',
       category: p.category,
       tagline: p.tagline,
       description: p.description,

@@ -13,6 +13,8 @@ const productSchema = new mongoose.Schema(
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
     name: { type: String, required: true, trim: true },
     kind: { type: String, enum: ['asset', 'item'], default: 'asset' },
+    /** VIP or Normal: a second way to sort the store, shown as a VIP tag on VIP products. */
+    tier: { type: String, enum: ['normal', 'vip'], default: 'normal' },
     /** Free text the team picks: "Scripts", "MLO", "Vehicles", "VIP" … the page groups by it. */
     category: { type: String, trim: true, default: '' },
     tagline: { type: String, trim: true, default: '' },

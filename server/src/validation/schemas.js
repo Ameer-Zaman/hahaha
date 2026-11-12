@@ -354,6 +354,7 @@ export const productSchema = z
     slug,
     name: text(70).min(1),
     kind: z.enum(['asset', 'item']).default('asset'),
+    tier: z.enum(['normal', 'vip']).optional().default('normal'),
     category: text(30).optional().default(''),
     tagline: text(140).optional().default(''),
     description: text(3000).optional().default(''),
