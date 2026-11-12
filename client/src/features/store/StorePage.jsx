@@ -181,12 +181,6 @@ export default function StorePage() {
               )}
             </>
           )}
-
-          {entry.status === 'ok' && (
-            <p className="st-fine">
-              {site.name} is a community server. It is not affiliated with, approved, sponsored or endorsed by Rockstar Games or Cfx.re.
-            </p>
-          )}
         </div>
       </div>
 
