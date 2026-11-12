@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { applyLink } from '../../config/site'
+import { applyLink, site } from '../../config/site'
 import { ApiError, USE_API } from '../../lib/api'
 import { useRuleBook } from '../../lib/ruleBook'
 import { indexRules, searchRules } from '../../lib/ruleSearch'
-import { useSiteSettings } from '../../lib/siteSettings'
+import { useCommunityLinks, useSiteSettings } from '../../lib/siteSettings'
+import { SOCIAL_PLATFORMS } from '../ui/socialPlatforms'
 import './chat.css'
+
+const DISCORD_PATH = SOCIAL_PLATFORMS.find((p) => p.id === 'discord')?.icon.path ?? ''
 
 /**
  * The chat assistant (Vexy by default — its name and picture, which is also the chat button, are set in
@@ -97,11 +100,35 @@ function smallTalk(text, botName = '') {
   return ''
 }
 
+/**
+ * "How do I join?", "how to apply", "server ip", "discord link" … — answered here with the
+ * Discord link straight away (applications are handled on Discord), instead of searching the rules.
+ */
+const JOIN = [
+  /\b(how|where|what)\b.*\b(join|apply|play|get in|get into|connect|enter|start|whitelist(ed)?|access)\b/,
+  /\b(join|joining|apply|applying|application|applications|whitelist|whitelisted|whitelisting)\b.*\b(server|city|community|discord|rp|game|here|you)\b/,
+  /\b(server|discord)\s*(ip|address|link|invite|connect)\b/,
+  /\b(invite link|ip address|connect (to )?(the )?server|can i (join|play|apply))\b/,
+  /^(join|apply|whitelist|application|discord|ip|server ip)\??$/,
+  /\bwhitelist/,
+  /\b(applications?|recruit(ing|ment)?)\b.*\b(open|closed|start)/,
+]
+function joinTalk(text) {
+  const t = text
+    .toLowerCase()
+    .replace(/[!?.,]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (/\b(gang|gangs|crew|club|clubs|faction|event|events|war|wars|team|job|police|ems|mechanic)\b/.test(t)) return false // joining a gang is a rules question
+  return JOIN.some((re) => re.test(t))
+}
+
 let nextId = 1
 const say = (from, extra) => ({ id: nextId++, from, ...extra })
 
 function RulesChat({ bot }) {
   const { categories } = useRuleBook()
+  const discord = useCommunityLinks().find((l) => l.id === 'discord')?.url || applyLink.href || ''
   const index = useMemo(() => indexRules(categories), [categories])
   const [open, setOpen] = useState(false)
   const [openedAt] = useState(() => new Date())
@@ -239,6 +266,18 @@ function RulesChat({ bot }) {
     const small = smallTalk(q, bot.name)
     if (small) {
       reply(q, say('bot', { text: small }))
+      return
+    }
+    if (joinTalk(q)) {
+      reply(
+        q,
+        say('bot', {
+          text: discord
+            ? `${site.launch.isLive ? '' : 'The city isn’t open yet — '}${site.launch.isLive ? 'Applications' : 'applications'} are handled on our Discord. Join it and apply there; the staff will take it from there.`
+            : 'Applications are handled on our Discord — the invite link will be posted here soon.',
+          links: discord ? [{ href: discord, label: 'Join our Discord' }] : undefined,
+        }),
+      )
       return
     }
     if (!aiUp) {
@@ -434,6 +473,20 @@ function RulesChat({ bot }) {
                           </span>
                         ),
                       )}
+                    </span>
+                  )}
+
+                  {m.links && (
+                    <span className="chatw__chips chatw__chips--inline">
+                      {m.links.map((l) => (
+                        <a key={l.href} className="chatw__chip chatw__chip--join" href={l.href} target="_blank" rel="noopener noreferrer">
+                          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+                            <path d={DISCORD_PATH} fill="currentColor" />
+                          </svg>
+                          {l.label}
+                          <span className="visually-hidden"> (opens in a new tab)</span>
+                        </a>
+                      ))}
                     </span>
                   )}
 

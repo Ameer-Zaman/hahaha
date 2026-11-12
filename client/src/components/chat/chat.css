@@ -639,3 +639,15 @@
     animation: none;
   }
 }
+
+/* "Join our Discord", in Discord's own colour */
+.chatw__chip--join {
+  display: inline-flex;
+  gap: 0.5rem;
+  border-color: transparent;
+  background: #5865f2;
+  color: #fff;
+}
+.chatw__chip--join:hover {
+  background: #4752c4;
+}
