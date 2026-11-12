@@ -891,3 +891,13 @@
     text-decoration: none;
   }
 }
+
+/* the info card beside the title is gone: the heading runs full width */
+@media (min-width: 60rem) {
+  .rules-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.rules-head__zero {
+  margin-top: var(--sp-5);
+}

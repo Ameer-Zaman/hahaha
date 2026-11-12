@@ -87,7 +87,6 @@ export default function RulesPage() {
   )
   const allRules = useMemo(() => numbered.flatMap((c) => c.rules.map((r) => ({ ...r, category: c }))), [numbered])
   const zero = allRules.filter((r) => r.level === 'zero')
-  const minutes = Math.max(1, Math.round(allRules.reduce((n, r) => n + `${r.title} ${r.text}`.split(/\s+/).length, 0) / 200))
 
   const shown = useMemo(() => {
     const ql = q.toLowerCase()
@@ -140,45 +139,13 @@ export default function RulesPage() {
             <p className="lede">
               Every player is expected to know these rules before joining the city. Read them in full before you play — staff act on them.
             </p>
+            {zero.length > 0 && (
+              <a className="btn btn--primary btn--small rules-head__zero" href="#zero-tolerance">
+                Zero tolerance ({zero.length})
+              </a>
+            )}
           </div>
 
-          <aside className="rules-card" aria-label="About this rule book">
-            <p className={`rules-card__status ${isDraft ? 'is-draft' : ''}`}>
-              <span aria-hidden="true" />
-              {book.loading ? 'Loading…' : isDraft ? 'Draft — not yet in force' : 'In force'}
-            </p>
-            {!book.loading && (
-              <dl className="rules-card__facts">
-                <div>
-                  <dt>Sections</dt>
-                  <dd>{categories.length}</dd>
-                </div>
-                <div>
-                  <dt>Rules</dt>
-                  <dd>{allRules.length}</dd>
-                </div>
-                <div>
-                  <dt>Reading time</dt>
-                  <dd>~{minutes} min</dd>
-                </div>
-              </dl>
-            )}
-            {!isDraft && book.lastUpdated && (
-              <p className="rules-card__line">
-                Last updated <time dateTime={book.lastUpdated}>{formatDay(book.lastUpdated)}</time>
-              </p>
-            )}
-            <div className="rules-card__actions">
-              {zero.length > 0 && (
-                <a className="btn btn--primary btn--small" href="#zero-tolerance">
-                  Zero tolerance ({zero.length})
-                </a>
-              )}
-              <button type="button" className="btn btn--ghost btn--small" onClick={() => window.print()}>
-                Print / save as PDF
-              </button>
-            </div>
-          </aside>
         </div>
       </ParallaxScope>
 
