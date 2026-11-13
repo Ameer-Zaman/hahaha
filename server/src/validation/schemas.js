@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { SECTION_KEYS } from '../models/Settings.js'
 import { PANEL_AREAS } from '../models/User.js'
+import { STORE_PLANS, validSub } from '../config/storeTaxonomy.js'
 
 const text = (max) => z.string().trim().max(max)
 const mediaId = z
@@ -355,7 +356,8 @@ export const productSchema = z
     name: text(70).min(1),
     kind: z.enum(['asset', 'item']).default('asset'),
     tier: z.enum(['normal', 'vip']).optional().default('normal'),
-    plan: z.enum(['resident', 'gang', 'club', 'dhadha', 'vip']).optional().default('resident'),
+    plan: z.enum(STORE_PLANS).optional().default('resident'),
+    sub: z.string().trim().max(60).optional().default(''),
     category: text(30).optional().default(''),
     tagline: text(140).optional().default(''),
     description: text(3000).optional().default(''),
@@ -384,6 +386,7 @@ export const productSchema = z
     visible: z.boolean().optional().default(true),
     order: z.number().int().min(0).max(9999).optional().default(0),
   })
+  .refine((p) => validSub(p.plan, p.sub), { path: ['sub'], message: 'that sub-category is not in this category' })
   .refine((p) => p.oldPrice === null || p.price === null || p.oldPrice > p.price, {
     path: ['oldPrice'],
     message: 'the old price must be higher than the price',

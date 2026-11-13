@@ -1250,11 +1250,9 @@
   margin-left: 0.1em;
 }
 
-/* VIP Plan: set apart, in gold, with a slow light passing over it */
+/* VIP: in gold, with a slow light passing over it */
 .st-plan--vip {
-  margin-left: clamp(0.1rem, 0.5vw, 0.5rem);
-  padding-left: clamp(0.9rem, 0.3rem + 1.6vw, 1.9rem);
-  border-left: 1px solid rgb(var(--rgb-gold) / 0.35);
+  position: relative;
 }
 .st-plan--vip .st-kind__word {
   background: linear-gradient(100deg, #b8862f 0%, #f2cf80 35%, #fff4d6 50%, #f2cf80 65%, #b8862f 100%);
@@ -1337,6 +1335,148 @@
 @media (prefers-reduced-motion: reduce) {
   .st-plan--vip .st-kind__word,
   .st-vip-head {
+    animation: none;
+  }
+}
+
+/* ---- Second level: VIP Plan · Premium Plan · Number / Custom Vehicle ---- */
+.st-subs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  animation: st-rise 0.45s var(--ease-out) both;
+}
+.st-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.6rem;
+  padding: 0 0.6rem 0 1.15rem;
+  border: 1px solid var(--st-line-strong);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--st-muted);
+  font: 600 0.8125rem / 1 var(--font-sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease,
+    background-color var(--dur-base) ease;
+}
+.st-sub:hover {
+  border-color: rgb(var(--rgb-ivory) / 0.45);
+  color: var(--fg);
+}
+.st-sub.is-active {
+  border-color: var(--fg);
+  background: var(--fg);
+  color: #0b0b0b;
+}
+.st-sub__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.6rem;
+  height: 1.6rem;
+  padding: 0 0.4rem;
+  border-radius: var(--radius-pill);
+  background: rgb(var(--rgb-ivory) / 0.08);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.st-sub.is-active .st-sub__count {
+  background: rgb(0 0 0 / 0.12);
+}
+.st-sub:focus-visible,
+.st-leaf:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+/* VIP's sub-categories in gold */
+.st-subs--vip .st-sub {
+  border-color: rgb(var(--rgb-gold) / 0.4);
+  color: var(--c-gold-light);
+}
+.st-subs--vip .st-sub:hover {
+  border-color: rgb(var(--rgb-gold) / 0.8);
+  color: #fff4d6;
+}
+.st-subs--vip .st-sub.is-active {
+  border-color: transparent;
+  background: var(--gold-gradient);
+  color: #1a1206;
+  box-shadow: 0 8px 26px -12px rgb(var(--rgb-gold) / 0.8);
+}
+.st-subs--vip .st-sub__count {
+  background: rgb(var(--rgb-gold) / 0.12);
+}
+
+/* ---- Third level: Custom Vehicle → Bike · Car · Helicopter · Yacht ---- */
+.st-leaves {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1.4rem;
+  margin-top: calc(-1 * var(--sp-2));
+  padding: 0.6rem 0 0 1.25rem;
+  animation: st-rise 0.45s var(--ease-out) both;
+}
+/* the little elbow that ties it to the chip above */
+.st-leaves::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0.35rem;
+  width: 0.65rem;
+  height: 1.55rem;
+  border-left: 1px solid var(--st-line-strong);
+  border-bottom: 1px solid var(--st-line-strong);
+  border-bottom-left-radius: 6px;
+}
+.st-leaves__from {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--st-muted);
+}
+.st-leaf {
+  position: relative;
+  min-height: 2.5rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--st-muted);
+  font: 500 0.9375rem / 1 var(--font-sans);
+  cursor: pointer;
+  transition: color var(--dur-fast) ease;
+}
+.st-leaf::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0.35rem;
+  height: 1px;
+  background: var(--c-gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s var(--ease-out);
+}
+.st-leaf:hover {
+  color: var(--fg);
+}
+.st-leaf.is-active {
+  color: var(--fg);
+}
+.st-leaf.is-active::after {
+  transform: scaleX(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .st-subs,
+  .st-leaves {
     animation: none;
   }
 }

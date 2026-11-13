@@ -7,6 +7,7 @@ import usePageTitle from '../../hooks/usePageTitle'
 import { usePublic } from '../../lib/publicData'
 import { useCommunityLinks } from '../../lib/siteSettings'
 import { formatPrice, isSoon } from './price'
+import { STORE_TREE, isVip, pathLabels, planOf } from './taxonomy'
 import './store.css'
 
 /**
@@ -15,19 +16,7 @@ import './store.css'
  * a product's own link, e.g. Tebex), and staff handle payment and delivery there.
  */
 
-/** The store's categories, in this order; VIP Plan stands out in gold. */
-const PLANS = [
-  { id: 'all', label: 'All' },
-  { id: 'resident', label: 'Resident' },
-  { id: 'gang', label: 'Gang Plan' },
-  { id: 'club', label: 'Club Plan' },
-  { id: 'dhadha', label: 'Dhadha Plan' },
-  { id: 'vip', label: 'VIP Plan' },
-]
-const PLAN_LABEL = Object.fromEntries(PLANS.map((p) => [p.id, p.label]))
-/** Products saved before categories existed: VIP ones go under VIP Plan, the rest under Resident. */
-const planOf = (p) => p.plan || (p.tier === 'vip' ? 'vip' : 'resident')
-const isVip = (p) => planOf(p) === 'vip'
+const PLANS = [{ id: 'all', label: 'All', subs: [] }, ...STORE_TREE]
 const BADGE = { new: 'New', popular: 'Popular', limited: 'Limited', sale: 'Sale' }
 const DISCORD_ICON = SOCIAL_PLATFORMS.find((p) => p.id === 'discord')?.icon
 
@@ -62,6 +51,13 @@ export default function StorePage() {
   const navigate = useNavigate()
   const location = useLocation()
   const [plan, setPlan] = useState('all')
+  const [sub, setSub] = useState('all') // second level, e.g. 'custom-vehicle'
+  const [leaf, setLeaf] = useState('all') // third level, e.g. 'car'
+  const pick = (p, s = 'all', l = 'all') => {
+    setPlan(p)
+    setSub(s)
+    setLeaf(l)
+  }
 
   const products = useMemo(() => (entry.status === 'ok' ? (entry.data?.products ?? []) : []), [entry])
   const store = entry.status === 'ok' ? (entry.data?.store ?? {}) : {}
@@ -71,7 +67,12 @@ export default function StorePage() {
   const open = slug && entry.status === 'ok' && !soon ? (products.find((p) => p.id === slug) ?? null) : null
   usePageTitle(slug ? (open?.name ?? 'Store') : 'Store')
 
-  const shown = plan === 'all' ? products : products.filter((p) => planOf(p) === plan)
+  const top = PLANS.find((t) => t.id === plan)
+  const subNode = top?.subs.find((n) => n.id === sub) ?? null
+  const inPlan = (p) => plan === 'all' || planOf(p) === plan
+  const inSub = (p, s) => s === 'all' || p.sub === s || (p.sub ?? '').startsWith(`${s}/`)
+  const inLeaf = (p, l) => l === 'all' || p.sub === `${sub}/${l}`
+  const shown = products.filter((p) => inPlan(p) && inSub(p, sub) && inLeaf(p, leaf))
   const spotlight = shown.find((p) => p.featured) ?? null
   const grid = spotlight ? shown.filter((p) => p !== spotlight) : shown
 
@@ -109,7 +110,7 @@ export default function StorePage() {
                         type="button"
                         className={`st-kind st-plan st-plan--${c.id} ${plan === c.id ? 'is-active' : ''}`}
                         aria-pressed={plan === c.id}
-                        onClick={() => setPlan(c.id)}
+                        onClick={() => pick(c.id)}
                       >
                         <span className="st-kind__word">
                           {c.id === 'vip' && <Crown />}
@@ -120,12 +121,51 @@ export default function StorePage() {
                     )
                   })}
                 </div>
+
+                {top && top.subs.length > 0 && (
+                  <div className={`st-subs ${plan === 'vip' ? 'st-subs--vip' : ''}`} role="group" aria-label={`${top.label}: choose`}>
+                    {[{ id: 'all', label: `All ${top.label}` }, ...top.subs].map((n) => {
+                      const count = products.filter((p) => inPlan(p) && inSub(p, n.id)).length
+                      return (
+                        <button
+                          key={n.id}
+                          type="button"
+                          className={`st-sub ${sub === n.id ? 'is-active' : ''}`}
+                          aria-pressed={sub === n.id}
+                          onClick={() => pick(plan, n.id)}
+                        >
+                          {n.label}
+                          <span className="st-sub__count">{count}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {subNode?.subs?.length > 0 && (
+                  <div className="st-leaves" role="group" aria-label={`${subNode.label}: choose`}>
+                    <span className="st-leaves__from" aria-hidden="true">
+                      {subNode.label}
+                    </span>
+                    {[{ id: 'all', label: 'All' }, ...subNode.subs].map((n) => (
+                      <button
+                        key={n.id}
+                        type="button"
+                        className={`st-leaf ${leaf === n.id ? 'is-active' : ''}`}
+                        aria-pressed={leaf === n.id}
+                        onClick={() => setLeaf(n.id)}
+                      >
+                        {n.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {plan === 'vip' && (
                 <div className="st-vip-head" aria-hidden="true">
                   <Crown />
-                  <span>VIP Plan</span>
+                  <span>{subNode ? subNode.label : 'VIP'}</span>
                 </div>
               )}
 
@@ -139,7 +179,7 @@ export default function StorePage() {
                   {products.length > 0 && (
                     <>
                       try another, or{' '}
-                      <button type="button" className="st-none__reset" onClick={() => setPlan('all')}>
+                      <button type="button" className="st-none__reset" onClick={() => pick('all')}>
                         show everything
                       </button>
                       .
@@ -328,7 +368,7 @@ export function ProductCard({ product: p, index }) {
       </div>
       <div className="st-card__body">
         <p className="st-card__meta">
-          {PLAN_LABEL[planOf(p)]}
+          {pathLabels(planOf(p), p.sub).join(' · ')}
           {p.category && <> · {p.category}</>}
         </p>
         <h2 className="st-card__name">{p.name}</h2>
@@ -368,7 +408,7 @@ function Spotlight({ product: p }) {
       <div className="st-spot__body">
         <p className="st-spot__eyebrow">
           <span className="st-spot__star" aria-hidden="true" />
-          Featured · {PLAN_LABEL[planOf(p)]}
+          Featured · {pathLabels(planOf(p), p.sub).join(' · ')}
           {p.category && <> · {p.category}</>}
         </p>
         <h2 className="st-spot__name">{p.name}</h2>
@@ -530,7 +570,7 @@ function ProductSheet({ open, product: p, buy, onClose }) {
 
               <div className="st-sheet__body">
                 <p className="st-card__meta">
-                  {PLAN_LABEL[planOf(p)]}
+                  {pathLabels(planOf(p), p.sub).join(' · ')}
                   {p.category && <> · {p.category}</>}
                 </p>
                 <h2 id="st-sheet-name" className="st-sheet__name">

@@ -3,21 +3,14 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { ProductCard } from '../../store/StorePage'
 import { formatPrice } from '../../store/price'
+import { STORE_TREE, pathLabels, planOf, subOptions } from '../../store/taxonomy'
 import { mediaUrl, slugify } from '../format'
 import { MediaField, MediaPicker, Thumb } from '../mediaKit'
 import { adminApi } from '../panelApi'
 import { useAction, useResource } from '../hooks'
 import { ConfirmButton, Empty, ErrorNote, ListTable, Loading, PageHead, Panel, SelectField, Switch, TextField } from '../ui'
 
-const PLANS = [
-  { value: 'resident', label: 'Resident' },
-  { value: 'gang', label: 'Gang Plan' },
-  { value: 'club', label: 'Club Plan' },
-  { value: 'dhadha', label: 'Dhadha Plan' },
-  { value: 'vip', label: 'VIP Plan' },
-]
-const PLAN_LABEL = Object.fromEntries(PLANS.map((p) => [p.value, p.label]))
-const planOf = (p) => p.plan || (p.tier === 'vip' ? 'vip' : 'resident')
+const PLANS = STORE_TREE.map((t) => ({ value: t.id, label: t.label }))
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'INR', 'AED', 'SAR', 'CAD', 'AUD', 'MYR', 'LKR', 'PKR', 'BDT']
 const BADGES = [
   { value: '', label: 'None' },
@@ -78,7 +71,13 @@ export function StoreList() {
                       <strong>{p.name}</strong>
                     </span>
                   </td>
-                  <td>{planOf(p) === 'vip' ? <span className="p-tag p-tag--ok">VIP Plan</span> : PLAN_LABEL[planOf(p)]}</td>
+                  <td>
+                    {planOf(p) === 'vip' ? (
+                      <span className="p-tag p-tag--ok">{pathLabels(planOf(p), p.sub || (p.plan ? '' : 'vip-plan')).join(' › ')}</span>
+                    ) : (
+                      pathLabels(planOf(p), p.sub).join(' › ')
+                    )}
+                  </td>
                   <td>{p.category || '—'}</td>
                   <td>{formatPrice(p.price, p.currency, p.noPrice)}</td>
                   <td>
@@ -164,6 +163,7 @@ const EMPTY = {
   kind: 'asset',
   tier: 'normal',
   plan: 'resident',
+  sub: '',
   category: '',
   tagline: '',
   description: '',
@@ -203,7 +203,8 @@ function toForm(p) {
   for (const key of Object.keys(EMPTY)) out[key] = p[key] ?? EMPTY[key]
   return {
     ...out,
-    plan: p.plan || (p.tier === 'vip' ? 'vip' : 'resident'), // saved before categories: VIP → VIP Plan
+    plan: p.plan || (p.tier === 'vip' ? 'vip' : 'resident'), // saved before categories: VIP → VIP
+    sub: p.sub || (!p.plan && p.tier === 'vip' ? 'vip-plan' : ''),
     price: out.price === null ? '' : String(out.price),
     oldPrice: out.oldPrice === null ? '' : String(out.oldPrice),
     features: (out.features ?? []).join('\n'),
@@ -276,6 +277,7 @@ function ProductForm({ initial, isNew }) {
     kind: form.kind,
     tier: form.plan === 'vip' ? 'vip' : 'normal',
     plan: form.plan,
+    sub: subOptions(form.plan).some((o) => o.value === form.sub) ? form.sub : '',
     category: form.category,
     tagline: form.tagline,
     price: badPrice ? null : body.price,
@@ -327,11 +329,24 @@ function ProductForm({ initial, isNew }) {
               />
               <SelectField
                 label="Category"
-                hint="Where it shows on the Store: Resident, Gang Plan, Club Plan, Dhadha Plan or VIP Plan (shown in gold)."
+                hint="Where it shows on the Store. VIP is shown in gold."
                 value={form.plan}
-                onChange={set('plan')}
+                onChange={(plan) => setForm((f) => ({ ...f, plan, sub: '' }))}
                 options={PLANS}
               />
+              {subOptions(form.plan).length > 0 && (
+                <SelectField
+                  label="Sub-category"
+                  hint={
+                    form.plan === 'vip'
+                      ? 'VIP Plan, Premium Plan or Number.'
+                      : 'Custom Vehicle, and which kind: Bike, Car, Helicopter or Yacht.'
+                  }
+                  value={form.sub}
+                  onChange={set('sub')}
+                  options={[{ value: '', label: `— just ${PLANS.find((x) => x.value === form.plan)?.label} —` }, ...subOptions(form.plan)]}
+                />
+              )}
               <TextField
                 label="Type (optional)"
                 hint="A short word shown next to the category, e.g. Car, House, Weapon."

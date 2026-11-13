@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 
-export const STORE_PLANS = ['resident', 'gang', 'club', 'dhadha', 'vip']
+import { STORE_PLANS } from '../config/storeTaxonomy.js'
 
 /**
  * Something in the Store. Two kinds:
@@ -15,8 +15,10 @@ const productSchema = new mongoose.Schema(
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
     name: { type: String, required: true, trim: true },
     kind: { type: String, enum: ['asset', 'item'], default: 'asset' },
-    /** The store's category: Resident, Gang Plan, Club Plan, Dhadha Plan or VIP Plan. */
+    /** The store's category: VIP, Resident, Gang Plan, Dhadha Plan or Club Plan (config/storeTaxonomy.js). */
     plan: { type: String, enum: STORE_PLANS, default: 'resident' },
+    /** Its sub-category inside that, e.g. 'premium-plan' or 'custom-vehicle/car'; '' = none. */
+    sub: { type: String, default: '' },
     /** VIP or Normal (older setting; VIP Plan replaces it): a second way to sort the store, shown as a VIP tag on VIP products. */
     tier: { type: String, enum: ['normal', 'vip'], default: 'normal' },
     /** Free text the team picks: "Scripts", "MLO", "Vehicles", "VIP" … the page groups by it. */

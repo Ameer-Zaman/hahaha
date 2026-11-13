@@ -170,3 +170,17 @@ test('panel areas: Super Admins open everything, Admins only what was ticked, un
   assert.equal(createUserSchema.safeParse({ ...base, access: ['users'] }).success, false)
   assert.equal(updateUserSchema.safeParse({ access: ['store', 'rules'] }).success, true)
 })
+
+test('store categories: a sub-category must belong to its category', async () => {
+  const { productSchema } = await import('../src/validation/schemas.js')
+  const base = { slug: 'test-item', name: 'Test item', price: 1, currency: 'USD' }
+  const ok = (plan, sub) => productSchema.safeParse({ ...base, plan, sub }).success
+  assert.equal(ok('vip', 'premium-plan'), true)
+  assert.equal(ok('vip', 'number'), true)
+  assert.equal(ok('resident', 'custom-vehicle/yacht'), true)
+  assert.equal(ok('resident', ''), true)
+  assert.equal(ok('gang', ''), true)
+  assert.equal(ok('gang', 'premium-plan'), false)
+  assert.equal(ok('resident', 'custom-vehicle/tank'), false)
+  assert.equal(ok('shop', ''), false)
+})
