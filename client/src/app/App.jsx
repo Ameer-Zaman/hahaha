@@ -1,8 +1,8 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 import Layout from '../components/layout/Layout'
-import { applyLink } from '../config/site'
+import { applyLink, site } from '../config/site'
 import SectionClosed from '../components/site/SectionClosed'
 import { PageLoader } from '../components/ui/Skeleton'
 import { useLoadingSignal } from '../lib/loading'
@@ -15,7 +15,6 @@ const StaffPage = lazy(() => import('../features/staff/StaffPage'))
 const CreatorsPage = lazy(() => import('../features/creators/CreatorsPage'))
 const GangsPage = lazy(() => import('../features/gangs/GangsPage'))
 const GangPage = lazy(() => import('../features/gangs/GangPage'))
-const RulesPage = lazy(() => import('../features/rules/RulesPage'))
 const ClubsPage = lazy(() => import('../features/clubs/ClubsPage'))
 const DhadhasPage = lazy(() => import('../features/dhadhas/DhadhasPage'))
 const StoryPage = lazy(() => import('../features/story/StoryPage'))
@@ -44,7 +43,8 @@ export default function App() {
         {/* one route for both: an event's details open as a pop-up over the list */}
         <Route path="events/:slug?" element={<Section to="/events"><EventsPage /></Section>} />
         <Route path="leaderboard" element={<Section to="/leaderboard"><LeaderboardPage /></Section>} />
-        <Route path="rules" element={<Section to="/rules"><RulesPage /></Section>} />
+        {/* the rule book lives on its own site now */}
+        <Route path="rules" element={<GoTo url={site.rulesUrl} />} />
         {/* a product's details open as a panel over the list, with their own link */}
         <Route path="store/:slug?" element={<Section to="/store"><StorePage /></Section>} />
         {/* old /apply links: straight on to the Discord invite (or home if it isn't set yet) */}
@@ -84,4 +84,12 @@ function ApplyRedirect() {
     return null
   }
   return <Navigate to="/" replace />
+}
+
+/** A page that now lives on another site: go there (replacing this entry, so Back still works). */
+function GoTo({ url }) {
+  useEffect(() => {
+    window.location.replace(url)
+  }, [url])
+  return <PageLoader />
 }

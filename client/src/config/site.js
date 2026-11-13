@@ -10,6 +10,8 @@ export const site = {
   name: 'Rameirah Empire',
   /** The glowing neon sign on the homepage (shorter than the full name). */
   neonName: 'Rameirah',
+  /** The rule book lives on its own site: every link to /rules goes here. */
+  rulesUrl: 'https://www.rameirahcodex.in/',
 
   /** Short line under the name in the hero. Keep it factual: the server has not launched. */
   tagline: 'A serious roleplay city, in preparation.',
