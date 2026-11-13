@@ -275,7 +275,7 @@ function Price({ product: p, size = 'md' }) {
   const off = discountOf(p)
   return (
     <span className={`st-price st-price--${size} ${p.price === null ? 'is-ask' : ''} ${isSoon(p) ? 'is-soon' : ''}`}>
-      <span className="st-price__now">{formatPrice(p.price, p.currency, p.noPrice)}</span>
+      <span className="st-price__now">{formatPrice(p.price, p.currency)}</span>
       {off > 0 && (
         <s className="st-price__was">
           <span className="visually-hidden">was </span>
@@ -314,6 +314,36 @@ function Badge({ product: p }) {
   return null
 }
 
+/**
+ * No picture yet: a living, colourful "Coming soon" — soft colour blobs drifting like a slow
+ * video, a grain over them and the words in the middle. Each product gets its own colours.
+ */
+const SOON_PALETTES = [
+  ['#ff3d77', '#7a5cff', '#00d4ff'],
+  ['#ffb347', '#ff5e62', '#8e54e9'],
+  ['#00f5a0', '#00d9f5', '#7a5cff'],
+  ['#f9d423', '#ff4e50', '#c471ed'],
+  ['#43e97b', '#38f9d7', '#4facfe'],
+  ['#fa709a', '#fee140', '#a18cd1'],
+]
+function SoonArt({ seed = '', big = false }) {
+  let h = 0
+  for (const ch of String(seed)) h = (h * 31 + ch.charCodeAt(0)) >>> 0
+  const [a, b, c] = SOON_PALETTES.at(h % SOON_PALETTES.length)
+  return (
+    <span className={`st-soonart ${big ? 'st-soonart--big' : ''}`} style={{ '--a': a, '--b': b, '--c': c, '--d': `${-(h % 9)}s` }}>
+      <span className="st-soonart__blob st-soonart__blob--a" />
+      <span className="st-soonart__blob st-soonart__blob--b" />
+      <span className="st-soonart__blob st-soonart__blob--c" />
+      <span className="st-soonart__grain" />
+      <span className="st-soonart__words">
+        <span className="st-soonart__dot" aria-hidden="true" />
+        Coming soon
+      </span>
+    </span>
+  )
+}
+
 /** The picture, and the preview clip while the pointer is over it (never with reduced motion). */
 function Media({ product: p, playing, eager = false }) {
   const video = useRef(null)
@@ -329,13 +359,7 @@ function Media({ product: p, playing, eager = false }) {
 
   return (
     <div className={`st-media ${p.soldOut ? 'is-out' : ''}`}>
-      {p.cover ? (
-        <img src={p.cover} alt="" loading={eager ? 'eager' : 'lazy'} decoding="async" />
-      ) : (
-        <span className="st-media__blank" aria-hidden="true">
-          {p.name.slice(0, 1)}
-        </span>
-      )}
+      {p.cover ? <img src={p.cover} alt="" loading={eager ? 'eager' : 'lazy'} decoding="async" /> : <SoonArt seed={p.id} />}
       {wanted && (
         <video ref={video} src={p.video} muted loop playsInline preload="auto" className={playing ? 'is-on' : ''} aria-hidden="true" />
       )}
@@ -472,7 +496,7 @@ function ProductSheet({ open, product: p, buy, onClose }) {
   const current = shots[Math.min(shot, shots.length - 1)]
 
   async function copyOrder() {
-    const line = `Order: ${p.name} — ${formatPrice(p.price, p.currency, p.noPrice)}${p.priceNote && p.price !== null ? ` ${p.priceNote}` : ''} — ${window.location.origin}/store/${p.id}`
+    const line = `Order: ${p.name} — ${formatPrice(p.price, p.currency)}${p.priceNote && p.price !== null ? ` ${p.priceNote}` : ''} — ${window.location.origin}/store/${p.id}`
     try {
       await navigator.clipboard.writeText(line)
       setCopiedId(p.id)
@@ -533,9 +557,7 @@ function ProductSheet({ open, product: p, buy, onClose }) {
                   ) : current ? (
                     <img key={current.src} src={current.src} alt={p.name} />
                   ) : (
-                    <span className="st-media__blank" aria-hidden="true">
-                      {p.name.slice(0, 1)}
-                    </span>
+                    <SoonArt seed={p.id} big />
                   )}
                   <span className="st-card__tags">
                     <VipTag product={p} />

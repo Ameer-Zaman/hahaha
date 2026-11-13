@@ -1480,3 +1480,153 @@
     animation: none;
   }
 }
+
+/* ---- No picture yet: a colourful, moving "Coming soon" ---- */
+.st-soonart {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #07070a;
+  isolation: isolate;
+}
+/* a slow turning sheen of all three colours under the blobs */
+.st-soonart::before {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  background: conic-gradient(from 0deg, var(--a), var(--b), var(--c), var(--a));
+  opacity: 0.35;
+  filter: blur(40px);
+  animation: st-soon-turn 14s linear infinite;
+}
+@keyframes st-soon-turn {
+  to {
+    transform: rotate(1turn);
+  }
+}
+.st-gallery__main .st-soonart {
+  position: absolute;
+}
+.st-soonart__blob {
+  position: absolute;
+  width: 75%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: blur(26px) saturate(1.4);
+  opacity: 1;
+  mix-blend-mode: screen;
+  animation-duration: 9s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-delay: var(--d, 0s);
+}
+.st-soonart__blob--a {
+  left: -15%;
+  top: -20%;
+  background: radial-gradient(circle, var(--a), transparent 65%);
+  animation-name: st-blob-a;
+}
+.st-soonart__blob--b {
+  right: -20%;
+  top: 10%;
+  background: radial-gradient(circle, var(--b), transparent 65%);
+  animation-name: st-blob-b;
+  animation-duration: 11s;
+}
+.st-soonart__blob--c {
+  left: 15%;
+  bottom: -35%;
+  background: radial-gradient(circle, var(--c), transparent 65%);
+  animation-name: st-blob-c;
+  animation-duration: 13s;
+}
+@keyframes st-blob-a {
+  to {
+    transform: translate(45%, 35%) scale(1.25);
+  }
+}
+@keyframes st-blob-b {
+  to {
+    transform: translate(-50%, 25%) scale(0.85);
+  }
+}
+@keyframes st-blob-c {
+  to {
+    transform: translate(20%, -55%) scale(1.2);
+  }
+}
+/* film grain and a soft vignette, so it reads like footage, not a flat gradient */
+.st-soonart__grain {
+  position: absolute;
+  inset: -50%;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.5'/></svg>");
+  opacity: 0.18;
+  mix-blend-mode: overlay;
+  animation: st-grain 0.9s steps(4) infinite;
+}
+.st-soonart::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 90% at 50% 50%, transparent 45%, rgb(0 0 0 / 0.55));
+  pointer-events: none;
+}
+@keyframes st-grain {
+  25% {
+    transform: translate(-6%, 4%);
+  }
+  50% {
+    transform: translate(5%, -7%);
+  }
+  75% {
+    transform: translate(-3%, -4%);
+  }
+}
+.st-soonart__words {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid rgb(255 255 255 / 0.28);
+  border-radius: 999px;
+  background: rgb(10 10 14 / 0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 0.85rem + 0.6vw, 1.35rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 2px 18px rgb(0 0 0 / 0.4);
+}
+.st-soonart--big .st-soonart__words {
+  font-size: clamp(1.4rem, 1rem + 1.6vw, 2.2rem);
+  padding: 0.75rem 1.5rem;
+}
+.st-soonart__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 10px #fff;
+  animation: st-soon-dot 1.6s ease-in-out infinite;
+}
+@keyframes st-soon-dot {
+  50% {
+    opacity: 0.25;
+    transform: scale(0.7);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .st-soonart__blob,
+  .st-soonart::before,
+  .st-soonart__grain,
+  .st-soonart__dot {
+    animation: none;
+  }
+}
