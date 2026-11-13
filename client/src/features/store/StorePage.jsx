@@ -237,9 +237,6 @@ function ComingSoon({ discord }) {
       <ul className="st-soon__shelves" role="list">
         {SOON_SHELVES.map((s, i) => (
           <li key={s.word} className="st-soon__shelf" style={{ '--i': i }}>
-            <span className="st-soon__no" aria-hidden="true">
-              N°{String(i + 1).padStart(2, '0')}
-            </span>
             <span className="st-soon__word">{s.word}</span>
             <span className="st-soon__hint">{s.hint}</span>
             <span className="st-soon__items">{s.items.join(' · ')}</span>
