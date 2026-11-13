@@ -192,7 +192,7 @@ export default function StorePage() {
                 <ul className="st-grid" role="list">
                   {grid.map((p, i) => (
                     <li key={p.id} style={{ '--i': Math.min(i, 12) }}>
-                      <ProductCard product={p} index={shown.indexOf(p) + 1} />
+                      <ProductCard product={p} />
                     </li>
                   ))}
                 </ul>
@@ -367,7 +367,7 @@ function Media({ product: p, playing, eager = false }) {
   )
 }
 
-export function ProductCard({ product: p, index }) {
+export function ProductCard({ product: p }) {
   const [hover, setHover] = useState(false)
   return (
     <Link
@@ -382,9 +382,6 @@ export function ProductCard({ product: p, index }) {
     >
       <div className="st-card__frame">
         <Media product={p} playing={hover} />
-        <span className="st-card__no" aria-hidden="true">
-          N°{String(index).padStart(2, '0')}
-        </span>
         <span className="st-card__tags">
           <VipTag product={p} />
           <Badge product={p} />

@@ -294,17 +294,6 @@
   color: rgb(var(--rgb-ivory) / 0.12);
 }
 
-.st-card__no {
-  position: absolute;
-  top: 0.85rem;
-  left: 0.95rem;
-  z-index: 4;
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.14em;
-  color: rgb(var(--rgb-ivory) / 0.85);
-  text-shadow: 0 1px 6px rgb(0 0 0 / 0.7);
-}
 .st-card__tags {
   position: absolute;
   top: 0.7rem;

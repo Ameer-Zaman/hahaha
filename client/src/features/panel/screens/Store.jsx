@@ -475,7 +475,7 @@ function ProductForm({ initial, isNew }) {
         <div className="p-stack">
           <Panel title="Card preview">
             <div className="st theme-black p-st-preview" inert="">
-              <ProductCard product={preview} index={Number(form.order) || 1} />
+              <ProductCard product={preview} />
             </div>
           </Panel>
 
