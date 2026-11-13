@@ -1,5 +1,7 @@
 import mongoose from 'mongoose'
 
+export const STORE_PLANS = ['resident', 'gang', 'club', 'dhadha', 'vip']
+
 /**
  * Something in the Store. Two kinds:
  *   asset  — a download for other server owners (script, MLO, vehicle pack, clothing …)
@@ -13,7 +15,9 @@ const productSchema = new mongoose.Schema(
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
     name: { type: String, required: true, trim: true },
     kind: { type: String, enum: ['asset', 'item'], default: 'asset' },
-    /** VIP or Normal: a second way to sort the store, shown as a VIP tag on VIP products. */
+    /** The store's category: Resident, Gang Plan, Club Plan, Dhadha Plan or VIP Plan. */
+    plan: { type: String, enum: STORE_PLANS, default: 'resident' },
+    /** VIP or Normal (older setting; VIP Plan replaces it): a second way to sort the store, shown as a VIP tag on VIP products. */
     tier: { type: String, enum: ['normal', 'vip'], default: 'normal' },
     /** Free text the team picks: "Scripts", "MLO", "Vehicles", "VIP" … the page groups by it. */
     category: { type: String, trim: true, default: '' },

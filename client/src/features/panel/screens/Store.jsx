@@ -9,7 +9,15 @@ import { adminApi } from '../panelApi'
 import { useAction, useResource } from '../hooks'
 import { ConfirmButton, Empty, ErrorNote, ListTable, Loading, PageHead, Panel, SelectField, Switch, TextField } from '../ui'
 
-const KIND_LABEL = { asset: 'Asset', item: 'In-game' }
+const PLANS = [
+  { value: 'resident', label: 'Resident' },
+  { value: 'gang', label: 'Gang Plan' },
+  { value: 'club', label: 'Club Plan' },
+  { value: 'dhadha', label: 'Dhadha Plan' },
+  { value: 'vip', label: 'VIP Plan' },
+]
+const PLAN_LABEL = Object.fromEntries(PLANS.map((p) => [p.value, p.label]))
+const planOf = (p) => p.plan || (p.tier === 'vip' ? 'vip' : 'resident')
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'INR', 'AED', 'SAR', 'CAD', 'AUD', 'MYR', 'LKR', 'PKR', 'BDT']
 const BADGES = [
   { value: '', label: 'None' },
@@ -18,10 +26,6 @@ const BADGES = [
   { value: 'limited', label: 'Limited' },
   { value: 'sale', label: 'Sale (shows the % off)' },
 ]
-const CATEGORY_IDEAS = {
-  asset: ['Scripts', 'MLO', 'Maps', 'Vehicles', 'Clothing', 'UI', 'Bundles'],
-  item: ['VIP', 'Vehicles', 'Properties', 'Items', 'Perks', 'Bundles'],
-}
 
 /* ------------------------------------------------------------------ list */
 
@@ -55,8 +59,8 @@ export function StoreList() {
               <tr>
                 <th scope="col">#</th>
                 <th scope="col">Product</th>
-                <th scope="col">Kind</th>
                 <th scope="col">Category</th>
+                <th scope="col">Type</th>
                 <th scope="col">Price</th>
                 <th scope="col">Status</th>
                 <th scope="col">
@@ -74,10 +78,7 @@ export function StoreList() {
                       <strong>{p.name}</strong>
                     </span>
                   </td>
-                  <td>
-                    {KIND_LABEL[p.kind]}
-                    {p.tier === 'vip' && <span className="p-tag p-tag--ok"> VIP</span>}
-                  </td>
+                  <td>{planOf(p) === 'vip' ? <span className="p-tag p-tag--ok">VIP Plan</span> : PLAN_LABEL[planOf(p)]}</td>
                   <td>{p.category || '—'}</td>
                   <td>{formatPrice(p.price, p.currency, p.noPrice)}</td>
                   <td>
@@ -162,6 +163,7 @@ const EMPTY = {
   slug: '',
   kind: 'asset',
   tier: 'normal',
+  plan: 'resident',
   category: '',
   tagline: '',
   description: '',
@@ -201,6 +203,7 @@ function toForm(p) {
   for (const key of Object.keys(EMPTY)) out[key] = p[key] ?? EMPTY[key]
   return {
     ...out,
+    plan: p.plan || (p.tier === 'vip' ? 'vip' : 'resident'), // saved before categories: VIP → VIP Plan
     price: out.price === null ? '' : String(out.price),
     oldPrice: out.oldPrice === null ? '' : String(out.oldPrice),
     features: (out.features ?? []).join('\n'),
@@ -271,7 +274,8 @@ function ProductForm({ initial, isNew }) {
     id: form.slug || 'preview',
     name: form.name || 'Product name',
     kind: form.kind,
-    tier: form.tier,
+    tier: form.plan === 'vip' ? 'vip' : 'normal',
+    plan: form.plan,
     category: form.category,
     tagline: form.tagline,
     price: badPrice ? null : body.price,
@@ -322,37 +326,19 @@ function ProductForm({ initial, isNew }) {
                 maxLength={60}
               />
               <SelectField
-                label="Kind"
-                value={form.kind}
-                onChange={set('kind')}
-                options={[
-                  { value: 'asset', label: 'Asset — for server owners (script, map, vehicle …)' },
-                  { value: 'item', label: 'In-game — for players (VIP, car, house …)' },
-                ]}
-              />
-              <SelectField
-                label="VIP or Normal"
-                hint="VIP products get a gold VIP tag, and visitors can filter by VIP or Normal."
-                value={form.tier}
-                onChange={set('tier')}
-                options={[
-                  { value: 'normal', label: 'Normal' },
-                  { value: 'vip', label: 'VIP' },
-                ]}
+                label="Category"
+                hint="Where it shows on the Store: Resident, Gang Plan, Club Plan, Dhadha Plan or VIP Plan (shown in gold)."
+                value={form.plan}
+                onChange={set('plan')}
+                options={PLANS}
               />
               <TextField
-                label="Category"
-                hint="The Store groups by this. Pick one or type your own."
+                label="Type (optional)"
+                hint="A short word shown next to the category, e.g. Car, House, Weapon."
                 value={form.category}
                 onChange={set('category')}
                 maxLength={30}
-                list="p-store-cats"
               />
-              <datalist id="p-store-cats">
-                {CATEGORY_IDEAS[form.kind].map((c) => (
-                  <option key={c} value={c} />
-                ))}
-              </datalist>
               <TextField label="One line about it" value={form.tagline} onChange={set('tagline')} maxLength={140} wide />
               <TextField
                 label="Description"

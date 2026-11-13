@@ -355,6 +355,7 @@ export const productSchema = z
     name: text(70).min(1),
     kind: z.enum(['asset', 'item']).default('asset'),
     tier: z.enum(['normal', 'vip']).optional().default('normal'),
+    plan: z.enum(['resident', 'gang', 'club', 'dhadha', 'vip']).optional().default('resident'),
     category: text(30).optional().default(''),
     tagline: text(140).optional().default(''),
     description: text(3000).optional().default(''),

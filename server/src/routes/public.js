@@ -304,6 +304,7 @@ router.get('/store', async (req, res) => {
       name: p.name,
       kind: p.kind,
       tier: p.tier === 'vip' ? 'vip' : 'normal',
+      plan: p.plan || (p.tier === 'vip' ? 'vip' : 'resident'), // products saved before categories: VIP → VIP Plan
       category: p.category,
       tagline: p.tagline,
       description: p.description,

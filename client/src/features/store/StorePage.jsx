@@ -15,12 +15,19 @@ import './store.css'
  * a product's own link, e.g. Tebex), and staff handle payment and delivery there.
  */
 
-const KINDS = [
-  { id: 'all', label: 'All', hint: 'Everything in the store' },
-  { id: 'asset', label: 'Assets', hint: 'For server owners' },
-  { id: 'item', label: 'In-game', hint: 'For players in the city' },
+/** The store's categories, in this order; VIP Plan stands out in gold. */
+const PLANS = [
+  { id: 'all', label: 'All' },
+  { id: 'resident', label: 'Resident' },
+  { id: 'gang', label: 'Gang Plan' },
+  { id: 'club', label: 'Club Plan' },
+  { id: 'dhadha', label: 'Dhadha Plan' },
+  { id: 'vip', label: 'VIP Plan' },
 ]
-const KIND_LABEL = { asset: 'Asset', item: 'In-game' }
+const PLAN_LABEL = Object.fromEntries(PLANS.map((p) => [p.id, p.label]))
+/** Products saved before categories existed: VIP ones go under VIP Plan, the rest under Resident. */
+const planOf = (p) => p.plan || (p.tier === 'vip' ? 'vip' : 'resident')
+const isVip = (p) => planOf(p) === 'vip'
 const BADGE = { new: 'New', popular: 'Popular', limited: 'Limited', sale: 'Sale' }
 const DISCORD_ICON = SOCIAL_PLATFORMS.find((p) => p.id === 'discord')?.icon
 
@@ -54,9 +61,7 @@ export default function StorePage() {
   const { slug } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const [kind, setKind] = useState('all')
-  const [category, setCategory] = useState('all')
-  const [tier, setTier] = useState('all') // all | vip | normal
+  const [plan, setPlan] = useState('all')
 
   const products = useMemo(() => (entry.status === 'ok' ? (entry.data?.products ?? []) : []), [entry])
   const store = entry.status === 'ok' ? (entry.data?.store ?? {}) : {}
@@ -66,14 +71,7 @@ export default function StorePage() {
   const open = slug && entry.status === 'ok' && !soon ? (products.find((p) => p.id === slug) ?? null) : null
   usePageTitle(slug ? (open?.name ?? 'Store') : 'Store')
 
-  const kindsHere = new Set(products.map((p) => p.kind))
-  // the tabs, VIP / Normal and the categories always show, so visitors can see how the store is laid out
-  const ofKindOnly = kind === 'all' ? products : products.filter((p) => p.kind === kind)
-  const activeTier = tier
-  const ofKind = activeTier === 'all' ? ofKindOnly : ofKindOnly.filter((p) => (activeTier === 'vip' ? p.tier === 'vip' : p.tier !== 'vip'))
-  const categories = [...new Set(ofKind.map((p) => p.category).filter(Boolean))]
-  const activeCat = categories.includes(category) ? category : 'all'
-  const shown = activeCat === 'all' ? ofKind : ofKind.filter((p) => p.category === activeCat)
+  const shown = plan === 'all' ? products : products.filter((p) => planOf(p) === plan)
   const spotlight = shown.find((p) => p.featured) ?? null
   const grid = spotlight ? shown.filter((p) => p !== spotlight) : shown
 
@@ -82,7 +80,7 @@ export default function StorePage() {
 
   return (
     <>
-      <div className="st st--top theme-black">
+      <div className={`st st--top theme-black ${plan === 'vip' ? 'is-vip-view' : ''}`}>
         <h1 className="visually-hidden">Store</h1>
         <div className="container">
           {entry.status === 'loading' && <StoreSkeleton />}
@@ -92,96 +90,61 @@ export default function StorePage() {
               The store can’t be loaded right now. Try again in a moment.
             </p>
           )}
-          {(entry.status === 'missing' || (entry.status === 'ok' && !soon && products.length === 0)) && (
+          {entry.status === 'missing' && (
             <div className="st-empty">
               <p className="st-empty__title">The store is being stocked</p>
               <p className="st-note">Scripts, maps and in-game items will show up here once the team lists them.</p>
             </div>
           )}
 
-          {entry.status === 'ok' && !soon && products.length > 0 && (
+          {entry.status === 'ok' && !soon && (
             <>
               <div className="st-bar">
-                {kindsHere && (
-                  <div className="st-kinds" role="group" aria-label="Show">
-                    {KINDS.map((k) => {
-                      const count = k.id === 'all' ? products.length : products.filter((p) => p.kind === k.id).length
-                      return (
-                        <button
-                          key={k.id}
-                          type="button"
-                          className={`st-kind ${kind === k.id ? 'is-active' : ''}`}
-                          aria-pressed={kind === k.id}
-                          onClick={() => {
-                            setKind(k.id)
-                            setCategory('all')
-                            setTier('all')
-                          }}
-                        >
-                          <span className="st-kind__word">
-                            {k.label}
-                            <sup className="st-kind__count">{String(count).padStart(2, '0')}</sup>
-                          </span>
-                          <span className="st-kind__hint">{k.hint}</span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                )}
-                {
-                  <div className="st-tiers" role="group" aria-label="VIP or Normal">
-                    {[
-                      { id: 'all', label: 'All' },
-                      { id: 'vip', label: 'VIP' },
-                      { id: 'normal', label: 'Normal' },
-                    ].map((t) => (
+                <div className="st-kinds st-plans" role="group" aria-label="Category">
+                  {PLANS.map((c) => {
+                    const count = c.id === 'all' ? products.length : products.filter((p) => planOf(p) === c.id).length
+                    return (
                       <button
-                        key={t.id}
+                        key={c.id}
                         type="button"
-                        className={`st-tier st-tier--${t.id} ${activeTier === t.id ? 'is-active' : ''}`}
-                        aria-pressed={activeTier === t.id}
-                        onClick={() => setTier(t.id)}
+                        className={`st-kind st-plan st-plan--${c.id} ${plan === c.id ? 'is-active' : ''}`}
+                        aria-pressed={plan === c.id}
+                        onClick={() => setPlan(c.id)}
                       >
-                        {t.id === 'vip' && <Crown />}
-                        {t.label}
+                        <span className="st-kind__word">
+                          {c.id === 'vip' && <Crown />}
+                          {c.label}
+                          <sup className="st-kind__count">{String(count).padStart(2, '0')}</sup>
+                        </span>
                       </button>
-                    ))}
-                  </div>
-                }
-                {categories.length > 0 && (
-                  <div className="st-cats" role="group" aria-label="Category">
-                    {['all', ...categories].map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        className={`st-cat ${activeCat === c ? 'is-active' : ''}`}
-                        aria-pressed={activeCat === c}
-                        onClick={() => setCategory(c)}
-                      >
-                        {c === 'all' ? 'All' : c}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                    )
+                  })}
+                </div>
               </div>
+
+              {plan === 'vip' && (
+                <div className="st-vip-head" aria-hidden="true">
+                  <Crown />
+                  <span>VIP Plan</span>
+                </div>
+              )}
 
               {spotlight && <Spotlight product={spotlight} />}
 
               {shown.length === 0 && (
                 <p className="st-note st-none" role="status">
-                  Nothing here yet — try another tab, or{' '}
-                  <button
-                    type="button"
-                    className="st-none__reset"
-                    onClick={() => {
-                      setKind('all')
-                      setTier('all')
-                      setCategory('all')
-                    }}
-                  >
-                    show everything
-                  </button>
-                  .
+                  {products.length === 0
+                    ? 'The store is being stocked — products will show up here soon.'
+                    : 'Nothing in this category yet — '}
+                  {products.length > 0 && (
+                    <>
+                      try another, or{' '}
+                      <button type="button" className="st-none__reset" onClick={() => setPlan('all')}>
+                        show everything
+                      </button>
+                      .
+                    </>
+                  )}
                 </p>
               )}
 
@@ -294,7 +257,7 @@ function Crown() {
 
 /** The VIP tag, next to the other tags on the picture. */
 function VipTag({ product: p }) {
-  if (p.tier !== 'vip') return null
+  if (!isVip(p)) return null
   return (
     <span className="st-badge st-badge--vip">
       <Crown />
@@ -346,7 +309,7 @@ export function ProductCard({ product: p, index }) {
     <Link
       to={`/store/${p.id}`}
       state={{ fromList: true }}
-      className={`st-card ${p.soldOut ? 'is-out' : ''} ${p.tier === 'vip' ? 'is-vip' : ''}`}
+      className={`st-card ${p.soldOut ? 'is-out' : ''} ${isVip(p) ? 'is-vip' : ''}`}
       onPointerMove={trackPointer}
       onPointerEnter={() => setHover(true)}
       onPointerLeave={() => setHover(false)}
@@ -365,7 +328,7 @@ export function ProductCard({ product: p, index }) {
       </div>
       <div className="st-card__body">
         <p className="st-card__meta">
-          {KIND_LABEL[p.kind]}
+          {PLAN_LABEL[planOf(p)]}
           {p.category && <> · {p.category}</>}
         </p>
         <h2 className="st-card__name">{p.name}</h2>
@@ -388,7 +351,7 @@ function Spotlight({ product: p }) {
     <Link
       to={`/store/${p.id}`}
       state={{ fromList: true }}
-      className={`st-spot ${p.soldOut ? 'is-out' : ''} ${p.tier === 'vip' ? 'is-vip' : ''}`}
+      className={`st-spot ${p.soldOut ? 'is-out' : ''} ${isVip(p) ? 'is-vip' : ''}`}
       onPointerMove={trackPointer}
       onPointerEnter={() => setHover(true)}
       onPointerLeave={() => setHover(false)}
@@ -405,7 +368,7 @@ function Spotlight({ product: p }) {
       <div className="st-spot__body">
         <p className="st-spot__eyebrow">
           <span className="st-spot__star" aria-hidden="true" />
-          Featured · {KIND_LABEL[p.kind]}
+          Featured · {PLAN_LABEL[planOf(p)]}
           {p.category && <> · {p.category}</>}
         </p>
         <h2 className="st-spot__name">{p.name}</h2>
@@ -567,7 +530,7 @@ function ProductSheet({ open, product: p, buy, onClose }) {
 
               <div className="st-sheet__body">
                 <p className="st-card__meta">
-                  {KIND_LABEL[p.kind]}
+                  {PLAN_LABEL[planOf(p)]}
                   {p.category && <> · {p.category}</>}
                 </p>
                 <h2 id="st-sheet-name" className="st-sheet__name">
