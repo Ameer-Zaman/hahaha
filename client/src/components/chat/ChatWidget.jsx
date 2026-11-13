@@ -226,6 +226,13 @@ function RulesChat({ bot }) {
       )
   }, [open, log.length, staffCount, asking])
 
+  // "Ask about a scene" on the Rules page opens the chat
+  useEffect(() => {
+    const show = () => setOpen(true)
+    window.addEventListener('rules-helper:open', show)
+    return () => window.removeEventListener('rules-helper:open', show)
+  }, [])
+
   useEffect(() => {
     if (!open) return undefined
     const onKey = (e) => e.key === 'Escape' && setOpen(false)
@@ -575,7 +582,9 @@ function RulesChat({ bot }) {
                 </svg>
               </button>
             </div>
-            {!inStaffChat && <p className="chatw__disclaimer">{bot.name} is in beta and can make mistakes. Check the rule book for the exact wording.</p>}
+            {!inStaffChat && (
+              <p className="chatw__disclaimer">{bot.name} is in beta and can make mistakes. Check the rule book for the exact wording.</p>
+            )}
           </form>
         )}
       </section>

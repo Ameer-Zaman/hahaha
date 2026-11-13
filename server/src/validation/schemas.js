@@ -429,24 +429,51 @@ const ruleId = z
   .max(60)
   .regex(/^[a-z0-9-]+$/, 'use lowercase letters, numbers and dashes')
 
+const ruleDay = z
+  .union([z.literal(''), z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'use YYYY-MM-DD')])
+  .optional()
+  .default('')
+const SEVERITY_LEVEL = { critical: 'zero', high: 'serious', medium: 'standard', low: 'standard' }
+
 export const ruleBookSchema = z.object({
   categories: z
     .array(
       z.object({
         id: ruleId,
         title: text(80).min(1),
-        summary: text(240).optional().default(''),
+        summary: text(800).optional().default(''),
+        icon: text(30).optional().default(''),
+        locked: z.boolean().optional().default(false),
+        lockedDivisions: z.array(text(80).min(1)).max(12).optional().default([]),
+        divisions: z
+          .array(z.object({ name: text(80).min(1), sections: z.array(text(120).min(1)).max(30).optional().default([]) }))
+          .max(12)
+          .optional()
+          .default([]),
+        updated: ruleDay,
         rules: z
           .array(
-            z.object({
-              id: ruleId,
-              title: text(120).min(1),
-              text: text(2000).min(1),
-              level: z.enum(['standard', 'serious', 'zero']).optional().default('standard'),
-              penalty: text(160).optional().default(''),
-            }),
+            z
+              .object({
+                id: ruleId,
+                number: text(20).optional().default(''),
+                title: text(120).min(1),
+                summary: text(400).optional().default(''),
+                text: text(6000).min(1),
+                severity: z.enum(['', 'critical', 'high', 'medium', 'low']).optional().default(''),
+                level: z.enum(['standard', 'serious', 'zero']).optional().default('standard'),
+                penalty: text(160).optional().default(''),
+                tags: z.array(text(40).min(1)).max(12).optional().default([]),
+                division: text(80).optional().default(''),
+                section: text(120).optional().default(''),
+                effective: ruleDay,
+                updated: ruleDay,
+                version: z.number().int().min(1).max(999).optional().default(1),
+              })
+              // the severity decides the old importance level, so the two can't disagree
+              .transform((r) => (r.severity ? { ...r, level: SEVERITY_LEVEL[r.severity] } : r)),
           )
-          .max(100),
+          .max(200),
       }),
     )
     .max(40),

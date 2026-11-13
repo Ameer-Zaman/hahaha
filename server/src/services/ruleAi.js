@@ -65,7 +65,7 @@ export function aiStatus() {
 
 const SYSTEM = `You are the rules helper on a FiveM roleplay community website (${env.siteName}).
 Answer the player's question using ONLY the rules given to you. Do not invent rules, penalties, punishments, numbers or exceptions, and do not use outside knowledge about other servers.
-- If the rules given answer the question, explain it in 1-3 short, plain sentences, like a friendly staff member. Mention the rule by its title.
+- If the rules given answer the question, explain it in 1-3 short, plain sentences, like a friendly staff member. Mention the rule by its number (if it has one) and title.
 - If a rule is only listed by title, you may point the player to it, but do not guess what it says.
 - If the player just says hi, thanks, bye or similar small talk, reply warmly in one short sentence and invite them to ask about the rules. Set "found" to true and "rules" to [].
 - If the rules given do not cover the question, or it is not about the server rules, say briefly that the rule book doesn't cover it and they can ask the staff. Set "found" to false.
@@ -74,7 +74,7 @@ Answer the player's question using ONLY the rules given to you. Do not invent ru
 Reply with JSON only: {"answer": "...", "rules": ["<rule id>", ...], "found": true|false}. "rules" lists the ids (in square brackets below) of at most 3 rules you used.`
 
 const ruleLine = (r, c) =>
-  `[${r.id}] ${c.title} › ${r.title}${r.level === 'zero' ? ' (zero tolerance)' : r.level === 'serious' ? ' (serious)' : ''}: ${r.text}${r.penalty ? ` Penalty: ${r.penalty}` : ''}`
+  `[${r.id}] ${c.title} › ${r.number ? `${r.number} ` : ''}${r.title}${r.level === 'zero' ? ' (zero tolerance)' : r.level === 'serious' ? ' (serious)' : ''}: ${r.text}${r.penalty ? ` Penalty: ${r.penalty}` : ''}`
 
 /** The rules the model gets for this question, and the ids it is allowed to cite. */
 function context(categories, question, history) {
@@ -94,7 +94,7 @@ function context(categories, question, history) {
   const full = [...picked.values()].slice(0, 10).map((f) => ruleLine(f.rule, f.category))
   const titles = all
     .filter(({ r }) => !picked.has(r.id))
-    .map(({ r, c }) => `[${r.id}] ${c.title} › ${r.title}`)
+    .map(({ r, c }) => `[${r.id}] ${c.title} › ${r.number ? `${r.number} ` : ''}${r.title}`)
     .join('\n')
     .slice(0, 6000)
   return { ids, text: `RULES (full text):\n${full.join('\n') || '(none matched)'}\n\nOTHER RULES (title only):\n${titles}` }
@@ -186,7 +186,10 @@ export async function askRules(question, history = []) {
   if (!queue.length) throw new AiUnavailable(aiEnabled() ? 'all resting' : 'off')
 
   const book = await RuleBook.findOne({ key: 'main' }, 'published').lean()
-  const categories = book?.published ?? []
+  // locked books and divisions are not public, so the helper doesn't see them either
+  const categories = (book?.published ?? [])
+    .filter((c) => !c.locked)
+    .map((c) => ({ ...c, rules: c.rules.filter((r) => !(c.lockedDivisions ?? []).includes(r.division)) }))
   if (!categories.some((c) => c.rules.length)) throw new AiUnavailable('no rules')
 
   const { ids, text } = context(categories, question, history)

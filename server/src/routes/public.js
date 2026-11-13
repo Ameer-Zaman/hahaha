@@ -363,8 +363,35 @@ router.get('/rules', async (req, res) => {
   res.json({
     status: 'published',
     categories: book.published.map((c) => ({
-      ...c,
-      rules: c.rules.map((r) => ({ id: r.id, title: r.title, text: r.text, level: r.level ?? 'standard', penalty: r.penalty ?? '' })),
+      id: c.id,
+      title: c.title,
+      summary: c.summary ?? '',
+      icon: c.icon ?? '',
+      locked: c.locked === true,
+      lockedDivisions: c.lockedDivisions ?? [],
+      divisions: (c.divisions ?? []).map((d) => ({ name: d.name, sections: d.sections ?? [] })),
+      updated: c.updated ?? '',
+      // a locked book's rules stay private until the staff unlock it
+      rules: c.locked
+        ? []
+        : c.rules
+            .filter((r) => !(c.lockedDivisions ?? []).includes(r.division))
+            .map((r) => ({
+              id: r.id,
+              number: r.number ?? '',
+              title: r.title,
+              summary: r.summary ?? '',
+              text: r.text,
+              severity: r.severity ?? '',
+              level: r.level ?? 'standard',
+              penalty: r.penalty ?? '',
+              tags: r.tags ?? [],
+              division: r.division ?? '',
+              section: r.section ?? '',
+              effective: r.effective ?? '',
+              updated: r.updated ?? '',
+              version: r.version ?? 1,
+            })),
     })),
     extras: { notice: x.notice ?? '', penalties: x.penalties ?? [], appeals: x.appeals ?? '', glossary: x.glossary ?? [] },
     lastUpdated: book.publishedAt,

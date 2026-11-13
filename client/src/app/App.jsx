@@ -29,27 +29,133 @@ const PanelApp = lazy(() => import('../features/panel/PanelApp'))
 export default function App() {
   return (
     <Routes>
-      <Route path="panel/*" element={<Lazy><PanelApp /></Lazy>} />
+      <Route
+        path="panel/*"
+        element={
+          <Lazy>
+            <PanelApp />
+          </Lazy>
+        }
+      />
       <Route element={<Layout />}>
-        <Route index element={<Lazy><HomePage /></Lazy>} />
-        <Route path="staff" element={<Section to="/staff"><StaffPage /></Section>} />
-        <Route path="creators" element={<Section to="/creators"><CreatorsPage /></Section>} />
+        <Route
+          index
+          element={
+            <Lazy>
+              <HomePage />
+            </Lazy>
+          }
+        />
+        <Route
+          path="staff"
+          element={
+            <Section to="/staff">
+              <StaffPage />
+            </Section>
+          }
+        />
+        <Route
+          path="creators"
+          element={
+            <Section to="/creators">
+              <CreatorsPage />
+            </Section>
+          }
+        />
         {/* the page used to be called Admin */}
         <Route path="admin" element={<Navigate to="/staff" replace />} />
-        <Route path="gangs" element={<Section to="/gangs"><GangsPage /></Section>} />
-        <Route path="gangs/:slug" element={<Section to="/gangs"><GangPage /></Section>} />
-        <Route path="clubs" element={<Section to="/clubs"><ClubsPage /></Section>} />
-        <Route path="dhadhas" element={<Section to="/dhadhas"><DhadhasPage /></Section>} />
-        <Route path="story" element={<Section to="/story"><StoryPage /></Section>} />
+        <Route
+          path="gangs"
+          element={
+            <Section to="/gangs">
+              <GangsPage />
+            </Section>
+          }
+        />
+        <Route
+          path="gangs/:slug"
+          element={
+            <Section to="/gangs">
+              <GangPage />
+            </Section>
+          }
+        />
+        <Route
+          path="clubs"
+          element={
+            <Section to="/clubs">
+              <ClubsPage />
+            </Section>
+          }
+        />
+        <Route
+          path="dhadhas"
+          element={
+            <Section to="/dhadhas">
+              <DhadhasPage />
+            </Section>
+          }
+        />
+        <Route
+          path="story"
+          element={
+            <Section to="/story">
+              <StoryPage />
+            </Section>
+          }
+        />
         {/* one route for both: an event's details open as a pop-up over the list */}
-        <Route path="events/:slug?" element={<Section to="/events"><EventsPage /></Section>} />
-        <Route path="leaderboard" element={<Section to="/leaderboard"><LeaderboardPage /></Section>} />
-        <Route path="rules" element={<Section to="/rules"><RulesPage /></Section>} />
+        <Route
+          path="events/:slug?"
+          element={
+            <Section to="/events">
+              <EventsPage />
+            </Section>
+          }
+        />
+        <Route
+          path="leaderboard"
+          element={
+            <Section to="/leaderboard">
+              <LeaderboardPage />
+            </Section>
+          }
+        />
+        <Route
+          path="rules"
+          element={
+            <Section to="/rules">
+              <RulesPage />
+            </Section>
+          }
+        />
+        <Route
+          path="rules/:ruleId"
+          element={
+            <Section to="/rules">
+              <RulesPage />
+            </Section>
+          }
+        />
         {/* a product's details open as a panel over the list, with their own link */}
-        <Route path="store/:slug?" element={<Section to="/store"><StorePage /></Section>} />
+        <Route
+          path="store/:slug?"
+          element={
+            <Section to="/store">
+              <StorePage />
+            </Section>
+          }
+        />
         {/* old /apply links: straight on to the Discord invite (or home if it isn't set yet) */}
         <Route path="apply" element={<ApplyRedirect />} />
-        <Route path="*" element={<Lazy><NotFoundPage /></Lazy>} />
+        <Route
+          path="*"
+          element={
+            <Lazy>
+              <NotFoundPage />
+            </Lazy>
+          }
+        />
       </Route>
     </Routes>
   )
@@ -85,4 +191,3 @@ function ApplyRedirect() {
   }
   return <Navigate to="/" replace />
 }
-
