@@ -329,9 +329,12 @@ function SoonArt({ seed = '', big = false }) {
   const [a, b, c] = SOON_PALETTES.at(h % SOON_PALETTES.length)
   return (
     <span className={`st-soonart ${big ? 'st-soonart--big' : ''}`} style={{ '--a': a, '--b': b, '--c': c, '--d': `${-(h % 9)}s` }}>
-      <span className="st-soonart__blob st-soonart__blob--a" />
-      <span className="st-soonart__blob st-soonart__blob--b" />
-      <span className="st-soonart__blob st-soonart__blob--c" />
+      <span className="st-soonart__flow">
+        <span className="st-soonart__blob st-soonart__blob--a" />
+        <span className="st-soonart__blob st-soonart__blob--b" />
+        <span className="st-soonart__blob st-soonart__blob--c" />
+      </span>
+      <span className="st-soonart__sweep" />
       <span className="st-soonart__grain" />
       <span className="st-soonart__words">
         <span className="st-soonart__dot" aria-hidden="true" />

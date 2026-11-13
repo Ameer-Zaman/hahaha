@@ -1619,3 +1619,110 @@
     animation: none;
   }
 }
+
+/* ---- Coming soon art: livelier motion ----
+   the colours keep drifting, swirling and changing hue, with a soft light sweeping across */
+.st-soonart__flow {
+  position: absolute;
+  inset: 0;
+  animation: st-soon-hue 10s linear infinite;
+}
+@keyframes st-soon-hue {
+  to {
+    filter: hue-rotate(360deg);
+  }
+}
+.st-soonart__blob {
+  width: 80%;
+  animation-duration: 6s;
+  animation-direction: normal;
+  animation-timing-function: ease-in-out;
+}
+.st-soonart__blob--a {
+  animation-name: st-blob-loop-a;
+}
+.st-soonart__blob--b {
+  animation-name: st-blob-loop-b;
+  animation-duration: 7.5s;
+}
+.st-soonart__blob--c {
+  animation-name: st-blob-loop-c;
+  animation-duration: 9s;
+}
+@keyframes st-blob-loop-a {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(55%, 30%) scale(1.25);
+  }
+  66% {
+    transform: translate(15%, 60%) scale(0.85);
+  }
+}
+@keyframes st-blob-loop-b {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(-55%, 35%) scale(0.8);
+  }
+  66% {
+    transform: translate(-20%, -30%) scale(1.3);
+  }
+}
+@keyframes st-blob-loop-c {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1.1);
+  }
+  50% {
+    transform: translate(-25%, -70%) scale(0.9);
+  }
+}
+.st-soonart::before {
+  opacity: 0.5;
+  animation-duration: 7s;
+}
+/* a soft band of light passing across every few seconds */
+.st-soonart__sweep {
+  position: absolute;
+  inset: -20% -60%;
+  z-index: 1;
+  background: linear-gradient(100deg, transparent 40%, rgb(255 255 255 / 0.22) 50%, transparent 60%);
+  transform: translateX(-60%);
+  animation: st-soon-sweep 4.5s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+  pointer-events: none;
+}
+@keyframes st-soon-sweep {
+  0%,
+  35% {
+    transform: translateX(-60%);
+  }
+  75%,
+  100% {
+    transform: translateX(60%);
+  }
+}
+/* fewer moving parts for people who asked for less motion: only the colours change, slowly */
+@media (prefers-reduced-motion: reduce) {
+  .st-soonart__blob,
+  .st-soonart::before,
+  .st-soonart__sweep {
+    animation: none;
+  }
+  .st-soonart__flow {
+    animation-duration: 30s;
+  }
+}
+/* keep the moving layers inside the picture's rounded corners (some browsers let them peek out) */
+.st-soonart {
+  clip-path: inset(0);
+}
+.st-card__frame .st-soonart,
+.st-spot__frame .st-soonart {
+  clip-path: inset(0 round var(--radius-md));
+}
