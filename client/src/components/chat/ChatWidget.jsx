@@ -401,7 +401,10 @@ function RulesChat({ bot }) {
         <header className="chatw__head">
           <BotAvatar bot={bot} size="sm" />
           <div className="chatw__title">
-            <p className="chatw__name">{bot.name}</p>
+            <p className="chatw__name">
+              {bot.name}
+              {!inStaffChat && <span className="chatw__beta">Beta</span>}
+            </p>
             <p className="chatw__status">{inStaffChat ? 'Chatting with staff' : 'Answers from the rule book'}</p>
           </div>
           {auth ? (
@@ -572,7 +575,7 @@ function RulesChat({ bot }) {
                 </svg>
               </button>
             </div>
-            {!inStaffChat && <p className="chatw__disclaimer">{bot.name} is AI and can make mistakes. Check the rule book for the exact wording.</p>}
+            {!inStaffChat && <p className="chatw__disclaimer">{bot.name} is in beta and can make mistakes. Check the rule book for the exact wording.</p>}
           </form>
         )}
       </section>
