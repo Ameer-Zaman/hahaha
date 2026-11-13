@@ -6,6 +6,8 @@ import { ApiError, USE_API } from '../../lib/api'
 import { useRuleBook } from '../../lib/ruleBook'
 import { indexRules, searchRules } from '../../lib/ruleSearch'
 import { useCommunityLinks, useSiteSettings } from '../../lib/siteSettings'
+import { severityLabel, severityOf } from '../../features/rules/bookMeta'
+import Markdown from '../../features/rules/Markdown'
 import { SOCIAL_PLATFORMS } from '../ui/socialPlatforms'
 import './chat.css'
 
@@ -130,6 +132,14 @@ function RulesChat({ bot }) {
   const { categories } = useRuleBook()
   const discord = useCommunityLinks().find((l) => l.id === 'discord')?.url || applyLink.href || ''
   const index = useMemo(() => indexRules(categories), [categories])
+  // rule numbers in an answer (HON-03) link to that rule
+  const refTo = useMemo(() => {
+    const byNumber = new Map(index.filter((e) => e.rule.number).map((e) => [e.rule.number, e]))
+    return (number) => {
+      const e = byNumber.get(number)
+      return e ? `/rules?book=${e.category.id}#${e.rule.id}` : null
+    }
+  }, [index])
   const [open, setOpen] = useState(false)
   const [openedAt] = useState(() => new Date())
   const [log, setLog] = useState(() => [
@@ -255,12 +265,34 @@ function RulesChat({ bot }) {
   // the plain rule search, in the browser: always works, quotes the rule book word for word
   function searchAnswer(q) {
     const found = searchRules(index, q)
-    return found.length
-      ? say('bot', {
-          text: found.length === 1 ? 'Here’s the rule:' : 'These rules cover it:',
-          rules: found.map((f) => ({ rule: f.rule, category: f.category })),
-        })
-      : say('bot', { text: 'I couldn’t find a rule about that. Try other words, or ask the staff.', noMatch: true })
+    if (!found.length) {
+      return say('bot', {
+        md: true,
+        text: [
+          '**I couldn’t find a rule about that.**',
+          '- Try describing it another way: what happened, where, and who was involved.',
+          '- Or open the Rules page and search every rule book.',
+          '- If it’s about a real situation in the city, the staff can tell you for sure.',
+        ].join('\n'),
+        noMatch: true,
+      })
+    }
+    const [main, ...rest] = found
+    const name = (f) => `**${[f.rule.number, f.rule.title].filter(Boolean).join(' · ')}**`
+    const where = (f) => [f.category.title, f.rule.section].filter(Boolean).join(' › ')
+    const lines = [
+      found.length === 1
+        ? `This is covered by ${name(main)} in ${where(main)} (${severityLabel(main.rule).toLowerCase()} severity).`
+        : `${found.length} rules cover this. The main one is ${name(main)} in ${where(main)} (${severityLabel(main.rule).toLowerCase()} severity); the ${rest.length === 1 ? 'other one' : `other ${rest.length}`} below may also apply.`,
+      '',
+      'Here is what it says. Staff make the final call on any specific situation.',
+    ]
+    return say('bot', {
+      md: true,
+      lead: true, // the main rule in full, the others as links
+      text: lines.join('\n'),
+      rules: found.map((f) => ({ rule: f.rule, category: f.category })),
+    })
   }
 
   async function ask(question) {
@@ -310,6 +342,7 @@ function RulesChat({ bot }) {
       const byId = new Map(index.map((e) => [e.rule.id, e]))
       const rules = data.rules.map((id) => byId.get(id)).filter(Boolean)
       answer = say('bot', {
+        md: true,
         text: data.answer,
         rules: rules.length ? rules.map((e) => ({ rule: e.rule, category: e.category })) : undefined,
         compact: true,
@@ -461,26 +494,27 @@ function RulesChat({ bot }) {
                         <i />
                       </span>
                     </span>
+                  ) : m.md ? (
+                    <div className="chatw__bubble chatw__bubble--md">
+                      <Markdown text={m.text} refTo={refTo} className="chatw__md" />
+                    </div>
                   ) : (
                     <span className="chatw__bubble">{m.greet ? `Hi, I’m ${bot.name}! ${m.text}` : m.text}</span>
                   )}
 
                   {m.rules && (
                     <span className="chatw__rules">
-                      {m.rules.map(({ rule, category }) =>
-                        m.compact ? (
-                          <Link key={rule.id} to={`/rules#${rule.id}`} className="chatw__rule chatw__rule--compact">
-                            {rule.title} <span aria-hidden="true">›</span>
+                      {m.rules.map(({ rule, category }, ri) =>
+                        m.compact || (m.lead && ri > 0) ? (
+                          <Link key={rule.id} to={`/rules/${rule.id}`} className="chatw__rule chatw__rule--compact">
+                            <span className="chatw__rule-name">
+                              {rule.number && <b>{rule.number}</b>} {rule.title}
+                            </span>
+                            <span className={`chatw__sev chatw__sev--${severityOf(rule)}`}>{severityLabel(rule)}</span>
+                            <span aria-hidden="true">›</span>
                           </Link>
                         ) : (
-                          <span key={rule.id} className="chatw__rule">
-                            <span className="chatw__rule-cat">{category.title}</span>
-                            <span className="chatw__rule-title">{rule.title}</span>
-                            <span className="chatw__rule-text">{rule.text}</span>
-                            <Link to={`/rules#${rule.id}`} className="chatw__rule-link">
-                              Read it in the rules
-                            </Link>
-                          </span>
+                          <RuleCard key={rule.id} rule={rule} category={category} refTo={refTo} />
                         ),
                       )}
                     </span>
@@ -644,6 +678,37 @@ function BotAvatar({ bot, size = 'sm' }) {
           (bot.name.trim()[0] ?? 'V').toUpperCase()
         )}
       </span>
+    </span>
+  )
+}
+
+/** A rule found by the search: where it is, its number and severity, the short version, and the full rule on request. */
+function RuleCard({ rule, category, refTo }) {
+  return (
+    <span className="chatw__rule">
+      <span className="chatw__rule-top">
+        {rule.number && <span className="chatw__rule-num">{rule.number}</span>}
+        <span className={`chatw__sev chatw__sev--${severityOf(rule)}`}>{severityLabel(rule)}</span>
+      </span>
+      <span className="chatw__rule-title">{rule.title}</span>
+      <span className="chatw__rule-cat">{[category.title, rule.division, rule.section].filter(Boolean).join(' › ')}</span>
+      {rule.summary && (
+        <span className="chatw__rule-sum">
+          <b>In short:</b> {rule.summary}
+        </span>
+      )}
+      <details className="chatw__rule-full" open={!rule.summary}>
+        <summary>Read the full rule</summary>
+        <Markdown text={rule.text} refTo={refTo} className="chatw__md chatw__md--rule" />
+        {rule.penalty && (
+          <p className="chatw__md-penalty">
+            <b>Penalty:</b> {rule.penalty}
+          </p>
+        )}
+      </details>
+      <Link to={`/rules/${rule.id}`} className="chatw__rule-link">
+        Open this rule ›
+      </Link>
     </span>
   )
 }

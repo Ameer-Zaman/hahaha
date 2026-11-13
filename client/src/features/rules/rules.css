@@ -908,6 +908,7 @@
   color: var(--c-gold);
 }
 .md-ref {
+  white-space: nowrap;
   font-family: var(--font-mono);
   font-size: 0.9em;
   font-weight: 700;

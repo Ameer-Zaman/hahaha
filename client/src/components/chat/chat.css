@@ -21,13 +21,17 @@
   z-index: 95;
   font-family: var(--font-sans);
   color: var(--cw-text);
-  transition: opacity 0.2s ease, visibility 0s linear 0s;
+  transition:
+    opacity 0.2s ease,
+    visibility 0s linear 0s;
 }
 /* out of the way while the phone menu is open: it would sit on top of the menu's links */
 :root[data-menu-open] .chatw {
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.15s ease, visibility 0s linear 0.15s;
+  transition:
+    opacity 0.15s ease,
+    visibility 0s linear 0.15s;
 }
 
 /* ---------- the button: the bot's own picture ---------- */
@@ -43,7 +47,9 @@
   border-radius: 50%;
   background: var(--cw-ring);
   color: #0b0a08;
-  box-shadow: 0 14px 34px -10px rgb(0 0 0 / 0.85), 0 0 24px -8px rgb(227 181 90 / 0.6);
+  box-shadow:
+    0 14px 34px -10px rgb(0 0 0 / 0.85),
+    0 0 24px -8px rgb(227 181 90 / 0.6);
   cursor: pointer;
   transition: transform 0.2s ease;
 }
@@ -112,13 +118,19 @@
   visibility: hidden;
   transform: translateY(8px);
   transform-origin: bottom right;
-  transition: opacity 0.22s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0.25s;
+  transition:
+    opacity 0.22s ease,
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0.25s;
 }
 .chatw.is-open .chatw__panel {
   opacity: 1;
   visibility: visible;
   transform: none;
-  transition: opacity 0.22s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s;
+  transition:
+    opacity 0.22s ease,
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s;
 }
 
 /* header: ringed avatar, bold name, a quiet line under it */
@@ -452,9 +464,20 @@
 .chatw__rule--compact:hover {
   background: rgb(227 181 90 / 0.06);
 }
-.chatw__rule--compact span {
+.chatw__rule--compact > span[aria-hidden] {
   color: var(--cw-muted);
   font-size: 1.1rem;
+}
+.chatw__rule-name {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+.chatw__rule-name b {
+  margin-right: 0.3rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.8125rem;
+  color: var(--cw-accent);
 }
 
 /* ---------- quick replies ---------- */
@@ -556,7 +579,9 @@
   background: var(--c-gold, #e3b55a);
   color: #0b0a08;
   cursor: pointer;
-  transition: background-color 0.2s ease, opacity 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    opacity 0.2s ease;
 }
 .chatw__send:hover:not(:disabled) {
   background: var(--c-gold-light, #f6e3b0);
@@ -678,4 +703,183 @@
   text-transform: uppercase;
   vertical-align: middle;
   color: var(--c-gold-light);
+}
+
+/* ---------- detailed answers: short paragraphs, bullet points, bold, rule numbers as links ---------- */
+.chatw__bubble--md {
+  white-space: normal;
+  max-width: 100%;
+}
+.chatw__md {
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+.chatw__md p,
+.chatw__md ul,
+.chatw__md ol {
+  margin: 0;
+}
+.chatw__md strong {
+  color: #fff;
+  font-weight: 700;
+}
+.chatw__md ul {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0;
+  list-style: none;
+}
+.chatw__md ul > li {
+  position: relative;
+  padding-left: 1rem;
+}
+.chatw__md ul > li::before {
+  content: '';
+  position: absolute;
+  left: 0.1rem;
+  top: 0.62em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--c-gold, #e3b55a);
+}
+.chatw__md ol {
+  display: grid;
+  gap: 0.35rem;
+  padding-left: 1.2rem;
+}
+.chatw__md ol > li::marker {
+  color: var(--c-gold, #e3b55a);
+  font-weight: 700;
+}
+.chatw__md code {
+  padding: 0.05em 0.35em;
+  border-radius: 4px;
+  background: rgb(244 239 230 / 0.08);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85em;
+}
+.chatw__md .md-ref {
+  white-space: nowrap;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85em;
+  font-weight: 700;
+  color: var(--cw-accent);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+.chatw__md .md-penalty,
+.chatw__md-penalty {
+  margin: 0;
+  padding: 0.45rem 0.65rem;
+  border-left: 2px solid #d0475a;
+  background: rgb(208 71 90 / 0.1);
+}
+.chatw__md .md-penalty strong,
+.chatw__md-penalty b {
+  color: #ff9aa4;
+}
+.chatw__md .md-table {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--cw-line-strong);
+  border-radius: var(--cw-r);
+}
+.chatw__md table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+.chatw__md th,
+.chatw__md td {
+  padding: 0.35rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+}
+.chatw__md th {
+  background: rgb(227 181 90 / 0.1);
+  color: var(--cw-accent);
+}
+.chatw__md tbody tr + tr td {
+  border-top: 1px solid var(--cw-line);
+}
+.chatw__md td:first-child {
+  white-space: nowrap;
+}
+.chatw__md--rule {
+  font-size: 0.875rem;
+  color: #dcdcdc;
+}
+
+/* a found rule: number and severity, title, where it is, the short version, the full rule */
+.chatw__rule-top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.chatw__rule-num {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--cw-accent);
+}
+.chatw__sev {
+  flex: none;
+  padding: 0.05rem 0.45rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #e7d39a;
+}
+.chatw__sev--critical {
+  color: #ff7b86;
+}
+.chatw__sev--high {
+  color: #f3b05c;
+}
+.chatw__sev--low {
+  color: #9ec3ad;
+}
+.chatw__rule-sum {
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--cw-text);
+}
+.chatw__rule-sum b {
+  color: var(--cw-accent);
+}
+.chatw__rule-full {
+  display: grid;
+  gap: 0.5rem;
+}
+.chatw__rule-full > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--cw-muted);
+  cursor: pointer;
+  list-style: none;
+}
+.chatw__rule-full > summary::-webkit-details-marker {
+  display: none;
+}
+.chatw__rule-full > summary::before {
+  content: '▸';
+  transition: transform 0.15s;
+}
+.chatw__rule-full[open] > summary::before {
+  transform: rotate(90deg);
+}
+.chatw__rule-full > summary:hover {
+  color: var(--cw-text);
+}
+.chatw__rule-full[open] > .chatw__md {
+  margin-bottom: 0.25rem;
 }
