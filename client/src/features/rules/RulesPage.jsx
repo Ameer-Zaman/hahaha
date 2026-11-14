@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import ApplyLink from '../../components/ui/ApplyLink'
@@ -14,6 +15,38 @@ import Markdown, { Hl } from './Markdown'
 import { plainText } from './markdownText'
 import RuleIcon from './RuleIcon'
 import './rules.css'
+
+// the opening throw (three.js) is only downloaded when it plays
+const RulesIntro = lazy(() => import('./intro/RulesIntro'))
+// moving between /rules and a rule's own page doesn't replay it
+let leftRulesAt = 0
+
+/** Whether the opening should play for this visit. ?intro=1 always plays it; ?intro=0 never. */
+function wantIntro(ruleId, hash) {
+  if (typeof window === 'undefined') return false
+  const q = new URLSearchParams(window.location.search).get('intro')
+  if (q === '1' || window.location.search.includes('intro-t=')) return true
+  if (q === '0' || ruleId || hash) return false
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return false
+  return Date.now() - leftRulesAt > 1500
+}
+
+/** Plays the opening once, and gives up quietly if it can't load in time. */
+function Intro({ rules, onDone }) {
+  useEffect(() => {
+    const html = document.documentElement
+    const before = html.style.overflow
+    html.style.overflow = 'hidden'
+    return () => {
+      html.style.overflow = before
+    }
+  }, [])
+  return (
+    <Suspense fallback={createPortal(<div className="ri-cover" aria-hidden="true" />, document.body)}>
+      <RulesIntro rules={rules} onDone={onDone} />
+    </Suspense>
+  )
+}
 
 /*
  * The Rules page — the whole rule book, laid out like the Rameirah Empire Codex: books down the
@@ -113,8 +146,30 @@ export default function RulesPage() {
     return e ? `/rules?book=${e.book.id}#${e.rule.id}` : null
   }
 
+  const { hash } = useLocation()
+  const [intro, setIntro] = useState(() => wantIntro(ruleId, hash))
+  useEffect(() => () => void (leftRulesAt = Date.now()), [])
+  // if the 3D can't start within a few seconds (slow connection), skip it
+  useEffect(() => {
+    if (!intro) return undefined
+    const id = window.setTimeout(() => {
+      if (!document.querySelector('.ri')) setIntro(false)
+    }, 4000)
+    return () => window.clearTimeout(id)
+  }, [intro])
+  const introRules = useMemo(
+    () => shelf.all.filter((e) => e.rule.number).map((e) => ({ number: e.rule.number, title: e.rule.title })),
+    [shelf],
+  )
+
   return (
     <>
+      {intro &&
+        (book.loading ? (
+          createPortal(<div className="ri-cover" aria-hidden="true" />, document.body)
+        ) : (
+          <Intro rules={introRules} onDone={() => setIntro(false)} />
+        ))}
       <ParallaxScope as="section" className="page-head page-head--word theme-dark rules-hero" aria-labelledby="rules-title">
         <ParallaxWord text="Rules" motion="x:6%:-10%" className="page-head__word" />
         <div className="container rules-head">

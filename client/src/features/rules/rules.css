@@ -1307,3 +1307,11 @@
     break-inside: avoid;
   }
 }
+
+/* black while the opening loads, so the page doesn't flash first */
+.ri-cover {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: #050506;
+}

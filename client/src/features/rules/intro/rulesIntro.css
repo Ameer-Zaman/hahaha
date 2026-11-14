@@ -1,0 +1,132 @@
+/* The Rules page's opening: the 3D throw, then pages on the glass that fall away. */
+.ri {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  cursor: pointer;
+  overflow: hidden;
+}
+.ri__stage {
+  position: absolute;
+  inset: 0;
+  background: #050506;
+  transition: opacity 0.45s ease;
+}
+.ri__stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.ri--fade .ri__stage,
+.ri--fall .ri__stage {
+  opacity: 0;
+}
+.ri__sheets {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* a page that hit the screen */
+.ri-sheet {
+  position: absolute;
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  width: clamp(140px, 17vw, 250px);
+  aspect-ratio: 210 / 297;
+  padding: clamp(10px, 1.3vw, 18px) clamp(11px, 1.4vw, 20px);
+  border-radius: 2px;
+  background:
+    radial-gradient(130% 100% at 0% 0%, rgb(255 255 255 / 0.6), transparent 55%), linear-gradient(160deg, #fbf8f1, #ece4d4 70%, #e2d8c4);
+  box-shadow:
+    0 2px 3px rgb(0 0 0 / 0.35),
+    0 26px 50px -18px rgb(0 0 0 / 0.75);
+  color: #16140f;
+  transform: translate(-50%, -50%) rotate(var(--r));
+  animation: ri-slap 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+.ri-sheet::before {
+  content: '';
+  height: 3px;
+  background: #b8913e;
+}
+.ri-sheet__head {
+  font-family: var(--font-mono, monospace);
+  font-size: clamp(6px, 0.6vw, 9px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7a6430;
+}
+.ri-sheet__num {
+  margin-top: 0.3rem;
+  white-space: nowrap;
+  font-family: var(--font-display, sans-serif);
+  font-size: clamp(18px, 2.1vw, 30px);
+  line-height: 1;
+}
+.ri-sheet__title {
+  font-size: clamp(9px, 0.95vw, 14px);
+  font-weight: 700;
+  line-height: 1.25;
+  color: #2b2720;
+}
+.ri-sheet__lines {
+  height: 46%;
+  margin-top: 0.4rem;
+  background: repeating-linear-gradient(transparent 0 9px, rgb(40 36 28 / 0.2) 9px 13px);
+  -webkit-mask: linear-gradient(90deg, #000 70%, transparent);
+  mask: linear-gradient(90deg, #000 70%, transparent);
+}
+@keyframes ri-slap {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(calc(var(--r) * 1.8)) scale(2.4);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--r)) scale(0.97);
+  }
+}
+.ri--fall .ri-sheet {
+  animation: ri-fall 1.15s cubic-bezier(0.55, 0, 0.85, 0.35) var(--d) forwards;
+}
+@keyframes ri-fall {
+  from {
+    transform: translate(-50%, -50%) rotate(var(--r));
+  }
+  to {
+    transform: translate(-50%, 120vh) rotate(var(--fall));
+  }
+}
+
+.ri__skip {
+  position: absolute;
+  right: clamp(1rem, 3vw, 2rem);
+  bottom: clamp(1rem, 3vw, 2rem);
+  z-index: 2;
+  min-height: 44px;
+  padding: 0 1.3rem;
+  border: 1px solid rgb(216 172 82 / 0.6);
+  border-radius: 999px;
+  background: rgb(5 5 6 / 0.6);
+  font: inherit;
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f1d48f;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+.ri__skip:hover {
+  background: rgb(216 172 82 / 0.15);
+}
+.ri__skip:focus-visible {
+  outline: 2px solid #f1d48f;
+  outline-offset: 3px;
+}
+.ri--fall .ri__skip {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
