@@ -3,18 +3,37 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Keep title/description in step with src/config/site.js -->
-    <title>Rameirah Empire</title>
-    <meta name="description" content="A FiveM roleplay community preparing for launch. Read the rules, meet the administration and apply before the city opens." />
     <meta name="theme-color" content="#06070a" />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Rameirah Empire" />
-    <meta property="og:description" content="A FiveM roleplay community preparing for launch." />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Between the seo markers: replaced for every page at build time by seo/prerender.js
+         (titles and descriptions live in src/config/seo.js). This copy is only used by `npm run dev`. -->
+    <!-- seo:start -->
+    <title>Rameirah Empire — FiveM GTA V Roleplay Server (Rameirah RP)</title>
+    <meta name="description" content="Rameirah Empire (Rameirah RP) is a serious FiveM roleplay server for GTA V, in preparation. Read the rules, meet the staff, see the gangs and join the Discord." />
+    <!-- seo:end -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <style>
+      /* The page's own text, written in at build time for search engines. The app replaces it as
+         soon as it starts; it only fades in if JavaScript hasn't started after a few seconds. */
+      .seo-shell { opacity: 0; animation: seo-shell-in 0.4s 3s forwards; min-height: 100vh; padding: 32px 20px 64px; max-width: 860px; margin: 0 auto; background: #06070a; color: #e9e3d6; font: 16px/1.6 system-ui, sans-serif; }
+      html, body { background: #06070a; }
+      .seo-shell a { color: #e3b55a; }
+      .seo-shell header { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline; padding-bottom: 16px; border-bottom: 1px solid #2a2418; }
+      .seo-shell header nav { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 14px; }
+      .seo-shell__brand { font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; }
+      .seo-shell h1 { font-size: 40px; line-height: 1.1; margin: 32px 0 12px; color: #fff; }
+      .seo-shell h2 { color: #e3b55a; margin-top: 32px; }
+      .seo-shell__lede { font-size: 18px; color: #cfc6b3; }
+      .seo-shell table { border-collapse: collapse; } .seo-shell td, .seo-shell th { border: 1px solid #2a2418; padding: 4px 8px; }
+      .seo-shell footer { margin-top: 48px; font-size: 14px; }
+      @keyframes seo-shell-in { to { opacity: 1; } }
+    </style>
   </head>
   <body>
     <noscript>
-      <p style="padding:2rem;font-family:sans-serif;color:#fff;background:#000">This site needs JavaScript to run. Please enable it to continue.</p>
+      <p style="padding:1rem 2rem;font-family:sans-serif;color:#fff;background:#000">This site works best with JavaScript turned on.</p>
     </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>

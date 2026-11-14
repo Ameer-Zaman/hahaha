@@ -3,4 +3,7 @@
 # someone can go looking for it.
 User-agent: *
 Disallow: /panel
+Disallow: /api/
 Allow: /
+
+Sitemap: https://rameirahempire.com/sitemap.xml

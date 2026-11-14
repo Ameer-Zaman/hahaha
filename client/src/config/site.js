@@ -99,7 +99,8 @@ export const media = {
  */
 export const integrations = {
   /** GET endpoint for live staff status (Admin page). Empty = not connected. */
-  staffStatusEndpoint: import.meta.env.VITE_STAFF_STATUS_ENDPOINT ?? '',
+  // ?. because this file is also read at build time (seo/prerender.js), outside Vite
+  staffStatusEndpoint: import.meta.env?.VITE_STAFF_STATUS_ENDPOINT ?? '',
 }
 
 /**

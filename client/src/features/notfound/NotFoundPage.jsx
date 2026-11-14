@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
 import usePageTitle from '../../hooks/usePageTitle'
@@ -6,6 +7,14 @@ import ApplyLink from '../../components/ui/ApplyLink'
 
 export default function NotFoundPage() {
   usePageTitle('Page not found')
+  // a missing page must not end up in search results
+  useEffect(() => {
+    const m = document.createElement('meta')
+    m.name = 'robots'
+    m.content = 'noindex'
+    document.head.appendChild(m)
+    return () => m.remove()
+  }, [])
   return (
     <section className="page-head theme-black" aria-labelledby="nf-title" style={{ minHeight: '80svh' }}>
       <div className="container">
@@ -17,9 +26,7 @@ export default function NotFoundPage() {
           <Link to="/" className="btn btn--primary btn--large">
             Go to the homepage <Arrow />
           </Link>
-          <ApplyLink className="btn btn--ghost btn--large">
-            Apply now
-          </ApplyLink>
+          <ApplyLink className="btn btn--ghost btn--large">Apply now</ApplyLink>
         </div>
       </div>
     </section>

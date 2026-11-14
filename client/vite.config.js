@@ -1,6 +1,8 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv } from 'vite'
 
+import seoPrerender from './seo/prerender.js'
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
@@ -9,7 +11,7 @@ export default defineConfig(({ mode }) => {
   const apiTarget = env.API_PROXY_TARGET || 'http://localhost:4000'
   const proxy = { '/api': { target: apiTarget, changeOrigin: false } }
   return {
-    plugins: [react()],
+    plugins: [react(), seoPrerender()],
     server: { proxy },
     preview: { proxy },
     build: {

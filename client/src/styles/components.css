@@ -409,6 +409,12 @@
 }
 
 .page-head__title {
+  /* also used on a <p> when the page's real heading is further down (a rule's own page) */
+  margin-bottom: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
   font-size: var(--fs-3xl);
   line-height: var(--lh-display);
   margin-top: var(--sp-4);

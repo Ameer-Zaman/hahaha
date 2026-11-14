@@ -180,9 +180,16 @@ export default function RulesPage() {
             </svg>
             Mandatory reading
           </p>
-          <h1 id="rules-title" className="page-head__title">
-            Rules
-          </h1>
+          {/* a rule on its own page has its own title as the page's heading */}
+          {ruleId ? (
+            <p id="rules-title" className="page-head__title">
+              Rules
+            </p>
+          ) : (
+            <h1 id="rules-title" className="page-head__title">
+              Rules
+            </h1>
+          )}
           <p className="lede">
             Every citizen of the Empire is expected to know these rules. Read the rule books before you play — staff act on them.
           </p>
@@ -778,7 +785,10 @@ function CriticalList({ critical }) {
 function SingleRule({ shelf, ruleId, refTo, extras }) {
   const navigate = useNavigate()
   const entry = shelf.byId.get(ruleId)
-  usePageTitle(entry ? `${entry.rule.label} ${entry.rule.title} · Rules` : 'Rules')
+  usePageTitle(
+    entry ? `${entry.rule.label} ${entry.rule.title} · Rules` : 'Rules',
+    entry ? `${entry.rule.label} ${entry.rule.title}: ${entry.rule.summary}` : undefined,
+  )
   const [copied, setCopied] = useState(false)
   const chatOn = useSiteSettings().sections.chat !== false
 
@@ -875,9 +885,9 @@ function SingleRule({ shelf, ruleId, refTo, extras }) {
           ) : null}
         </dl>
 
-        <h2 id="rb-single-title" className="rb-single__title">
+        <h1 id="rb-single-title" className="rb-single__title">
           {rule.title}
-        </h2>
+        </h1>
         {rule.summary && <p className="rb-single__summary">{rule.summary}</p>}
 
         <div className="rb-single__tools">
