@@ -28,11 +28,30 @@ function loadImage(url) {
   })
 }
 
-/** The welcome picture: the one chosen in Panel → Site media, else the one shipped with the site. */
-async function loadWelcomeImage() {
+/** A picture chosen in Panel → Site media for the welcome screen, if there is one. */
+async function loadCustomImage() {
   const site = await Promise.race([loadPublic('/site'), new Promise((r) => setTimeout(() => r(null), 1200))])
   const custom = site?.status === 'ok' ? site.data?.media?.welcomeImage : null
-  return (custom && (await loadImage(custom))) || loadImage(media.welcomeImage)
+  return custom ? loadImage(custom) : null
+}
+
+/**
+ * What stands on the right of the welcome screen: the picture chosen in the panel; otherwise
+ * the live guardian (three.js, loaded now); otherwise — no WebGL — the picture shipped with the site.
+ */
+async function loadWelcomeFigure(canvas) {
+  const custom = await loadCustomImage()
+  if (custom) return { image: custom }
+  if (canvas) {
+    try {
+      const { createGuardian } = await import('./guardian')
+      const guardian = createGuardian(canvas)
+      if (guardian) return { image: 'live', guardian }
+    } catch {
+      /* fall back to the still picture */
+    }
+  }
+  return { image: await loadImage(media.welcomeImage) }
 }
 
 /**
@@ -51,13 +70,18 @@ export default function WelcomeGate({ onDone, paused = false }) {
   const buttonRef = useRef(null)
   const hintRef = useRef(null)
   const rippleRef = useRef(null)
+  const guardianRef = useRef(null)
+  const guardianCanvasRef = useRef(null)
   const [initialMode] = useState(() => (window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'fade' : 'pending'))
   const modeRef = useRef(initialMode)
   const onDoneRef = useRef(onDone)
   const pausedRef = useRef(paused) // true while the loading screen is still on top
   useEffect(() => {
     pausedRef.current = paused
-    if (!paused) rippleRef.current?.reveal() // the loading screen is leaving: show the welcome
+    if (!paused) {
+      rippleRef.current?.reveal() // the loading screen is leaving: show the welcome
+      guardianRef.current?.setFade(1)
+    }
   }, [paused])
   const state = useRef({ target: 0, current: 0, committed: false, lastInput: 0, done: false, glideFrom: 0, glideAt: 0 })
   const [mode, setMode] = useState(initialMode) // pending → ripple | fade
@@ -103,10 +127,20 @@ export default function WelcomeGate({ onDone, paused = false }) {
       document.fonts?.load('16px "Space Mono"'),
     ])
     const timeout = new Promise((resolve) => setTimeout(resolve, 1500))
-    const picture = Promise.race([loadWelcomeImage(), new Promise((resolve) => setTimeout(() => resolve(null), 3000))])
-    Promise.all([Promise.race([fontReady, timeout]), picture]).then(([, image]) => {
-      if (cancelled || !canvasRef.current) return
-      if (image) setFallbackImage(image.src)
+    const figure = Promise.race([
+      loadWelcomeFigure(guardianCanvasRef.current),
+      new Promise((resolve) => setTimeout(() => resolve({ image: null }), 4500)),
+    ])
+    Promise.all([Promise.race([fontReady, timeout]), figure]).then(([, { image, guardian }]) => {
+      if (cancelled || !canvasRef.current) {
+        guardian?.dispose()
+        return
+      }
+      if (image && image !== 'live') setFallbackImage(image.src)
+      if (guardian) {
+        guardianRef.current = guardian
+        if (!pausedRef.current) guardian.setFade(1)
+      }
       const ripple = createRipple(canvasRef.current, paintWelcome(site.name, site.welcome, image))
       if (!ripple) {
         switchMode('fade')
@@ -120,7 +154,16 @@ export default function WelcomeGate({ onDone, paused = false }) {
       cancelled = true
       rippleRef.current?.dispose()
       rippleRef.current = null
+      guardianRef.current?.dispose()
+      guardianRef.current = null
     }
+  }, [])
+
+  /* the guardian looks towards the pointer */
+  useEffect(() => {
+    const look = (e) => guardianRef.current?.setPointer((e.clientX / window.innerWidth) * 2 - 1, (e.clientY / window.innerHeight) * 2 - 1)
+    window.addEventListener('pointermove', look, { passive: true })
+    return () => window.removeEventListener('pointermove', look)
   }, [])
 
   /* handlers built once; they read live values from refs, so they never go stale */
@@ -187,6 +230,8 @@ export default function WelcomeGate({ onDone, paused = false }) {
         s.current += (s.target - s.current) * (1 - Math.exp(-dt * 7))
       }
       rippleRef.current?.setProgress(s.current)
+      // the guardian fades as the wave carries the visitor in
+      if (guardianRef.current && !pausedRef.current) guardianRef.current.setFade(1 - Math.min(1, s.current * 2.6))
       if (!s.committed) scrubIntroSound(s.current / COMMIT_AT) // the sound follows the scroll
       if (hintRef.current) hintRef.current.style.opacity = String(Math.max(0, 1 - s.current * 9))
       if (s.committed && s.current >= 0.999) {
@@ -273,6 +318,7 @@ export default function WelcomeGate({ onDone, paused = false }) {
       </div>
 
       <canvas ref={canvasRef} className="gate__water" aria-hidden="true" />
+      <canvas ref={guardianCanvasRef} className="gate__guardian" aria-hidden="true" />
 
       <div ref={hintRef} className="gate__hint" aria-hidden="true">
         <span className="gate__hint-line" />

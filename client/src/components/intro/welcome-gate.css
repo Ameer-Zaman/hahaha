@@ -239,3 +239,28 @@
   font-size: clamp(3.6rem, 1rem + 8.5vw, 10.5rem);
   max-width: 9ch;
 }
+
+/* the live guardian: on the right (wide screens) or across the top (phones), melting into the dark */
+.gate__guardian {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  width: 58vw;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 32%), linear-gradient(#000 78%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, #000 32%), linear-gradient(#000 78%, transparent);
+  mask-composite: intersect;
+}
+@media (max-aspect-ratio: 9 / 10) {
+  .gate__guardian {
+    left: 0;
+    width: 100%;
+    height: 64%;
+    -webkit-mask-image: linear-gradient(#000 62%, transparent);
+    mask-image: linear-gradient(#000 62%, transparent);
+  }
+}

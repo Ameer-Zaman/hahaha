@@ -195,9 +195,11 @@ export function paintWelcome(name, { script = 'Welcome to', tagline = '' } = {},
     ctx.fillStyle = '#050507'
     ctx.fillRect(0, 0, w, h)
     const phone = w / h < 0.9
-    const pic = image && image.naturalWidth ? image : null
+    const live = image === 'live' // a live figure is drawn on top of this canvas; leave its space lit
+    const pic = live ? null : image && image.naturalWidth ? image : null
 
     if (pic) paintPicture(ctx, pic, w, h, phone)
+    else if (live) paintStage(ctx, w, h, phone, dpr)
     else {
       const glow = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.55)
       glow.addColorStop(0, 'rgba(227,181,90,0.09)')
@@ -211,7 +213,7 @@ export function paintWelcome(name, { script = 'Welcome to', tagline = '' } = {},
     const lines =
       words.length > 1 ? [words.slice(0, Math.ceil(words.length / 2)).join(' '), words.slice(Math.ceil(words.length / 2)).join(' ')] : words
     const left = phone ? w * 0.08 : w * 0.075
-    const maxW = phone ? w * 0.84 : pic ? w * 0.42 : w * 0.6
+    const maxW = phone ? w * 0.84 : pic || live ? w * 0.42 : w * 0.6
     const maxLineH = phone ? h * 0.1 : h * 0.17
     ctx.textBaseline = 'alphabetic'
     ctx.textAlign = 'left'
@@ -286,6 +288,30 @@ export function paintWelcome(name, { script = 'Welcome to', tagline = '' } = {},
       ctx.fillStyle = 'rgba(244,239,230,0.62)'
       drawSpaced(ctx, tagline.toUpperCase(), left, lineY + tSize * 2.3, tSize * 0.45)
     }
+  }
+}
+
+/** The space for the live figure: a warm light behind it and a few embers in the air. */
+function paintStage(ctx, w, h, phone, dpr) {
+  const gx = phone ? w / 2 : w * 0.72
+  const gy = phone ? h * 0.3 : h * 0.42
+  const glow = ctx.createRadialGradient(gx, gy, 0, gx, gy, Math.max(w, h) * 0.55)
+  glow.addColorStop(0, 'rgba(227,181,90,0.16)')
+  glow.addColorStop(0.4, 'rgba(160,110,40,0.06)')
+  glow.addColorStop(1, 'rgba(227,181,90,0)')
+  ctx.fillStyle = glow
+  ctx.fillRect(0, 0, w, h)
+  let seed = 3
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647
+  for (let i = 0; i < 46; i++) {
+    const x = phone ? rnd() * w : w * 0.45 + rnd() * w * 0.55
+    const y = phone ? rnd() * h * 0.62 : rnd() * h
+    const r = (0.7 + rnd() * 1.6) * dpr
+    const e = ctx.createRadialGradient(x, y, 0, x, y, r * 4)
+    e.addColorStop(0, `rgba(255,${190 + rnd() * 50},120,${0.35 + rnd() * 0.45})`)
+    e.addColorStop(1, 'rgba(255,160,60,0)')
+    ctx.fillStyle = e
+    ctx.fillRect(x - r * 4, y - r * 4, r * 8, r * 8)
   }
 }
 
