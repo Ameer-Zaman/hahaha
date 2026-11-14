@@ -16,7 +16,7 @@ import { plainText } from './markdownText'
 import RuleIcon from './RuleIcon'
 import './rules.css'
 
-// the opening throw (three.js) is only downloaded when it plays
+// the opening (pages flying at the screen, three.js) is only downloaded when it plays
 const RulesIntro = lazy(() => import('./intro/RulesIntro'))
 // moving between /rules and a rule's own page doesn't replay it
 let leftRulesAt = 0
