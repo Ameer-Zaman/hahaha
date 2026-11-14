@@ -22,6 +22,7 @@ const LeaderboardPage = lazy(() => import('../features/leaderboard/LeaderboardPa
 const EventsPage = lazy(() => import('../features/events/EventsPage'))
 const RulesPage = lazy(() => import('../features/rules/RulesPage'))
 const StorePage = lazy(() => import('../features/store/StorePage'))
+const GalleryPage = lazy(() => import('../features/gallery/GalleryPage'))
 const NotFoundPage = lazy(() => import('../features/notfound/NotFoundPage'))
 // The admin panel is its own chunk: visitors never download it.
 const PanelApp = lazy(() => import('../features/panel/PanelApp'))
@@ -118,6 +119,14 @@ export default function App() {
           element={
             <Section to="/leaderboard">
               <LeaderboardPage />
+            </Section>
+          }
+        />
+        <Route
+          path="gallery"
+          element={
+            <Section to="/gallery">
+              <GalleryPage />
             </Section>
           }
         />

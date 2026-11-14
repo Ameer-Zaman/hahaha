@@ -399,6 +399,19 @@ export const storeSettingsSchema = z.object({
   note: text(200).optional().default(''),
 })
 
+/** Panel → Gallery: the photos, in the order they're laid out. */
+export const gallerySchema = z.object({
+  items: z
+    .array(
+      z.object({
+        media: objectId,
+        caption: text(140).optional().default(''),
+        credit: text(60).optional().default(''),
+      }),
+    )
+    .max(150),
+})
+
 /** Staff switching a creator to "live now" by hand, for a while, with where to watch. */
 export const creatorManualLiveSchema = z.object({
   minutes: z.number().int().min(15).max(720),

@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import mongoose from 'mongoose'
 
 import { Announcement, isLive } from '../models/Announcement.js'
 import { Club } from '../models/Club.js'
@@ -6,12 +7,14 @@ import { Creator, manualOn } from '../models/Creator.js'
 import { endOf, Event, eventState } from '../models/Event.js'
 import { Gang } from '../models/Gang.js'
 import { LiveAlert } from '../models/LiveAlert.js'
+import { Media } from '../models/Media.js'
 import { RuleBook } from '../models/RuleBook.js'
 import { Product } from '../models/Product.js'
 import { MEDIA_SLOTS, Settings, readBrandLogo, readChatBot, readSections, readSocials, readStore } from '../models/Settings.js'
 import { Staff } from '../models/Staff.js'
 import { TdmBoard } from '../models/TdmBoard.js'
 import { War } from '../models/War.js'
+import { deliveryUrl } from '../services/cloudinary.js'
 import { resolveMediaUrls, resolveStillUrls } from '../services/media.js'
 import { channelOf, liveSupport, refreshLive, refreshStats } from '../services/creatorLive.js'
 
@@ -281,6 +284,31 @@ router.get('/creators', async (req, res) => {
         tracked,
         live,
         checkedAt: tracked.length ? (c.live?.checkedAt ?? null) : null,
+      }
+    }),
+  })
+})
+
+/**
+ * The Gallery: the photos in their order, each with a picture sized for the table (src) and a
+ * large one for the full-screen view (full), plus its width and height when known.
+ */
+router.get('/gallery', async (req, res) => {
+  const settings = await Settings.findOne({ key: 'main' }, 'gallery').lean()
+  const items = settings?.gallery ?? []
+  const ids = items.map((i) => i.media).filter((id) => mongoose.isValidObjectId(id))
+  const cloud = new Map((await Media.find({ _id: { $in: ids } }).lean()).map((m) => [m._id.toString(), m]))
+  res.json({
+    photos: items.map((i) => {
+      const m = cloud.get(String(i.media))
+      return {
+        id: i.media,
+        src: m ? deliveryUrl(m, { width: 900 }) : `/api/media/${i.media}`,
+        full: m ? deliveryUrl(m) : `/api/media/${i.media}`,
+        width: m?.width ?? null,
+        height: m?.height ?? null,
+        caption: i.caption ?? '',
+        credit: i.credit ?? '',
       }
     }),
   })

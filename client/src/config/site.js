@@ -18,8 +18,7 @@ export const site = {
   welcome: { script: 'Welcome to', tagline: 'The city is waiting' },
 
   /** Shown in the footer and meta description. */
-  description:
-    'A FiveM roleplay community preparing for launch. Read the rules, meet the staff and apply before the city opens.',
+  description: 'A FiveM roleplay community preparing for launch. Read the rules, meet the staff and apply before the city opens.',
 
   /**
    * Launch status. Keep `isLive: false` until the game server is actually open to players.
@@ -125,6 +124,7 @@ export const navigation = [
   },
   { label: 'Events', to: '/events' },
   { label: 'Leaderboard', to: '/leaderboard' },
+  { label: 'Gallery', to: '/gallery' },
   { label: 'Rules', to: '/rules' },
   { label: 'Store', to: '/store' },
 ]

@@ -27,7 +27,7 @@ export function Thumb({ id, kind = 'image', alt = '', className = '', onDuration
 /**
  * Upload one or more files with progress. Calls `onUploaded(file)` for each stored file.
  */
-export function UploadButton({ onUploaded, kind, label = 'Upload', className = 'pbtn pbtn--gold' }) {
+export function UploadButton({ onUploaded, kind, multiple, label = 'Upload', className = 'pbtn pbtn--gold' }) {
   const input = useRef(null)
   const toast = useToast()
   const { handleError } = useAuth()
@@ -37,11 +37,17 @@ export function UploadButton({ onUploaded, kind, label = 'Upload', className = '
     getStorage().catch(() => {})
   }, [])
 
-  const accept = kind ? ACCEPT.split(',').filter((t) => t.startsWith(kind)).join(',') : ACCEPT
+  const accept = kind
+    ? ACCEPT.split(',')
+        .filter((t) => t.startsWith(kind))
+        .join(',')
+    : ACCEPT
 
   async function handle(files) {
     for (const file of files) {
-      const problem = checkUpload(file) ?? (kind && !file.type.startsWith(kind) ? `${file.name} is not ${kind === 'video' ? 'a video' : 'an image'}.` : null)
+      const problem =
+        checkUpload(file) ??
+        (kind && !file.type.startsWith(kind) ? `${file.name} is not ${kind === 'video' ? 'a video' : 'an image'}.` : null)
       if (problem) {
         toast(problem, 'error')
         continue
@@ -66,7 +72,7 @@ export function UploadButton({ onUploaded, kind, label = 'Upload', className = '
         ref={input}
         type="file"
         accept={accept}
-        multiple={!kind}
+        multiple={multiple ?? !kind}
         className="p-sr-only"
         tabIndex={-1}
         onChange={(e) => handle([...e.target.files])}
@@ -188,9 +194,7 @@ export function MediaField({ label, kind = 'image', value, onChange, fallback, h
       {hint && <p className="p-field__hint">{hint}</p>}
       {!value && fallback && <p className="p-field__hint">{fallback}</p>}
       {tooLong && (
-        <p className="p-form-note">
-          This clip is {Math.round(length.seconds)} s long — a 5–10 s loop loads faster and looks better.
-        </p>
+        <p className="p-form-note">This clip is {Math.round(length.seconds)} s long — a 5–10 s loop loads faster and looks better.</p>
       )}
       <MediaPicker
         open={open}

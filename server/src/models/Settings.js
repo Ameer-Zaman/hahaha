@@ -24,7 +24,20 @@ export const STORY_SLOTS = Object.entries(STORY_PLACES).flatMap(([chapter, place
 MEDIA_SLOTS.push(...STORY_SLOTS)
 
 /** Website sections that can be switched off from the panel (Home is always on). */
-export const SECTION_KEYS = ['story', 'staff', 'creators', 'gangs', 'clubs', 'dhadhas', 'events', 'leaderboard', 'rules', 'store', 'chat']
+export const SECTION_KEYS = [
+  'story',
+  'staff',
+  'creators',
+  'gangs',
+  'clubs',
+  'dhadhas',
+  'events',
+  'leaderboard',
+  'gallery',
+  'rules',
+  'store',
+  'chat',
+]
 
 /** The saved community links, or null when the panel has never set them. */
 export const readSocials = (settings) =>
@@ -83,6 +96,11 @@ const settingsSchema = new mongoose.Schema(
       comingSoon: { type: Boolean, default: false },
       buyUrl: { type: String, default: '' },
       note: { type: String, default: '' },
+    },
+    /** The Gallery page: photos from the city, in order, each with an optional caption and credit. */
+    gallery: {
+      type: [{ _id: false, media: String, caption: { type: String, default: '' }, credit: { type: String, default: '' } }],
+      default: [],
     },
     /** Rules for every panel account, set by a Super Admin. Never sent to the website. */
     security: {

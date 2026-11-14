@@ -24,6 +24,7 @@ const ALL_ON = {
   dhadhas: true,
   events: true,
   leaderboard: true,
+  gallery: true,
   rules: true,
   store: true,
   chat: true,

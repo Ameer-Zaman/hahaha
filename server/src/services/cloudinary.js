@@ -22,7 +22,9 @@ export function signParams(params, secret = c().apiSecret) {
     .sort()
     .map((k) => `${k}=${params[k]}`)
     .join('&')
-  return createHash('sha1').update(base + secret).digest('hex')
+  return createHash('sha1')
+    .update(base + secret)
+    .digest('hex')
 }
 
 /** What the panel needs to upload one file straight to Cloudinary (valid for ~1 hour). */
@@ -75,10 +77,10 @@ export function stillUrl(m) {
   return `${c().deliveryBase}/${c().cloudName}/image/upload/f_jpg,pg_1,q_auto,c_limit,w_1600/v${m.version}/${m.publicId}`
 }
 
-export function deliveryUrl(m, { thumb = false } = {}) {
+export function deliveryUrl(m, { thumb = false, width } = {}) {
   const base = `${c().deliveryBase}/${c().cloudName}/${m.resourceType}/upload`
   const file = `v${m.version}/${m.publicId}`
-  if (m.resourceType === 'image') return `${base}/${thumb ? 'f_auto,q_auto,c_limit,w_480' : 'f_auto,q_auto,c_limit,w_2400'}/${file}`
+  if (m.resourceType === 'image') return `${base}/f_auto,q_auto,c_limit,w_${width ?? (thumb ? 480 : 2400)}/${file}`
   if (thumb) return `${base}/so_0,c_limit,w_480/${file}.jpg` // a still from the first frame
   return `${base}/${file}.${m.format || 'mp4'}`
 }

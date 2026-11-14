@@ -38,7 +38,14 @@ async function usageOf(id) {
   const slots = Object.entries(settings?.media ?? {})
     .filter(([, value]) => value === id)
     .map(([slot]) => slot)
-  return [...gangs.map((g) => `Gang: ${g.name}`), ...clubs.map((c) => `Club: ${c.name}`), ...staff.map((s) => `Staff: ${s.name}`), ...slots.map((s) => `Site: ${s}`)]
+  const inGallery = (settings?.gallery ?? []).some((g) => g.media === id) ? ['Gallery'] : []
+  return [
+    ...inGallery,
+    ...gangs.map((g) => `Gang: ${g.name}`),
+    ...clubs.map((c) => `Club: ${c.name}`),
+    ...staff.map((s) => `Staff: ${s.name}`),
+    ...slots.map((s) => `Site: ${s}`),
+  ]
 }
 
 router.get('/', async (req, res) => {

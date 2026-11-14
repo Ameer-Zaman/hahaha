@@ -25,6 +25,7 @@ import media from './media.js'
 import rules from './rules.js'
 import settings from './settings.js'
 import staff from './staff.js'
+import gallery from './gallery.js'
 import store from './store.js'
 import tdm from './tdm.js'
 import users from './users.js'
@@ -103,6 +104,7 @@ router.use('/wars', staffRoles, requireArea('wars'), wars)
 router.use('/staff', staffRoles, requireArea('staff'), staff)
 router.use('/creators', staffRoles, requireArea('creators'), creators)
 router.use('/store', staffRoles, requireArea('store'), store)
+router.use('/gallery', staffRoles, requireArea('gallery'), gallery)
 router.use('/tdm', staffRoles, requireArea('tdm'), tdm)
 router.use('/rules', staffRoles, requireArea('rules'), rules)
 // choosing and uploading pictures is part of every area; deleting files is the Media library's

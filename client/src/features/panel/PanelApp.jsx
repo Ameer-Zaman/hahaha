@@ -24,6 +24,7 @@ import SiteSettings from './screens/SiteSettings'
 import Staff from './screens/Staff'
 import Creators from './screens/Creators'
 import { ProductEditor, StoreList } from './screens/Store'
+import Gallery from './screens/Gallery'
 import Tdm from './screens/Tdm'
 import Wars from './screens/Wars'
 import { ErrorNote, Loading, ToastProvider } from './ui'
@@ -51,6 +52,7 @@ const NAV = [
       { to: '/panel/staff', area: 'staff', label: 'Staff' },
       { to: '/panel/creators', area: 'creators', label: 'Creators' },
       { to: '/panel/store', area: 'store', label: 'Store' },
+      { to: '/panel/gallery', area: 'gallery', label: 'Gallery' },
       { to: '/panel/rules', area: 'rules', label: 'Rules' },
     ],
   },
@@ -342,6 +344,14 @@ function Shell() {
             element={
               <Area name="store">
                 <ProductEditor />
+              </Area>
+            }
+          />
+          <Route
+            path="gallery"
+            element={
+              <Area name="gallery">
+                <Gallery />
               </Area>
             }
           />

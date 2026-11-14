@@ -107,7 +107,10 @@
   text-align: left;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+  transition:
+    background-color 0.15s,
+    color 0.15s,
+    border-color 0.15s;
 }
 .p-nav__link:hover {
   background: var(--p-surface-2);
@@ -298,8 +301,12 @@
   transform-origin: left;
 }
 @keyframes p-load {
-  from { transform: scaleX(0.15); }
-  to { transform: scaleX(1); }
+  from {
+    transform: scaleX(0.15);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 .p-error {
   display: flex;
@@ -376,7 +383,9 @@
   color: var(--fg);
   font: inherit;
   font-size: 16px; /* no zoom on phones */
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 .p-input:hover {
   border-color: rgba(255, 255, 255, 0.28);
@@ -394,8 +403,11 @@
 .p-select {
   appearance: none;
   padding-right: 2rem;
-  background-image: linear-gradient(45deg, transparent 50%, var(--fg-muted) 50%), linear-gradient(135deg, var(--fg-muted) 50%, transparent 50%);
-  background-position: calc(100% - 16px) 52%, calc(100% - 11px) 52%;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--fg-muted) 50%), linear-gradient(135deg, var(--fg-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) 52%,
+    calc(100% - 11px) 52%;
   background-size: 5px 5px;
   background-repeat: no-repeat;
 }
@@ -425,7 +437,9 @@
   flex: none;
   border: 1px solid var(--p-line-strong, rgba(255, 255, 255, 0.16));
   background: var(--p-bg, #050506);
-  transition: background-color 0.18s, border-color 0.18s;
+  transition:
+    background-color 0.18s,
+    border-color 0.18s;
 }
 .p-switch__thumb {
   position: absolute;
@@ -434,7 +448,9 @@
   width: 14px;
   height: 14px;
   background: var(--fg-muted);
-  transition: transform 0.18s ease, background-color 0.18s;
+  transition:
+    transform 0.18s ease,
+    background-color 0.18s;
 }
 .p-switch input:checked + .p-switch__track {
   border-color: var(--c-gold);
@@ -478,7 +494,11 @@
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    color 0.15s,
+    transform 0.1s;
 }
 .pbtn:active:not(:disabled) {
   transform: translateY(1px);
@@ -585,7 +605,10 @@
   border-left-color: var(--p-red, #e2596b);
 }
 @keyframes p-toast {
-  from { opacity: 0; transform: translateY(8px); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }
 
 /* ------------------------------------------------------------- tables */
@@ -1029,9 +1052,7 @@
   display: grid;
   place-items: center;
   padding: var(--sp-5) var(--sp-4);
-  background:
-    radial-gradient(ellipse 60% 50% at 50% 0%, rgb(var(--rgb-gold) / 0.12), transparent 70%),
-    var(--c-black);
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgb(var(--rgb-gold) / 0.12), transparent 70%), var(--c-black);
   color: var(--fg);
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
@@ -1106,13 +1127,18 @@
     visibility: hidden;
     opacity: 0;
     transform: translateY(-8px);
-    transition: opacity 0.2s, transform 0.2s, visibility 0s 0.2s;
+    transition:
+      opacity 0.2s,
+      transform 0.2s,
+      visibility 0s 0.2s;
   }
   .p-side.is-open {
     visibility: visible;
     opacity: 1;
     transform: none;
-    transition: opacity 0.2s, transform 0.2s;
+    transition:
+      opacity 0.2s,
+      transform 0.2s;
   }
   .p-side__brand {
     display: none;
@@ -1864,7 +1890,12 @@
   font-size: clamp(1.8rem, 1.2rem + 2vw, 2.6rem);
   line-height: 0.95;
   text-transform: uppercase;
-  background: linear-gradient(180deg, color-mix(in oklab, var(--gang) 40%, white) 0%, var(--gang) 55%, color-mix(in oklab, var(--gang) 55%, black) 100%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--gang) 40%, white) 0%,
+    var(--gang) 55%,
+    color-mix(in oklab, var(--gang) 55%, black) 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -2472,4 +2503,55 @@ svg.p-logo__img {
   gap: 0.25rem;
   font-size: var(--fs-2xs);
   color: var(--fg-muted);
+}
+
+/* Gallery: one row per photo — number, picture, caption and credit, move/remove */
+.p-gal {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.p-gal__item {
+  display: grid;
+  grid-template-columns: auto 7.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.6rem;
+  border: 1px solid var(--p-line, rgb(255 255 255 / 0.08));
+  border-radius: 12px;
+}
+.p-gal__num {
+  min-width: 1.6rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  text-align: center;
+  color: var(--fg-muted);
+}
+.p-gal__thumb {
+  width: 7.5rem;
+  aspect-ratio: 4 / 3;
+  height: auto;
+  border-radius: 8px;
+  object-fit: cover;
+}
+.p-gal__fields {
+  display: grid;
+  gap: 0.45rem;
+}
+@media (max-width: 40rem) {
+  .p-gal__item {
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+  }
+  .p-gal__num {
+    display: none;
+  }
+  .p-gal__thumb {
+    width: 5.5rem;
+  }
+  .p-gal__item .p-rowtools {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
 }
