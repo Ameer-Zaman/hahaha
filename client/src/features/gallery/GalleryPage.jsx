@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-import ParallaxScope from '../../components/ui/ParallaxScope'
-import ParallaxWord from '../../components/ui/ParallaxWord'
 import usePageTitle from '../../hooks/usePageTitle'
 import { usePublic } from '../../lib/publicData'
 import './gallery.css'
@@ -59,21 +57,10 @@ export default function GalleryPage() {
 
   return (
     <>
-      <ParallaxScope as="section" className="page-head page-head--word theme-dark gal-hero" aria-labelledby="gallery-title">
-        <ParallaxWord text="Gallery" motion="x:6%:-10%" className="page-head__word" />
-        <div className="container">
-          <p className="gal-kicker">Moments from the city</p>
-          <h1 id="gallery-title" className="page-head__title">
-            Gallery
-          </h1>
-          <p className="lede">
-            Heists, late nights and the people who make the Empire. Pick up a photo and move it around, flick it across the table, or tap it
-            to see it full size.
-          </p>
-        </div>
-      </ParallaxScope>
-
-      <section className="gal-body theme-black" aria-label="Photos">
+      <section className="gal-body theme-black" aria-labelledby="gallery-title">
+        <h1 id="gallery-title" className="visually-hidden">
+          Gallery
+        </h1>
         <div className="container container--wide">
           {has && (
             <div className="gal-bar">
@@ -132,7 +119,7 @@ export default function GalleryPage() {
             <div className="gal-table gal-table--empty">
               <div className="gal-empty">
                 <p className="gal-empty__title">The first photos are on their way</p>
-                <p className="gal-empty__text">Moments from the city will be laid out on this table soon.</p>
+                <p className="gal-empty__text">Photos from the city will be laid out on this table soon.</p>
               </div>
             </div>
           )}

@@ -1,25 +1,10 @@
 /* =========================================================
    Gallery — prints on a dark table
    ========================================================= */
-.gal-hero {
-  border-bottom: 1px solid rgb(var(--rgb-gold) / 0.25);
-}
-.gal-kicker {
-  display: inline-flex;
-  margin: 0 0 var(--sp-4);
-  padding: 0.45rem 0.85rem;
-  border: 1px solid rgb(var(--rgb-gold) / 0.55);
-  border-radius: 999px;
-  background: rgb(var(--rgb-gold) / 0.08);
-  font-family: var(--font-mono);
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--c-gold-light);
-}
 .gal-body {
-  padding-block: var(--sp-7) var(--section-y);
+  padding-top: calc(var(--top-chrome, 4.5rem) + clamp(1.5rem, 1rem + 2vw, 3rem));
+  padding-bottom: var(--section-y);
+  min-height: 100vh;
 }
 .gal-body .container--wide {
   max-width: 1600px;
