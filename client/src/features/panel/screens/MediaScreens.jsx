@@ -90,6 +90,13 @@ export function MediaLibrary() {
 /* ------------------------------------------------------------- site media */
 
 const SLOTS = [
+  {
+    group: 'Welcome screen',
+    slot: 'welcomeImage',
+    kind: 'image',
+    label: 'Welcome screen picture (right side; top on phones). A tall picture on a dark background works best.',
+    fallback: 'public/assets/images/welcome-knight.webp',
+  },
   { group: 'Homepage', slot: 'heroVideo', kind: 'video', label: 'Hero video', fallback: 'public/assets/video/home.mp4' },
   {
     group: 'Homepage',

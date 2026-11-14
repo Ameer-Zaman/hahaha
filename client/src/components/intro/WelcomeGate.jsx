@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import '@fontsource/sacramento/latin-400.css'
 import { media, site } from '../../config/site'
 import { enterSite, markIntroSeen } from '../../lib/intro'
+import { loadPublic } from '../../lib/publicData'
 import { loadIntroSound, playIntroSound, primeIntroSound, scrubIntroSound } from '../../lib/introSound'
 import { holdMusicForIntro, startMusicAfterIntro } from '../../lib/music'
 import { createRipple, paintWelcome } from './rippleRenderer'
@@ -13,6 +14,26 @@ const COMMIT_AT = 0.26 // past this, the wave carries on by itself
 const GLIDE_MS = 1600 // once committed, the wave finishes on the clock, the same on any device
 
 const easeInOutSine = (t) => -(Math.cos(Math.PI * t) - 1) / 2
+
+/** Loads an image for painting into the water canvas (cross-origin safe); null if it can't. */
+function loadImage(url) {
+  return new Promise((resolve) => {
+    if (!url) return resolve(null)
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.decoding = 'async'
+    img.onload = () => resolve(img)
+    img.onerror = () => resolve(null)
+    img.src = url
+  })
+}
+
+/** The welcome picture: the one chosen in Panel → Site media, else the one shipped with the site. */
+async function loadWelcomeImage() {
+  const site = await Promise.race([loadPublic('/site'), new Promise((r) => setTimeout(() => r(null), 1200))])
+  const custom = site?.status === 'ok' ? site.data?.media?.welcomeImage : null
+  return (custom && (await loadImage(custom))) || loadImage(media.welcomeImage)
+}
 
 /**
  * The welcome screen: royal and minimal — "Welcome to", the name, a gold hairline.
@@ -30,9 +51,7 @@ export default function WelcomeGate({ onDone, paused = false }) {
   const buttonRef = useRef(null)
   const hintRef = useRef(null)
   const rippleRef = useRef(null)
-  const [initialMode] = useState(() =>
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'fade' : 'pending',
-  )
+  const [initialMode] = useState(() => (window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'fade' : 'pending'))
   const modeRef = useRef(initialMode)
   const onDoneRef = useRef(onDone)
   const pausedRef = useRef(paused) // true while the loading screen is still on top
@@ -43,6 +62,7 @@ export default function WelcomeGate({ onDone, paused = false }) {
   const state = useRef({ target: 0, current: 0, committed: false, lastInput: 0, done: false, glideFrom: 0, glideAt: 0 })
   const [mode, setMode] = useState(initialMode) // pending → ripple | fade
   const [fading, setFading] = useState(false)
+  const [fallbackImage, setFallbackImage] = useState(initialMode === 'fade' ? media.welcomeImage : null)
 
   useEffect(() => {
     onDoneRef.current = onDone
@@ -77,11 +97,17 @@ export default function WelcomeGate({ onDone, paused = false }) {
   useEffect(() => {
     if (modeRef.current === 'fade') return undefined
     let cancelled = false
-    const fontReady = Promise.all([document.fonts?.load('64px Anton'), document.fonts?.load('64px Sacramento'), document.fonts?.load('16px "Space Mono"')])
+    const fontReady = Promise.all([
+      document.fonts?.load('64px Anton'),
+      document.fonts?.load('64px Sacramento'),
+      document.fonts?.load('16px "Space Mono"'),
+    ])
     const timeout = new Promise((resolve) => setTimeout(resolve, 1500))
-    Promise.race([fontReady, timeout]).then(() => {
+    const picture = Promise.race([loadWelcomeImage(), new Promise((resolve) => setTimeout(() => resolve(null), 3000))])
+    Promise.all([Promise.race([fontReady, timeout]), picture]).then(([, image]) => {
       if (cancelled || !canvasRef.current) return
-      const ripple = createRipple(canvasRef.current, paintWelcome(site.name, site.welcome))
+      if (image) setFallbackImage(image.src)
+      const ripple = createRipple(canvasRef.current, paintWelcome(site.name, site.welcome, image))
       if (!ripple) {
         switchMode('fade')
         return
@@ -237,7 +263,8 @@ export default function WelcomeGate({ onDone, paused = false }) {
       onClick={() => primeIntroSound()}
     >
       {/* The real text: shown as-is without WebGL; under the water canvas otherwise */}
-      <div className="gate__card">
+      <div className={`gate__card ${fallbackImage ? 'gate__card--picture' : ''}`}>
+        {fallbackImage && <img className="gate__picture" src={fallbackImage} alt="" aria-hidden="true" />}
         <h2 id="gate-title" className="gate__lockup">
           <span className="gate__script">{site.welcome?.script ?? 'Welcome to'} </span>
           <span className="gate__name">{site.name}</span>

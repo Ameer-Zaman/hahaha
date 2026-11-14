@@ -1,7 +1,16 @@
 import mongoose from 'mongoose'
 
 /** Media slots used around the site. Each value is a GridFS media id or null. */
-export const MEDIA_SLOTS = ['heroVideo', 'welcomeVideo', 'posterAdministration', 'posterGangs', 'posterWars', 'posterRules', 'joinImage']
+export const MEDIA_SLOTS = [
+  'welcomeImage',
+  'heroVideo',
+  'welcomeVideo',
+  'posterAdministration',
+  'posterGangs',
+  'posterWars',
+  'posterRules',
+  'joinImage',
+]
 
 /**
  * Story page media, set in Panel → Story media. Each place in a chapter (the big scene, the two

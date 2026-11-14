@@ -182,80 +182,181 @@ export function createRipple(canvas, paint) {
   }
 }
 
-/** Paints the royal, minimal welcome card: "Welcome to" · the name · a gold hairline. */
 /**
- * The welcome card, painted for the water canvas — the same design as the DOM card:
- * the name huge in ivory, a gold handwritten "Welcome to" across its top, a small line below.
+ * The welcome screen, painted for the water canvas:
+ * wide screens — the words on the left (a gold handwritten "Welcome to", the name in two big
+ * ivory lines, a gold hairline, a small line below) and the picture on the right, melting into
+ * the dark; phones — the picture across the top, the words underneath.
+ * `image` is optional (an HTMLImageElement that has loaded); without it the words stand alone.
  */
-export function paintWelcome(name, { script = 'Welcome to', tagline = '' } = {}) {
+export function paintWelcome(name, { script = 'Welcome to', tagline = '' } = {}, image = null) {
   return (ctx, w, h, dpr) => {
     ctx.clearRect(0, 0, w, h)
     ctx.fillStyle = '#050507'
     ctx.fillRect(0, 0, w, h)
-    const glow = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.55)
-    glow.addColorStop(0, 'rgba(227,181,90,0.09)')
-    glow.addColorStop(1, 'rgba(227,181,90,0)')
-    ctx.fillStyle = glow
-    ctx.fillRect(0, 0, w, h)
+    const phone = w / h < 0.9
+    const pic = image && image.naturalWidth ? image : null
 
-    const cx = w / 2
-    const cy = h / 2
-    const phone = w / dpr < 600
+    if (pic) paintPicture(ctx, pic, w, h, phone)
+    else {
+      const glow = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.55)
+      glow.addColorStop(0, 'rgba(227,181,90,0.09)')
+      glow.addColorStop(1, 'rgba(227,181,90,0)')
+      ctx.fillStyle = glow
+      ctx.fillRect(0, 0, w, h)
+    }
+
+    // the words: left-aligned on wide screens, under the picture on phones
+    const words = name.toUpperCase().split(/\s+/).filter(Boolean)
+    const lines =
+      words.length > 1 ? [words.slice(0, Math.ceil(words.length / 2)).join(' '), words.slice(Math.ceil(words.length / 2)).join(' ')] : words
+    const left = phone ? w * 0.08 : w * 0.075
+    const maxW = phone ? w * 0.84 : pic ? w * 0.42 : w * 0.6
+    const maxLineH = phone ? h * 0.1 : h * 0.17
     ctx.textBaseline = 'alphabetic'
-
-    // the name: ~65% of the screen wide (88% on phones), capped on very wide screens
-    const title = name.toUpperCase()
-    const tracking = 0.01
+    ctx.textAlign = 'left'
+    const tracking = 0.012
     ctx.font = `100px Anton, Impact, "Arial Narrow Bold", sans-serif`
-    const per100 = spacedWidth(ctx, title, 100 * tracking) - 100 * tracking
-    const size = Math.min(((phone ? 0.88 : 0.65) * w * 100) / per100, 260 * dpr)
+    const widest = Math.max(...lines.map((l) => spacedWidth(ctx, l, 100 * tracking) - 100 * tracking))
+    const capRatio = (ctx.measureText('H').actualBoundingBoxAscent || 86) / 100
+    const size = Math.min((maxW * 100) / widest, maxLineH / capRatio, 230 * dpr)
     ctx.font = `${size}px Anton, Impact, "Arial Narrow Bold", sans-serif`
-    const titleW = spacedWidth(ctx, title, size * tracking) - size * tracking
-    const capH = ctx.measureText('H').actualBoundingBoxAscent || size * 0.86
-    const baseline = cy + capH / 2
-    const ivory = ctx.createLinearGradient(0, baseline - capH, 0, baseline)
-    ivory.addColorStop(0, '#fbf7ef')
-    ivory.addColorStop(1, '#e9e1d2')
-    ctx.fillStyle = ivory
-    drawSpaced(ctx, title, cx - titleW / 2, baseline, size * tracking)
+    const capH = size * capRatio
+    const gap = capH * 0.16
+    const blockH = capH * lines.length + gap * (lines.length - 1)
+    const sSize = size * (phone ? 0.62 : 0.5)
+    const top = phone ? h * 0.555 : h / 2 - blockH / 2 + sSize * 0.2
+    const firstBase = top + capH
 
-    // "Welcome to" in gold script, tilted, across the top of the name
-    const sSize = size * (phone ? 0.7 : 0.56)
+    // "Welcome to": gold script, slightly tilted, just above the name
     ctx.font = `${sSize}px Sacramento, "Brush Script MT", cursive`
     const sW = ctx.measureText(script).width
-    const sy = baseline - capH * 0.66
     ctx.save()
-    ctx.translate(cx, sy)
-    ctx.rotate((-6 * Math.PI) / 180)
-    const gold = ctx.createLinearGradient(-sW / 2, 0, sW / 2, 0)
+    ctx.translate(left + size * 0.04, top - capH * 0.08)
+    ctx.rotate((-5 * Math.PI) / 180)
+    const gold = ctx.createLinearGradient(0, 0, sW, 0)
     gold.addColorStop(0, '#fff2c9')
     gold.addColorStop(0.3, '#f2cf80')
-    gold.addColorStop(0.6, '#e3b55a')
+    gold.addColorStop(0.65, '#e3b55a')
     gold.addColorStop(1, '#b5852f')
     ctx.shadowColor = 'rgba(0,0,0,0.9)'
     ctx.shadowBlur = 18 * dpr
     ctx.shadowOffsetY = 4 * dpr
     ctx.fillStyle = gold
-    ctx.textAlign = 'center'
     ctx.fillText(script, 0, 0)
     ctx.shadowColor = 'transparent'
-    ctx.fillText(script, 0, 0) // a second pass keeps the strokes crisp over the shadow
-    ctx.strokeStyle = gold // a fine outline gives the thin script a little more body
+    ctx.fillText(script, 0, 0)
+    ctx.strokeStyle = gold
     ctx.lineWidth = Math.max(1, sSize * 0.012)
     ctx.lineJoin = 'round'
     ctx.strokeText(script, 0, 0)
     ctx.restore()
 
-    // the small line below
+    // the name, in ivory, one or two lines; a soft shadow lifts it off the picture
+    ctx.font = `${size}px Anton, Impact, "Arial Narrow Bold", sans-serif`
+    lines.forEach((line, i) => {
+      const base = firstBase + i * (capH + gap)
+      const ivory = ctx.createLinearGradient(0, base - capH, 0, base)
+      ivory.addColorStop(0, '#fbf7ef')
+      ivory.addColorStop(1, '#e2d8c5')
+      ctx.save()
+      ctx.shadowColor = 'rgba(0,0,0,0.75)'
+      ctx.shadowBlur = 30 * dpr
+      ctx.fillStyle = ivory
+      drawSpaced(ctx, line, left, base, size * tracking)
+      ctx.restore()
+    })
+    const lastBase = firstBase + (lines.length - 1) * (capH + gap)
+
+    // a gold hairline that fades out, and the small line below
+    const lineY = lastBase + Math.max(capH * 0.32, 18 * dpr)
+    const lineW = Math.min(maxW * 0.55, 260 * dpr)
+    const hair = ctx.createLinearGradient(left, 0, left + lineW, 0)
+    hair.addColorStop(0, 'rgba(227,181,90,0.95)')
+    hair.addColorStop(1, 'rgba(227,181,90,0)')
+    ctx.fillStyle = hair
+    ctx.fillRect(left, lineY, lineW, Math.max(1, dpr))
+    ctx.beginPath()
+    ctx.fillStyle = '#e3b55a'
+    ctx.arc(left, lineY + dpr / 2, 2.5 * dpr, 0, Math.PI * 2)
+    ctx.fill()
     if (tagline) {
-      const tSize = Math.max(11 * dpr, Math.min(size * 0.06, 14 * dpr))
+      const tSize = Math.max(11 * dpr, Math.min(size * 0.075, 14 * dpr))
       ctx.font = `${tSize}px "Space Mono", ui-monospace, monospace`
-      const text = tagline.toUpperCase()
-      const tTrack = tSize * 0.5
-      const tW = spacedWidth(ctx, text, tTrack) - tTrack
-      ctx.textAlign = 'left'
-      ctx.fillStyle = 'rgba(244,239,230,0.55)'
-      drawSpaced(ctx, text, cx - tW / 2, baseline + Math.max(tSize * 2.6, size * 0.16), tTrack)
+      ctx.fillStyle = 'rgba(244,239,230,0.62)'
+      drawSpaced(ctx, tagline.toUpperCase(), left, lineY + tSize * 2.3, tSize * 0.45)
+    }
+  }
+}
+
+/** The picture: on the right (wide screens) or across the top (phones), melting into the dark. */
+function paintPicture(ctx, pic, w, h, phone) {
+  const iw = pic.naturalWidth
+  const ih = pic.naturalHeight
+  let dw
+  let dh
+  let dx
+  let dy
+  if (phone) {
+    // across the top, covering the width, the top two thirds of the screen
+    const areaH = h * 0.66
+    const s = Math.max(w / iw, areaH / ih)
+    dw = iw * s
+    dh = ih * s
+    dx = (w - dw) / 2
+    dy = 0
+  } else {
+    // the right side: full height, anchored to the right edge; any extra height is cut
+    // mostly from the bottom, so the head stays in view
+    const areaW = w * 0.6
+    const s = Math.max(h / ih, areaW / iw)
+    dw = iw * s
+    dh = ih * s
+    dx = w - dw
+    dy = (h - dh) * 0.25
+  }
+  // a warm light behind the figure
+  const gx = phone ? w / 2 : w * 0.72
+  const gy = phone ? h * 0.3 : h * 0.4
+  const glow = ctx.createRadialGradient(gx, gy, 0, gx, gy, Math.max(w, h) * 0.6)
+  glow.addColorStop(0, 'rgba(227,181,90,0.12)')
+  glow.addColorStop(1, 'rgba(227,181,90,0)')
+  ctx.fillStyle = glow
+  ctx.fillRect(0, 0, w, h)
+  ctx.drawImage(pic, dx, dy, dw, dh)
+  // melt the edges into the background
+  const bg = (a) => `rgba(5,5,7,${a})`
+  if (phone) {
+    const fade = ctx.createLinearGradient(0, h * 0.34, 0, h * 0.66)
+    fade.addColorStop(0, bg(0))
+    fade.addColorStop(1, bg(1))
+    ctx.fillStyle = fade
+    ctx.fillRect(0, h * 0.34, w, h * 0.66 - h * 0.34 + 1)
+    ctx.fillStyle = bg(1)
+    ctx.fillRect(0, h * 0.66, w, h)
+    const topFade = ctx.createLinearGradient(0, 0, 0, h * 0.12)
+    topFade.addColorStop(0, bg(0.7))
+    topFade.addColorStop(1, bg(0))
+    ctx.fillStyle = topFade
+    ctx.fillRect(0, 0, w, h * 0.12)
+  } else {
+    const x0 = Math.max(0, w - w * 0.6)
+    ctx.fillStyle = bg(1)
+    ctx.fillRect(0, 0, x0, h)
+    const side = ctx.createLinearGradient(x0, 0, x0 + w * 0.24, 0)
+    side.addColorStop(0, bg(1))
+    side.addColorStop(1, bg(0))
+    ctx.fillStyle = side
+    ctx.fillRect(x0, 0, w * 0.24 + 1, h)
+    for (const [y0, y1, a0, a1] of [
+      [h * 0.78, h, 0, 1],
+      [0, h * 0.14, 0.8, 0],
+    ]) {
+      const vf = ctx.createLinearGradient(0, y0, 0, y1)
+      vf.addColorStop(0, bg(a0))
+      vf.addColorStop(1, bg(a1))
+      ctx.fillStyle = vf
+      ctx.fillRect(x0, y0, w - x0, y1 - y0)
     }
   }
 }
