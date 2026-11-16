@@ -169,84 +169,192 @@ export default function MusicButton({ className = '' }) {
   )
 }
 
-/** The pop-up with every song; the one playing is marked. Esc, ×, or a click outside closes it. */
+/*
+ * The player's orb: soft blobs of gold, amber, rose and ivory drifting inside a sphere and
+ * blending into each other, swelling with the music. Drawn on a canvas, additive light.
+ */
+const BLOBS = [
+  { color: '255,196,92', r: 0.62, sx: 0.31, sy: 0.27, ph: 0 },
+  { color: '255,122,58', r: 0.55, sx: -0.23, sy: 0.37, ph: 1.7 },
+  { color: '255,94,120', r: 0.48, sx: 0.41, sy: -0.21, ph: 3.1 },
+  { color: '255,240,214', r: 0.4, sx: -0.37, sy: -0.29, ph: 4.4 },
+  { color: '178,120,255', r: 0.36, sx: 0.19, sy: 0.43, ph: 5.6 },
+]
+
+function drawOrb(ctx, size, t, level) {
+  const c = size / 2
+  const R = size * (0.3 + 0.06 * level)
+  ctx.clearRect(0, 0, size, size)
+  // the halo around the sphere
+  const halo = ctx.createRadialGradient(c, c, R * 0.6, c, c, c * 0.98) // fades out before the canvas edge
+  halo.addColorStop(0, `rgba(255,170,80,${0.28 + 0.3 * level})`)
+  halo.addColorStop(1, 'rgba(255,120,60,0)')
+  ctx.fillStyle = halo
+  ctx.fillRect(0, 0, size, size)
+  // the blobs, clipped to the sphere
+  ctx.save()
+  ctx.beginPath()
+  ctx.arc(c, c, R, 0, Math.PI * 2)
+  ctx.clip()
+  ctx.fillStyle = '#0b0605'
+  ctx.fillRect(0, 0, size, size)
+  ctx.globalCompositeOperation = 'lighter'
+  for (const b of BLOBS) {
+    const speed = 0.35 + level * 0.9
+    const x = c + Math.sin(t * speed * (0.6 + b.sx) + b.ph) * R * 0.55
+    const y = c + Math.cos(t * speed * (0.5 + b.sy) + b.ph * 1.3) * R * 0.55
+    const rr = R * b.r * (1 + 0.35 * level * Math.sin(t * 2.3 + b.ph))
+    const g = ctx.createRadialGradient(x, y, 0, x, y, rr * 1.6)
+    g.addColorStop(0, `rgba(${b.color},0.95)`)
+    g.addColorStop(0.45, `rgba(${b.color},0.45)`)
+    g.addColorStop(1, `rgba(${b.color},0)`)
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, size, size)
+  }
+  // a glassy highlight and a soft dark rim, so it reads as a sphere
+  ctx.globalCompositeOperation = 'source-over'
+  const shine = ctx.createRadialGradient(c - R * 0.35, c - R * 0.45, 0, c - R * 0.35, c - R * 0.45, R * 0.7)
+  shine.addColorStop(0, 'rgba(255,255,255,0.35)')
+  shine.addColorStop(1, 'rgba(255,255,255,0)')
+  ctx.fillStyle = shine
+  ctx.fillRect(0, 0, size, size)
+  const rim = ctx.createRadialGradient(c, c, R * 0.75, c, c, R)
+  rim.addColorStop(0, 'rgba(0,0,0,0)')
+  rim.addColorStop(1, 'rgba(0,0,0,0.45)')
+  ctx.fillStyle = rim
+  ctx.fillRect(0, 0, size, size)
+  ctx.restore()
+}
+
+/**
+ * The song player, opened with a double click: light flowing round the edges of the screen,
+ * a glowing orb that moves with the music, the song's name, play/pause and previous/next,
+ * and every song in a list. Esc, ×, or a click outside the controls closes it.
+ */
 function SongDialog({ open, onClose, tracks, current, playing }) {
   const ref = useRef(null)
-  const now = tracks.find((t) => t.id === current) ?? tracks[0]
+  const orb = useRef(null)
+  const glow = useRef(null)
+  const at = Math.max(
+    0,
+    tracks.findIndex((t) => t.id === current),
+  )
+  const now = tracks[at]
+  const step = (d) => selectTrack(tracks[(at + d + tracks.length) % tracks.length].id)
 
   useEffect(() => {
     const dialog = ref.current
     if (!dialog) return
     if (open && !dialog.open) {
       dialog.showModal()
-      dialog.querySelector('[aria-checked="true"]')?.focus() // start on the song that's playing
+      dialog.querySelector('.player__play')?.focus()
     }
     if (!open && dialog.open) dialog.close()
   }, [open])
 
-  // arrow keys move through the list
-  const onKeyDown = (e) => {
-    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
-    e.preventDefault()
-    const items = [...ref.current.querySelectorAll('.songs__item')]
-    const at = items.indexOf(document.activeElement)
-    items[(at + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus()
-  }
+  // the orb and the edge light follow the music while the player is open
+  useEffect(() => {
+    if (!open) return undefined
+    const el = orb.current
+    const ctx = el.getContext('2d')
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const dpr = Math.min(2, window.devicePixelRatio || 1)
+    const size = Math.round(el.clientWidth * dpr)
+    el.width = el.height = size
+    let raf = 0
+    let level = 0
+    let last = performance.now()
+    const frame = (now) => {
+      const dt = Math.min(0.1, (now - last) / 1000)
+      last = now
+      const target = musicLevel() ? Math.min(1, 0.25 + musicLevel()) : 0.12
+      level += (target - level) * (1 - Math.exp(-(target > level ? 12 : 4) * dt))
+      drawOrb(ctx, size, still ? 1 : now / 1000, still ? 0.5 : level)
+      glow.current?.style.setProperty('--level', level.toFixed(3))
+      if (!still) raf = requestAnimationFrame(frame)
+    }
+    raf = requestAnimationFrame(frame)
+    return () => cancelAnimationFrame(raf)
+  }, [open])
 
   return (
     <dialog
       ref={ref}
-      className="songs"
-      aria-labelledby="songs-title"
+      className="player"
+      aria-labelledby="player-title"
       onClose={onClose}
-      onKeyDown={onKeyDown}
       onClick={(e) => {
-        if (e.target === ref.current) onClose() // a click on the dimmed backdrop
+        if (e.target === ref.current || e.target.classList.contains('player__stage')) onClose() // outside the controls
       }}
     >
-      <div className="songs__panel">
-        <header className="songs__head">
-          <div>
-            <p className="songs__kicker">Music</p>
-            <h2 id="songs-title" className="songs__title">
-              Choose a song
-            </h2>
+      <span ref={glow} className="player__edge" aria-hidden="true">
+        <i />
+        <i />
+      </span>
+      <div className="player__stage">
+        <button type="button" className="player__close" onClick={onClose} aria-label="Close">
+          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+            <path d="M3.5 3.5l9 9m0-9-9 9" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+          </svg>
+        </button>
+
+        <div className="player__main">
+          <canvas ref={orb} className="player__orb" aria-hidden="true" />
+          <p className="player__kicker">{playing ? 'Now playing' : 'Paused'}</p>
+          <h2 id="player-title" className="player__title">
+            {now?.title}
+          </h2>
+
+          <div className="player__controls">
+            <button type="button" className="player__skip" onClick={() => step(-1)} aria-label="Previous song">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                <path d="M7 6v12M18 6l-8 6 8 6z" fill="currentColor" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <button type="button" className="player__play" onClick={toggleMusic} aria-label={playing ? 'Pause' : 'Play'}>
+              {playing ? (
+                <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+                  <rect x="6.5" y="5" width="3.6" height="14" rx="1" fill="currentColor" />
+                  <rect x="13.9" y="5" width="3.6" height="14" rx="1" fill="currentColor" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+                  <path d="M8 5.5v13l11-6.5z" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinejoin="round" />
+                </svg>
+              )}
+            </button>
+            <button type="button" className="player__skip" onClick={() => step(1)} aria-label="Next song">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                <path d="M17 6v12M6 6l8 6-8 6z" fill="currentColor" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+              </svg>
+            </button>
           </div>
-          <button type="button" className="songs__close" onClick={onClose} aria-label="Close">
-            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-              <path d="M3.5 3.5l9 9m0-9-9 9" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="square" />
-            </svg>
-          </button>
-        </header>
-        <ul className="songs__list" role="radiogroup" aria-labelledby="songs-title">
+        </div>
+
+        <ul className="player__list" role="radiogroup" aria-label="Songs">
           {tracks.map((t, i) => {
-            const on = t.id === now?.id
+            const on = i === at
             return (
               <li key={t.id}>
                 <button
                   type="button"
                   role="radio"
                   aria-checked={on}
-                  className={`songs__item ${on ? 'is-current' : ''}`}
-                  onClick={() => {
-                    selectTrack(t.id)
-                    onClose()
-                  }}
+                  className={`player__song ${on ? 'is-current' : ''}`}
+                  onClick={() => selectTrack(t.id)}
                 >
-                  <span className="songs__no">{String(i + 1).padStart(2, '0')}</span>
-                  <span className="songs__name">{t.title}</span>
-                  <span className={`songs__eq ${on && playing ? 'is-playing' : ''}`} aria-hidden="true">
+                  <span className="player__no">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="player__name">{t.title}</span>
+                  <span className={`player__eq ${on && playing ? 'is-playing' : ''}`} aria-hidden="true">
                     <i />
                     <i />
                     <i />
                   </span>
-                  {on && <span className="songs__now">{playing ? 'Playing' : 'Paused'}</span>}
                 </button>
               </li>
             )
           })}
         </ul>
-        <p className="songs__foot">Click once to turn the music on or off, twice to come back here.</p>
       </div>
     </dialog>
   )
