@@ -6,69 +6,88 @@ import { media } from '../../config/site'
 import './music-button.css'
 
 /*
- * The waves: a few glowing curves laid over each other, each pinched to nothing at both ends
- * and swelling in the middle, drifting at their own speeds. Their height follows how loud the
- * music is at that moment; with the music off they settle into one flat line.
+ * The button's orb: a small sphere of black glass with a thin gold rim and a glossy
+ * highlight. Inside, a molten-gold core of a few drifting blobs swirls and swells with the
+ * music; with the music off it cools to a dim, still ember.
  */
-const WAVES = [
-  { color: '227,181,90', amp: 1.0, freq: 5.2, speed: 2.6, width: 1.6 }, // gold
-  { color: '255,150,60', amp: 0.75, freq: 3.4, speed: -1.9, width: 1.3 }, // amber
-  { color: '244,236,220', amp: 0.55, freq: 7.1, speed: 3.4, width: 1.1 }, // ivory
-  { color: '184,134,47', amp: 0.85, freq: 2.3, speed: -1.2, width: 1.4 }, // deep gold
+const CORE = [
+  { color: '255,206,120', r: 0.5, a: 0, sp: 1.0 },
+  { color: '227,160,60', r: 0.42, a: 2.1, sp: -1.3 },
+  { color: '255,236,190', r: 0.3, a: 4.2, sp: 1.7 },
 ]
-// pinch at the ends: 1 in the middle, 0 at both edges (x from -2 to 2)
-const pinch = (x) => (4 / (4 + x ** 4)) ** 4
 
-function draw(ctx, w, h, dpr, t, level, still) {
-  ctx.clearRect(0, 0, w, h)
-  const mid = h / 2
-  const steps = 48
-  ctx.globalCompositeOperation = 'lighter'
-  for (const wave of WAVES) {
-    const a = (h / 2 - 1 * dpr) * wave.amp * Math.min(1, level)
-    const phase = still ? wave.freq : t * wave.speed
-    ctx.beginPath()
-    for (let i = 0; i <= steps; i++) {
-      const xn = -2 + (4 * i) / steps
-      const y = mid + a * pinch(xn) * Math.sin(wave.freq * xn + phase)
-      const x = (i / steps) * w
-      if (i === 0) ctx.moveTo(x, y)
-      else ctx.lineTo(x, y)
-    }
-    // a soft filled body under each curve, and the curve itself drawn bright on top
-    ctx.lineTo(w, mid)
-    ctx.lineTo(0, mid)
-    ctx.closePath()
-    ctx.fillStyle = `rgba(${wave.color},${0.16 * Math.min(1, level * 2)})`
-    ctx.fill()
-    ctx.beginPath()
-    for (let i = 0; i <= steps; i++) {
-      const xn = -2 + (4 * i) / steps
-      const y = mid + a * pinch(xn) * Math.sin(wave.freq * xn + phase)
-      const x = (i / steps) * w
-      if (i === 0) ctx.moveTo(x, y)
-      else ctx.lineTo(x, y)
-    }
-    ctx.strokeStyle = `rgba(${wave.color},0.95)`
-    ctx.lineWidth = wave.width * dpr
-    ctx.shadowColor = `rgba(${wave.color},0.9)`
-    ctx.shadowBlur = 4 * dpr * level
-    ctx.stroke()
+function draw(ctx, size, t, level) {
+  const c = size / 2
+  const R = c * 0.86
+  ctx.clearRect(0, 0, size, size)
+
+  // a warm glow around the orb while it plays
+  if (level > 0.02) {
+    const glow = ctx.createRadialGradient(c, c, R * 0.8, c, c, c)
+    glow.addColorStop(0, `rgba(227,170,80,${0.35 * level})`)
+    glow.addColorStop(1, 'rgba(227,170,80,0)')
+    ctx.fillStyle = glow
+    ctx.fillRect(0, 0, size, size)
   }
-  ctx.shadowBlur = 0
-  // the resting line, fading out as the waves rise
+
+  ctx.save()
+  ctx.beginPath()
+  ctx.arc(c, c, R, 0, Math.PI * 2)
+  ctx.clip()
+  // black glass, a little lighter towards the bottom where light passes through
+  const glass = ctx.createRadialGradient(c, c * 1.3, R * 0.1, c, c, R)
+  glass.addColorStop(0, '#2a2118')
+  glass.addColorStop(1, '#070605')
+  ctx.fillStyle = glass
+  ctx.fillRect(0, 0, size, size)
+
+  // the molten core
+  ctx.globalCompositeOperation = 'lighter'
+  const heat = 0.22 + 1.1 * level
+  for (const b of CORE) {
+    const orbit = R * (0.12 + 0.2 * level)
+    const x = c + Math.cos(t * b.sp + b.a) * orbit
+    const y = c + Math.sin(t * b.sp * 1.2 + b.a) * orbit
+    const rr = R * b.r * (0.8 + 0.55 * level + 0.08 * Math.sin(t * 3 + b.a))
+    const g = ctx.createRadialGradient(x, y, 0, x, y, rr)
+    g.addColorStop(0, `rgba(${b.color},${0.95 * heat})`)
+    g.addColorStop(0.5, `rgba(${b.color},${0.4 * heat})`)
+    g.addColorStop(1, `rgba(${b.color},0)`)
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, size, size)
+  }
+
+  // glossy highlight on top, and a darker edge so it reads as a sphere
   ctx.globalCompositeOperation = 'source-over'
-  ctx.fillStyle = `rgba(244,236,220,${0.85 * Math.max(0, 1 - level * 6)})`
-  ctx.fillRect(0, mid - 0.6 * dpr, w, 1.2 * dpr)
+  const shine = ctx.createLinearGradient(0, c - R, 0, c)
+  shine.addColorStop(0, 'rgba(255,255,255,0.2)')
+  shine.addColorStop(1, 'rgba(255,255,255,0)')
+  ctx.fillStyle = shine
+  ctx.beginPath()
+  ctx.ellipse(c, c - R * 0.55, R * 0.55, R * 0.3, 0, 0, Math.PI * 2)
+  ctx.fill()
+  const edge = ctx.createRadialGradient(c, c, R * 0.7, c, c, R)
+  edge.addColorStop(0, 'rgba(0,0,0,0)')
+  edge.addColorStop(1, 'rgba(0,0,0,0.55)')
+  ctx.fillStyle = edge
+  ctx.fillRect(0, 0, size, size)
+  ctx.restore()
+
+  // the thin gold rim
+  ctx.beginPath()
+  ctx.arc(c, c, R, 0, Math.PI * 2)
+  ctx.strokeStyle = `rgba(227,181,90,${0.45 + 0.4 * level})`
+  ctx.lineWidth = Math.max(1, size / 44)
+  ctx.stroke()
 }
 
 /** How long to wait for a second click before treating the first as a plain on/off. */
 const DOUBLE_CLICK_MS = 260
 
 /**
- * Header control for the background music: glowing waves that move with the music while it
- * plays, a flat line when it's off. One click turns it on or off; when staff have added songs
- * (Panel → Music), a double click opens a pop-up to pick one.
+ * Header control for the background music: a small black-glass orb whose molten-gold core
+ * swirls with the music while it plays and cools to an ember when it's off. One click turns it
+ * on or off; when staff have added songs (Panel → Music), a double click opens the player.
  */
 export default function MusicButton({ className = '' }) {
   const { playing, tracks, current } = useMusic()
@@ -94,9 +113,8 @@ export default function MusicButton({ className = '' }) {
       const dpr = Math.min(2, window.devicePixelRatio || 1)
       el.width = Math.round(el.clientWidth * dpr)
       el.height = Math.round(el.clientHeight * dpr)
-      return dpr
     }
-    let dpr = size()
+    size()
     const frame = (now) => {
       const dt = Math.min(0.1, (now - last) / 1000)
       last = now
@@ -104,7 +122,7 @@ export default function MusicButton({ className = '' }) {
       const target = playingRef.current ? (still ? 0.8 : Math.max(0.5, Math.min(1, 0.35 + musicLevel()))) : 0
       const rate = target > shown ? 14 : 5 // jump up with a beat, fall back more gently
       shown += (target - shown) * (1 - Math.exp(-rate * dt))
-      draw(ctx, el.width, el.height, dpr, now / 1000, shown, still)
+      draw(ctx, el.width, still ? 0 : now / 1000, shown)
       // keep drawing while playing or still settling; stop once flat
       raf = playingRef.current || shown > 0.002 ? requestAnimationFrame(frame) : 0
     }
@@ -115,11 +133,11 @@ export default function MusicButton({ className = '' }) {
       }
     }
     const resize = () => {
-      dpr = size()
+      size()
       wake.current()
     }
     window.addEventListener('resize', resize)
-    draw(ctx, el.width, el.height, dpr, 0, 0, still)
+    draw(ctx, el.width, 0, 0)
     if (playingRef.current) wake.current()
     return () => {
       cancelAnimationFrame(raf)
