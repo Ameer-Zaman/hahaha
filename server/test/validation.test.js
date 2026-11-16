@@ -199,12 +199,15 @@ test('store categories: a sub-category must belong to its category', async () =>
   assert.equal(ok('shop', ''), false)
 })
 
-test('dhadhas page: a crew of 10 at most, named players, real dates and known results', async () => {
-  const { dhadhasSchema } = await import('../src/validation/schemas.js')
-  const ok = (body) => dhadhasSchema.safeParse(body).success
+test('a dhadha: a crew of 10 at most, named players, real dates and known results', async () => {
+  const { dhadhaSchema } = await import('../src/validation/schemas.js')
+  const base = { slug: 'test-dhadha', name: 'Test Dhadha' }
+  const ok = (body) => dhadhaSchema.safeParse({ ...base, ...body }).success
   const player = (n, extra = {}) => ({ name: `P${n}`, ...extra })
   assert.equal(ok({}), true)
-  assert.equal(ok({ leader: { name: 'A', photo: id(1) }, members: [player(1, { rank: 1, coins: 500 })] }), true)
+  assert.equal(ok({ name: '' }), false)
+  assert.equal(ok({ slug: '../x' }), false)
+  assert.equal(ok({ photo: id(1), members: [player(1, { rank: 1, coins: 500 })] }), true)
   assert.equal(ok({ members: Array.from({ length: 10 }, (_, i) => player(i)) }), true)
   assert.equal(ok({ members: Array.from({ length: 11 }, (_, i) => player(i)) }), false)
   assert.equal(ok({ members: [player(1, { coins: -5 })] }), false)

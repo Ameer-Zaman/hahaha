@@ -25,7 +25,7 @@ import Staff from './screens/Staff'
 import Creators from './screens/Creators'
 import { ProductEditor, StoreList } from './screens/Store'
 import Gallery from './screens/Gallery'
-import Dhadhas from './screens/Dhadhas'
+import { DhadhaEditor, DhadhaList } from './screens/Dhadhas'
 import Tdm from './screens/Tdm'
 import Wars from './screens/Wars'
 import { ErrorNote, Loading, ToastProvider } from './ui'
@@ -361,7 +361,15 @@ function Shell() {
             path="dhadhas"
             element={
               <Area name="dhadhas">
-                <Dhadhas />
+                <DhadhaList />
+              </Area>
+            }
+          />
+          <Route
+            path="dhadhas/:id"
+            element={
+              <Area name="dhadhas">
+                <DhadhaEditor />
               </Area>
             }
           />

@@ -4,13 +4,14 @@ import mongoose from 'mongoose'
 import { Announcement, isLive } from '../models/Announcement.js'
 import { Club } from '../models/Club.js'
 import { Creator, manualOn } from '../models/Creator.js'
+import { Dhadha } from '../models/Dhadha.js'
 import { endOf, Event, eventState } from '../models/Event.js'
 import { Gang } from '../models/Gang.js'
 import { LiveAlert } from '../models/LiveAlert.js'
 import { Media } from '../models/Media.js'
 import { RuleBook } from '../models/RuleBook.js'
 import { Product } from '../models/Product.js'
-import { MEDIA_SLOTS, Settings, readBrandLogo, readChatBot, readDhadhas, readSections, readSocials, readStore } from '../models/Settings.js'
+import { MEDIA_SLOTS, Settings, readBrandLogo, readChatBot, readSections, readSocials, readStore } from '../models/Settings.js'
 import { Staff } from '../models/Staff.js'
 import { TdmBoard } from '../models/TdmBoard.js'
 import { War } from '../models/War.js'
@@ -130,13 +131,25 @@ router.get('/announcements', async (req, res) => {
   })
 })
 
-/** The Dhadhas page: the Dhadha and his crew, with picture addresses. */
+/** The Dhadhas page: every Dhadha with his crew (rank position, coins, fights), with picture addresses. */
 router.get('/dhadhas', async (req, res) => {
-  const d = readDhadhas(await Settings.findOne({ key: 'main' }, 'dhadhas').lean())
-  const mediaUrl = await resolveMediaUrls([d.leader.photo, ...d.members.map((m) => m.photo)])
+  const dhadhas = await Dhadha.find().sort({ order: 1, createdAt: 1 }).lean()
+  const mediaUrl = await resolveMediaUrls(dhadhas.flatMap((d) => [d.photo, ...(d.members ?? []).map((m) => m.photo)]))
   res.json({
-    leader: { ...d.leader, photo: mediaUrl(d.leader.photo) },
-    members: d.members.map((m) => ({ ...m, photo: mediaUrl(m.photo) })),
+    dhadhas: dhadhas.map((d) => ({
+      id: d.slug,
+      name: d.name,
+      title: d.title || '',
+      line: d.line || '',
+      photo: mediaUrl(d.photo),
+      members: (d.members ?? []).map((m) => ({
+        name: m.name,
+        photo: mediaUrl(m.photo),
+        rank: Number.isInteger(m.rank) ? m.rank : null,
+        coins: m.coins || 0,
+        fights: (m.fights ?? []).map((f) => ({ date: f.date || '', opponent: f.opponent, result: f.result, note: f.note || '' })),
+      })),
+    })),
   })
 })
 

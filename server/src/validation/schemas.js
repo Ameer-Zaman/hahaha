@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
-import { DHADHA_CREW_MAX, FIGHT_RESULTS, SECTION_KEYS } from '../models/Settings.js'
+import { CREW_MAX, FIGHT_RESULTS } from '../models/Dhadha.js'
+import { SECTION_KEYS } from '../models/Settings.js'
 import { PANEL_AREAS } from '../models/User.js'
 import { STORE_PLANS, validSub } from '../config/storeTaxonomy.js'
 
@@ -412,16 +413,14 @@ export const gallerySchema = z.object({
     .max(150),
 })
 
-/** Panel → Dhadhas: the Dhadha and his crew — rank position, coins and fights for each player. */
-export const dhadhasSchema = z.object({
-  leader: z
-    .object({
-      name: text(40).optional().default(''),
-      title: text(40).optional().default(''),
-      line: text(160).optional().default(''),
-      photo: mediaId,
-    })
-    .default({}),
+/** Panel → Dhadhas: one Dhadha and his crew — rank position, coins and fights for each player. */
+export const dhadhaSchema = z.object({
+  slug,
+  name: text(40).min(1, 'the Dhadha needs a name'),
+  title: text(40).optional().default(''),
+  line: text(160).optional().default(''),
+  photo: mediaId,
+  order: z.number().int().min(0).max(9999).optional().default(0),
   members: z
     .array(
       z.object({
@@ -445,7 +444,7 @@ export const dhadhasSchema = z.object({
           .default([]),
       }),
     )
-    .max(DHADHA_CREW_MAX, `the crew is ${DHADHA_CREW_MAX} players at most`)
+    .max(CREW_MAX, `a crew is ${CREW_MAX} players at most`)
     .default([]),
 })
 

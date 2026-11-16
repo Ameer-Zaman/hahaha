@@ -90,7 +90,7 @@ export default function App() {
           }
         />
         <Route
-          path="dhadhas"
+          path="dhadhas/:slug?"
           element={
             <Section to="/dhadhas">
               <DhadhasPage />

@@ -33,12 +33,6 @@ export const STORY_SLOTS = Object.entries(STORY_PLACES).flatMap(([chapter, place
 MEDIA_SLOTS.push(...STORY_SLOTS)
 
 /** Website sections that can be switched off from the panel (Home is always on). */
-/** How a fight on the Dhadhas page ended, for the player it's listed under. */
-export const FIGHT_RESULTS = ['win', 'loss', 'draw']
-
-/** The most players in the Dhadha's crew. */
-export const DHADHA_CREW_MAX = 10
-
 export const SECTION_KEYS = [
   'story',
   'staff',
@@ -117,42 +111,6 @@ const settingsSchema = new mongoose.Schema(
       type: [{ _id: false, media: String, caption: { type: String, default: '' }, credit: { type: String, default: '' } }],
       default: [],
     },
-    /**
-     * The Dhadhas page: the Dhadha (the crew's leader) and his crew of up to 10 players, each
-     * with a rank position, a coin count and a fight history. Written by staff in Panel → Dhadhas.
-     */
-    dhadhas: {
-      leader: {
-        name: { type: String, default: '' },
-        title: { type: String, default: '' },
-        line: { type: String, default: '' },
-        photo: { type: String, default: null },
-      },
-      members: {
-        type: [
-          {
-            _id: false,
-            name: String,
-            photo: { type: String, default: null },
-            rank: { type: Number, default: null },
-            coins: { type: Number, default: 0 },
-            fights: {
-              type: [
-                {
-                  _id: false,
-                  date: { type: String, default: '' },
-                  opponent: String,
-                  result: { type: String, enum: FIGHT_RESULTS },
-                  note: { type: String, default: '' },
-                },
-              ],
-              default: [],
-            },
-          },
-        ],
-        default: [],
-      },
-    },
     /** Rules for every panel account, set by a Super Admin. Never sent to the website. */
     security: {
       /** Everyone must finish setting up two-step sign-in before they can use the panel. */
@@ -173,21 +131,3 @@ export const readStore = (settings) => ({
   buyUrl: settings?.store?.buyUrl ?? '',
   note: settings?.store?.note ?? '',
 })
-
-/** The Dhadhas page as saved, with every field present. */
-export const readDhadhas = (settings) => {
-  const d = settings?.dhadhas ?? {}
-  const l = d.leader ?? {}
-  return {
-    leader: { name: l.name ?? '', title: l.title ?? '', line: l.line ?? '', photo: l.photo ?? null },
-    members: (d.members ?? []).slice(0, DHADHA_CREW_MAX).map((m) => ({
-      name: m.name ?? '',
-      photo: m.photo ?? null,
-      rank: Number.isInteger(m.rank) ? m.rank : null,
-      coins: Number.isFinite(m.coins) ? m.coins : 0,
-      fights: (m.fights ?? [])
-        .filter((f) => FIGHT_RESULTS.includes(f.result))
-        .map((f) => ({ date: f.date ?? '', opponent: f.opponent ?? '', result: f.result, note: f.note ?? '' })),
-    })),
-  }
-}
