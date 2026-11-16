@@ -80,6 +80,30 @@ export const preloadMusic = () => load()
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
+// a meter on the way out, so the header's waves can follow how loud the music is right now
+let analyser = null
+let samples = null
+function meter(c) {
+  if (!analyser || analyser.context !== c) {
+    analyser = c.createAnalyser()
+    analyser.fftSize = 1024
+    analyser.smoothingTimeConstant = 0.5
+    analyser.connect(c.destination)
+    samples = new Float32Array(analyser.fftSize)
+  }
+  return analyser
+}
+
+/** How loud the music is at this moment, 0 (silent or off) to about 1. Cheap: call it every frame. */
+export function musicLevel() {
+  if (!analyser || !voice) return 0
+  analyser.getFloatTimeDomainData(samples)
+  let sum = 0
+  for (let i = 0; i < samples.length; i++) sum += samples[i] * samples[i]
+  // the loop plays quietly underneath the site; scale its level up to fill the meter
+  return Math.min(1, Math.sqrt(sum / samples.length) * 9)
+}
+
 /** Starts the loop with a fade-in. `delay` and `fade` are in seconds. Quietly does nothing if audio isn't allowed. */
 async function start({ delay = 0, fade = 4 } = {}) {
   const c = getAudioContext()
@@ -98,7 +122,7 @@ async function start({ delay = 0, fade = 4 } = {}) {
   gain.gain.setValueAtTime(0, c.currentTime)
   gain.gain.setValueAtTime(0, at)
   gain.gain.linearRampToValueAtTime(VOLUME, at + fade)
-  source.connect(gain).connect(c.destination)
+  source.connect(gain).connect(meter(c))
   source.start(at)
   voice = { source, gain }
   emit({ playing: true })
