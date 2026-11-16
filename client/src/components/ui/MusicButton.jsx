@@ -1,5 +1,6 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
+import { getAudioContext } from '../../lib/introSound'
 import { musicLevel, selectTrack, toggleMusic, useMusic } from '../../lib/music'
 import { media } from '../../config/site'
 import './music-button.css'
@@ -61,13 +62,18 @@ function draw(ctx, w, h, dpr, t, level, still) {
   ctx.fillRect(0, mid - 0.6 * dpr, w, 1.2 * dpr)
 }
 
+/** How long to wait for a second click before treating the first as a plain on/off. */
+const DOUBLE_CLICK_MS = 260
+
 /**
  * Header control for the background music: glowing waves that move with the music while it
- * plays, a flat line when it's off. When staff have added songs (Panel → Music), a small arrow
- * under it opens the list to pick one.
+ * plays, a flat line when it's off. One click turns it on or off; when staff have added songs
+ * (Panel → Music), a double click opens a pop-up to pick one.
  */
 export default function MusicButton({ className = '' }) {
   const { playing, tracks, current } = useMusic()
+  const [picking, setPicking] = useState(false)
+  const clickTimer = useRef(0)
   const canvas = useRef(null)
   const playingRef = useRef(playing)
   const wake = useRef(null)
@@ -122,111 +128,126 @@ export default function MusicButton({ className = '' }) {
     }
   }, [])
 
+  useEffect(() => () => clearTimeout(clickTimer.current), [])
+
+  const choosable = tracks.length > 1
+  const onClick = () => {
+    if (!choosable) return toggleMusic()
+    // wake the audio inside the click (browsers only allow sound from one), then wait a moment:
+    // a second click opens the songs, otherwise this was an on/off
+    getAudioContext()
+      ?.resume()
+      .catch(() => {})
+    if (clickTimer.current) {
+      clearTimeout(clickTimer.current)
+      clickTimer.current = 0
+      setPicking(true)
+      return
+    }
+    clickTimer.current = setTimeout(() => {
+      clickTimer.current = 0
+      toggleMusic()
+    }, DOUBLE_CLICK_MS)
+  }
+
   if (!media.music && !tracks.length) return null
+  const label = `${playing ? 'Music on — turn off' : 'Music off — turn on'}${choosable ? '. Press twice to choose a song' : ''}`
   return (
     <div className={`music ${className}`}>
       <button
         type="button"
         className={`music-btn ${playing ? 'is-playing' : ''}`}
         aria-pressed={playing}
-        aria-label={playing ? 'Music on — turn off' : 'Music off — turn on'}
-        title={playing ? 'Music on' : 'Music off'}
-        onClick={toggleMusic}
+        aria-label={label}
+        title={choosable ? `${playing ? 'Music on' : 'Music off'} · double-click to choose a song` : playing ? 'Music on' : 'Music off'}
+        onClick={onClick}
       >
         <canvas ref={canvas} className="music-btn__wave" aria-hidden="true" />
       </button>
-      {tracks.length > 1 && <SongMenu tracks={tracks} current={current} playing={playing} />}
+      {choosable && <SongDialog open={picking} onClose={() => setPicking(false)} tracks={tracks} current={current} playing={playing} />}
     </div>
   )
 }
 
-/** The small arrow under the music button, and the list of songs it opens. */
-function SongMenu({ tracks, current, playing }) {
-  const [open, setOpen] = useState(false)
-  const root = useRef(null)
-  const toggle = useRef(null)
-  const id = useId()
+/** The pop-up with every song; the one playing is marked. Esc, ×, or a click outside closes it. */
+function SongDialog({ open, onClose, tracks, current, playing }) {
+  const ref = useRef(null)
   const now = tracks.find((t) => t.id === current) ?? tracks[0]
 
-  // close on a click elsewhere, or Esc (focus goes back to the arrow)
   useEffect(() => {
-    if (!open) return undefined
-    const away = (e) => !root.current?.contains(e.target) && setOpen(false)
-    const key = (e) => {
-      if (e.key === 'Escape') {
-        setOpen(false)
-        toggle.current?.focus()
-      }
+    const dialog = ref.current
+    if (!dialog) return
+    if (open && !dialog.open) {
+      dialog.showModal()
+      dialog.querySelector('[aria-checked="true"]')?.focus() // start on the song that's playing
     }
-    document.addEventListener('pointerdown', away)
-    document.addEventListener('keydown', key)
-    // start on the song that's playing
-    root.current?.querySelector('[aria-checked="true"]')?.focus()
-    return () => {
-      document.removeEventListener('pointerdown', away)
-      document.removeEventListener('keydown', key)
-    }
+    if (!open && dialog.open) dialog.close()
   }, [open])
 
   // arrow keys move through the list
   const onKeyDown = (e) => {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
     e.preventDefault()
-    const items = [...root.current.querySelectorAll('.song-menu__item')]
+    const items = [...ref.current.querySelectorAll('.songs__item')]
     const at = items.indexOf(document.activeElement)
     items[(at + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus()
   }
 
   return (
-    <div className="song-menu" ref={root}>
-      <button
-        ref={toggle}
-        type="button"
-        className={`song-menu__toggle ${open ? 'is-open' : ''}`}
-        aria-haspopup="true"
-        aria-expanded={open}
-        aria-controls={id}
-        aria-label={`Change song — now: ${now?.title ?? ''}`}
-        title="Change song"
-        onClick={() => setOpen((o) => !o)}
-      >
-        <svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
-          <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
-      {open && (
-        <div id={id} className="song-menu__panel" role="menu" aria-label="Songs" onKeyDown={onKeyDown}>
-          <p className="song-menu__head">Music</p>
-          <ul className="song-menu__list" role="none">
-            {tracks.map((t) => {
-              const on = t.id === now?.id
-              return (
-                <li key={t.id} role="none">
-                  <button
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked={on}
-                    className={`song-menu__item ${on ? 'is-current' : ''}`}
-                    onClick={() => {
-                      selectTrack(t.id)
-                      setOpen(false)
-                      toggle.current?.focus()
-                    }}
-                  >
-                    <span className={`song-menu__eq ${on && playing ? 'is-playing' : ''}`} aria-hidden="true">
-                      <i />
-                      <i />
-                      <i />
-                    </span>
-                    <span className="song-menu__title">{t.title}</span>
-                    {on && <span className="song-menu__now">{playing ? 'Playing' : 'Paused'}</span>}
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-        </div>
-      )}
-    </div>
+    <dialog
+      ref={ref}
+      className="songs"
+      aria-labelledby="songs-title"
+      onClose={onClose}
+      onKeyDown={onKeyDown}
+      onClick={(e) => {
+        if (e.target === ref.current) onClose() // a click on the dimmed backdrop
+      }}
+    >
+      <div className="songs__panel">
+        <header className="songs__head">
+          <div>
+            <p className="songs__kicker">Music</p>
+            <h2 id="songs-title" className="songs__title">
+              Choose a song
+            </h2>
+          </div>
+          <button type="button" className="songs__close" onClick={onClose} aria-label="Close">
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <path d="M3.5 3.5l9 9m0-9-9 9" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="square" />
+            </svg>
+          </button>
+        </header>
+        <ul className="songs__list" role="radiogroup" aria-labelledby="songs-title">
+          {tracks.map((t, i) => {
+            const on = t.id === now?.id
+            return (
+              <li key={t.id}>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={on}
+                  className={`songs__item ${on ? 'is-current' : ''}`}
+                  onClick={() => {
+                    selectTrack(t.id)
+                    onClose()
+                  }}
+                >
+                  <span className="songs__no">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="songs__name">{t.title}</span>
+                  <span className={`songs__eq ${on && playing ? 'is-playing' : ''}`} aria-hidden="true">
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  {on && <span className="songs__now">{playing ? 'Playing' : 'Paused'}</span>}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+        <p className="songs__foot">Click once to turn the music on or off, twice to come back here.</p>
+      </div>
+    </dialog>
   )
 }
