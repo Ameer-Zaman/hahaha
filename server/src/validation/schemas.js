@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { DHADHAS_STATUSES, SECTION_KEYS } from '../models/Settings.js'
+import { DHADHA_CREW_MAX, FIGHT_RESULTS, SECTION_KEYS } from '../models/Settings.js'
 import { PANEL_AREAS } from '../models/User.js'
 import { STORE_PLANS, validSub } from '../config/storeTaxonomy.js'
 
@@ -412,30 +412,41 @@ export const gallerySchema = z.object({
     .max(150),
 })
 
-/** Panel → Dhadhas: the clan page. */
+/** Panel → Dhadhas: the Dhadha and his crew — rank position, coins and fights for each player. */
 export const dhadhasSchema = z.object({
-  status: z.enum(DHADHAS_STATUSES).default('soon'),
-  motto: text(90).optional().default(''),
-  about: text(1200).optional().default(''),
-  crest: mediaId,
-  creed: z.array(text(180).min(1, 'a line of the oath is empty')).max(10).default([]),
-  ranks: z
-    .array(z.object({ title: text(40).min(1, 'name the rank'), line: text(160).optional().default('') }))
-    .max(10)
-    .default([]),
+  leader: z
+    .object({
+      name: text(40).optional().default(''),
+      title: text(40).optional().default(''),
+      line: text(160).optional().default(''),
+      photo: mediaId,
+    })
+    .default({}),
   members: z
     .array(
       z.object({
-        name: text(40).min(1, 'a member needs a name'),
-        rank: text(40).optional().default(''),
-        line: text(120).optional().default(''),
+        name: text(40).min(1, 'a player needs a name'),
         photo: mediaId,
+        rank: z.number().int().min(1).max(9999).nullable().optional().default(null),
+        coins: z.number().int().min(0).max(1_000_000_000_000).optional().default(0),
+        fights: z
+          .array(
+            z.object({
+              date: z
+                .union([z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'use a date like 2026-11-16'), z.literal('')])
+                .optional()
+                .default(''),
+              opponent: text(60).min(1, 'a fight needs an opponent'),
+              result: z.enum(FIGHT_RESULTS),
+              note: text(120).optional().default(''),
+            }),
+          )
+          .max(60)
+          .default([]),
       }),
     )
-    .max(80)
+    .max(DHADHA_CREW_MAX, `the crew is ${DHADHA_CREW_MAX} players at most`)
     .default([]),
-  requirements: z.array(text(160).min(1, 'a requirement is empty')).max(10).default([]),
-  applyUrl: webLink,
 })
 
 /** Staff switching a creator to "live now" by hand, for a while, with where to watch. */

@@ -108,9 +108,9 @@ export const pages = [
   {
     path: '/dhadhas',
     title: 'Dhadhas',
-    heading: 'The Dhadhas',
-    description: `The Dhadhas, a clan of ${site.name}: their oath, their ranks, the family and how to join.`,
-    intro: 'A clan of Rameirah Empire — their oath, their ranks, the family and how to join.',
+    heading: 'Dhadhas',
+    description: `The Dhadha of ${site.name} and his crew: every player's rank position, coins and fight history.`,
+    intro: 'The Dhadha and his crew — every player’s rank position, coins and fight history.',
     priority: 0.6,
     changefreq: 'weekly',
   },

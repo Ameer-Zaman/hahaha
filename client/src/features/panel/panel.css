@@ -2556,12 +2556,31 @@ svg.p-logo__img {
   }
 }
 
-/* Dhadhas: ranks, members and line lists (built on the gallery rows) */
-.p-dh-row {
-  grid-template-columns: auto minmax(0, 1fr) auto;
+/* Dhadhas: the crew — one block per player, unfolding to their fight history */
+.p-dh-crew {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
-.p-dh-member {
+.p-dh-player {
+  border: 1px solid var(--p-line, rgb(255 255 255 / 0.08));
+  border-radius: 12px;
+}
+.p-dh-player.is-open {
+  border-color: rgb(var(--rgb-gold) / 0.35);
+}
+.p-dh-player__head {
+  display: grid;
   grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.6rem;
+}
+.p-dh-player__fields {
+  display: grid;
+  gap: 0.45rem;
 }
 .p-dh-photo {
   display: grid;
@@ -2582,28 +2601,91 @@ svg.p-logo__img {
   height: 100%;
   object-fit: cover;
 }
-.p-dh-pair {
-  display: grid;
-  grid-template-columns: minmax(8rem, 0.4fr) minmax(0, 1fr);
-  gap: 0.45rem;
+.p-dh-nums {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.5rem;
 }
-.p-dh-unphoto {
-  justify-self: start;
+.p-dh-num {
+  display: grid;
+  gap: 0.2rem;
+  width: 8.5rem;
+  font-size: var(--fs-2xs);
+  color: var(--fg-muted);
+}
+.p-dh-fights-btn {
+  margin-left: auto;
+}
+.p-dh-fights {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.4rem 0.8rem 0.9rem;
+  border-top: 1px solid var(--p-line, rgb(255 255 255 / 0.08));
+}
+.p-dh-fights__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.9rem;
+  padding-top: 0.5rem;
+}
+.p-dh-fights__hint {
+  font-size: var(--fs-2xs);
+  color: var(--fg-muted);
+}
+.p-dh-fights__top .pbtn {
+  margin-left: auto;
+}
+.p-dh-fights__list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.p-dh-fight {
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr) 6.5rem minmax(0, 1fr) auto;
+  gap: 0.45rem;
+  align-items: center;
+}
+.p-dh-result--win {
+  color: #6fdc96;
+}
+.p-dh-result--loss {
+  color: #ff8a80;
 }
 .p-dh-add {
   margin-top: 0.8rem;
 }
-@media (max-width: 40rem) {
-  .p-dh-row {
-    grid-template-columns: minmax(0, 1fr) auto;
+@media (max-width: 52rem) {
+  .p-dh-fight {
+    grid-template-columns: 1fr 1fr auto;
   }
-  .p-dh-member {
+  .p-dh-fight > :nth-child(2),
+  .p-dh-fight > :nth-child(4) {
+    grid-column: span 2;
+  }
+}
+@media (max-width: 40rem) {
+  .p-dh-player__head {
     grid-template-columns: 4rem minmax(0, 1fr);
+  }
+  .p-dh-player__head .p-rowtools {
+    grid-column: 1 / -1;
+    justify-self: end;
   }
   .p-dh-photo {
     width: 4rem;
   }
-  .p-dh-pair {
-    grid-template-columns: 1fr;
+  .p-dh-num {
+    width: calc(50% - 0.25rem);
   }
+  .p-dh-fights-btn {
+    margin-left: 0;
+  }
+}
+.p-dh-fights > .pbtn {
+  justify-self: start;
 }

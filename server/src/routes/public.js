@@ -130,13 +130,12 @@ router.get('/announcements', async (req, res) => {
   })
 })
 
-/** The Dhadhas clan page: everything staff wrote in Panel → Dhadhas, with picture addresses. */
+/** The Dhadhas page: the Dhadha and his crew, with picture addresses. */
 router.get('/dhadhas', async (req, res) => {
   const d = readDhadhas(await Settings.findOne({ key: 'main' }, 'dhadhas').lean())
-  const mediaUrl = await resolveMediaUrls([d.crest, ...d.members.map((m) => m.photo)])
+  const mediaUrl = await resolveMediaUrls([d.leader.photo, ...d.members.map((m) => m.photo)])
   res.json({
-    ...d,
-    crest: mediaUrl(d.crest),
+    leader: { ...d.leader, photo: mediaUrl(d.leader.photo) },
     members: d.members.map((m) => ({ ...m, photo: mediaUrl(m.photo) })),
   })
 })

@@ -57,7 +57,12 @@ test('staff social links must be https links on the platform itself', () => {
     socials: { youtube: 'https://www.youtube.com/@someone', x: 'https://twitter.com/someone', twitch: '' },
   })
   assert.deepEqual(ok.socials, { youtube: 'https://www.youtube.com/@someone', x: 'https://twitter.com/someone' })
-  for (const bad of ['https://evil.example/youtube.com', 'https://youtube.com.evil.example/', 'http://youtube.com/a', 'javascript:alert(1)']) {
+  for (const bad of [
+    'https://evil.example/youtube.com',
+    'https://youtube.com.evil.example/',
+    'http://youtube.com/a',
+    'javascript:alert(1)',
+  ]) {
     assert.equal(staffSchema.safeParse({ name: 'A', role: 'B', socials: { youtube: bad } }).success, false, bad)
   }
   assert.equal(staffSchema.safeParse({ name: 'A', role: 'B', socials: { myspace: 'https://myspace.com/a' } }).success, false)
@@ -72,12 +77,9 @@ test('TDM board: whole numbers only, each player once', async () => {
   assert.equal(tdmBoardSchema.safeParse({ players: [{ name: 'Mara', kills: 1.5 }] }).success, false)
 })
 
-test('Cloudinary request signing matches the example in Cloudinary\'s documentation', async () => {
+test("Cloudinary request signing matches the example in Cloudinary's documentation", async () => {
   const { signParams } = await import('../src/services/cloudinary.js')
-  const signature = signParams(
-    { eager: 'w_400,h_300,c_pad|w_260,h_200,c_crop', public_id: 'sample_image', timestamp: 1315060510 },
-    'abcd',
-  )
+  const signature = signParams({ eager: 'w_400,h_300,c_pad|w_260,h_200,c_crop', public_id: 'sample_image', timestamp: 1315060510 }, 'abcd')
   assert.equal(signature, 'bfd09f95f331f558cbd1320e67aa8d488770583e')
 })
 
@@ -111,14 +113,26 @@ test('event state: drafts and cancellations win, then the clock decides', async 
 test('community links: known platforms only, https on that platform, each once', async () => {
   const { settingsSocialsSchema } = await import('../src/validation/schemas.js')
   const ok = (links) => settingsSocialsSchema.safeParse({ links }).success
-  assert.equal(ok([{ platform: 'discord', url: 'https://discord.gg/abc' }, { platform: 'youtube', url: 'https://www.youtube.com/@server' }]), true)
+  assert.equal(
+    ok([
+      { platform: 'discord', url: 'https://discord.gg/abc' },
+      { platform: 'youtube', url: 'https://www.youtube.com/@server' },
+    ]),
+    true,
+  )
   assert.equal(ok([]), true) // removing them all is allowed
   assert.equal(ok([{ platform: 'youtube', url: 'https://evil.example/youtube.com' }]), false)
   assert.equal(ok([{ platform: 'discord', url: 'http://discord.gg/abc' }]), false)
   assert.equal(ok([{ platform: 'discord', url: 'javascript:alert(1)' }]), false)
   assert.equal(ok([{ platform: 'myspace', url: 'https://myspace.com/x' }]), false)
   assert.equal(ok([{ platform: 'discord', url: '' }]), false)
-  assert.equal(ok([{ platform: 'discord', url: 'https://discord.gg/a' }, { platform: 'discord', url: 'https://discord.gg/A' }]), false)
+  assert.equal(
+    ok([
+      { platform: 'discord', url: 'https://discord.gg/a' },
+      { platform: 'discord', url: 'https://discord.gg/A' },
+    ]),
+    false,
+  )
 })
 
 test('site settings accept every section switch, including Creators', async () => {
@@ -185,16 +199,21 @@ test('store categories: a sub-category must belong to its category', async () =>
   assert.equal(ok('shop', ''), false)
 })
 
-test('dhadhas page: plain web links only, named members, a known recruiting state', async () => {
+test('dhadhas page: a crew of 10 at most, named players, real dates and known results', async () => {
   const { dhadhasSchema } = await import('../src/validation/schemas.js')
   const ok = (body) => dhadhasSchema.safeParse(body).success
+  const player = (n, extra = {}) => ({ name: `P${n}`, ...extra })
   assert.equal(ok({}), true)
-  assert.equal(dhadhasSchema.parse({}).status, 'soon')
-  assert.equal(ok({ status: 'open', applyUrl: 'https://discord.gg/abc' }), true)
-  assert.equal(ok({ applyUrl: 'javascript:alert(1)' }), false)
-  assert.equal(ok({ status: 'recruiting-maybe' }), false)
-  assert.equal(ok({ members: [{ name: 'A', photo: id(1) }] }), true)
-  assert.equal(ok({ members: [{ name: '  ' }] }), false)
-  assert.equal(ok({ members: [{ name: 'A', photo: '../x' }] }), false)
-  assert.equal(ok({ creed: Array(11).fill('x') }), false)
+  assert.equal(ok({ leader: { name: 'A', photo: id(1) }, members: [player(1, { rank: 1, coins: 500 })] }), true)
+  assert.equal(ok({ members: Array.from({ length: 10 }, (_, i) => player(i)) }), true)
+  assert.equal(ok({ members: Array.from({ length: 11 }, (_, i) => player(i)) }), false)
+  assert.equal(ok({ members: [player(1, { coins: -5 })] }), false)
+  assert.equal(ok({ members: [player(1, { rank: 0 })] }), false)
+  assert.equal(ok({ members: [{ name: ' ' }] }), false)
+  assert.equal(ok({ members: [player(1, { photo: '../x' })] }), false)
+  const fight = (f) => ok({ members: [player(1, { fights: [{ opponent: 'X', result: 'win', ...f }] })] })
+  assert.equal(fight({ date: '2026-11-16' }), true)
+  assert.equal(fight({ date: '16/11/2026' }), false)
+  assert.equal(fight({ result: 'maybe' }), false)
+  assert.equal(fight({ opponent: '' }), false)
 })

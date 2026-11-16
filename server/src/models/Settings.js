@@ -33,8 +33,11 @@ export const STORY_SLOTS = Object.entries(STORY_PLACES).flatMap(([chapter, place
 MEDIA_SLOTS.push(...STORY_SLOTS)
 
 /** Website sections that can be switched off from the panel (Home is always on). */
-/** Where the Dhadhas stand on recruiting. */
-export const DHADHAS_STATUSES = ['soon', 'open', 'invite', 'closed']
+/** How a fight on the Dhadhas page ended, for the player it's listed under. */
+export const FIGHT_RESULTS = ['win', 'loss', 'draw']
+
+/** The most players in the Dhadha's crew. */
+export const DHADHA_CREW_MAX = 10
 
 export const SECTION_KEYS = [
   'story',
@@ -115,31 +118,40 @@ const settingsSchema = new mongoose.Schema(
       default: [],
     },
     /**
-     * The Dhadhas clan page: its seal, motto, oath, ranks, members and how to join. Everything
-     * is written by staff in Panel → Dhadhas; with nothing filled in the page is a teaser.
+     * The Dhadhas page: the Dhadha (the crew's leader) and his crew of up to 10 players, each
+     * with a rank position, a coin count and a fight history. Written by staff in Panel → Dhadhas.
      */
     dhadhas: {
-      /** Recruitment: soon (not yet), open, invite (invitation only) or closed. */
-      status: { type: String, enum: DHADHAS_STATUSES, default: 'soon' },
-      motto: { type: String, default: '' },
-      about: { type: String, default: '' },
-      crest: { type: String, default: null },
-      creed: { type: [String], default: [] },
-      ranks: { type: [{ _id: false, title: String, line: { type: String, default: '' } }], default: [] },
+      leader: {
+        name: { type: String, default: '' },
+        title: { type: String, default: '' },
+        line: { type: String, default: '' },
+        photo: { type: String, default: null },
+      },
       members: {
         type: [
           {
             _id: false,
             name: String,
-            rank: { type: String, default: '' },
-            line: { type: String, default: '' },
             photo: { type: String, default: null },
+            rank: { type: Number, default: null },
+            coins: { type: Number, default: 0 },
+            fights: {
+              type: [
+                {
+                  _id: false,
+                  date: { type: String, default: '' },
+                  opponent: String,
+                  result: { type: String, enum: FIGHT_RESULTS },
+                  note: { type: String, default: '' },
+                },
+              ],
+              default: [],
+            },
           },
         ],
         default: [],
       },
-      requirements: { type: [String], default: [] },
-      applyUrl: { type: String, default: '' },
     },
     /** Rules for every panel account, set by a Super Admin. Never sent to the website. */
     security: {
@@ -162,18 +174,20 @@ export const readStore = (settings) => ({
   note: settings?.store?.note ?? '',
 })
 
-/** The Dhadhas page content as saved, with every field present. */
+/** The Dhadhas page as saved, with every field present. */
 export const readDhadhas = (settings) => {
   const d = settings?.dhadhas ?? {}
+  const l = d.leader ?? {}
   return {
-    status: DHADHAS_STATUSES.includes(d.status) ? d.status : 'soon',
-    motto: d.motto ?? '',
-    about: d.about ?? '',
-    crest: d.crest ?? null,
-    creed: [...(d.creed ?? [])],
-    ranks: (d.ranks ?? []).map((r) => ({ title: r.title ?? '', line: r.line ?? '' })),
-    members: (d.members ?? []).map((m) => ({ name: m.name ?? '', rank: m.rank ?? '', line: m.line ?? '', photo: m.photo ?? null })),
-    requirements: [...(d.requirements ?? [])],
-    applyUrl: d.applyUrl ?? '',
+    leader: { name: l.name ?? '', title: l.title ?? '', line: l.line ?? '', photo: l.photo ?? null },
+    members: (d.members ?? []).slice(0, DHADHA_CREW_MAX).map((m) => ({
+      name: m.name ?? '',
+      photo: m.photo ?? null,
+      rank: Number.isInteger(m.rank) ? m.rank : null,
+      coins: Number.isFinite(m.coins) ? m.coins : 0,
+      fights: (m.fights ?? [])
+        .filter((f) => FIGHT_RESULTS.includes(f.result))
+        .map((f) => ({ date: f.date ?? '', opponent: f.opponent ?? '', result: f.result, note: f.note ?? '' })),
+    })),
   }
 }

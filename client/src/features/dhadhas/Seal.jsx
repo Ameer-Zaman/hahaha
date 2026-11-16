@@ -5,17 +5,18 @@ const RING = 'THE DHADHAS · LOYALTY · HONOUR · FAMILY · '
 /**
  * The Dhadhas seal: a milled gold rim, a ring of lettering that turns slowly, and in the middle
  * the clan's emblem (from Panel → Dhadhas) or, without one, the built-in mark — a carved "D"
- * on an eight-point star. It tilts a little towards the pointer and catches the light as it does.
+ * on an eight-point star. It tilts a little towards the pointer and catches the light as it does
+ * (`still`: a small badge that doesn't move).
  * Original artwork, drawn here in SVG.
  */
-export default function Seal({ emblem }) {
+export default function Seal({ emblem, still = false }) {
   const id = useId().replace(/:/g, '')
   const ref = useRef(null)
 
   // tilt towards the pointer (fine pointers only, and not with reduced motion)
   useEffect(() => {
     const el = ref.current
-    if (!el || !window.matchMedia('(pointer: fine) and (prefers-reduced-motion: no-preference)').matches) return undefined
+    if (still || !el || !window.matchMedia('(pointer: fine) and (prefers-reduced-motion: no-preference)').matches) return undefined
     let raf = 0
     const target = { x: 0, y: 0 }
     const now = { x: 0, y: 0 }
@@ -37,13 +38,13 @@ export default function Seal({ emblem }) {
       window.removeEventListener('pointermove', move)
       cancelAnimationFrame(raf)
     }
-  }, [])
+  }, [still])
 
   const teeth = Array.from({ length: 120 }, (_, i) => i * 3)
   const ticks = Array.from({ length: 48 }, (_, i) => i * 7.5)
 
   return (
-    <div ref={ref} className="dh-seal" aria-hidden="true">
+    <div ref={ref} className={`dh-seal${still ? ' dh-seal--still' : ''}`} aria-hidden="true">
       <div className="dh-seal__body">
         <svg viewBox="0 0 400 400" className="dh-seal__svg">
           <defs>
