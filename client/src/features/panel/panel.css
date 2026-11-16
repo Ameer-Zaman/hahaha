@@ -705,6 +705,11 @@
   border: 1px solid var(--p-line, rgba(255, 255, 255, 0.08));
   flex: none;
 }
+.p-thumb--audio {
+  display: grid;
+  place-items: center;
+  color: var(--c-gold, #e3b55a);
+}
 .p-thumb--empty {
   background:
     linear-gradient(135deg, transparent 48%, var(--p-line-strong, rgba(255, 255, 255, 0.16)) 49% 51%, transparent 52%),
@@ -2688,4 +2693,24 @@ svg.p-logo__img {
 }
 .p-dh-fights > .pbtn {
   justify-self: start;
+}
+
+/* Music: one row per song, with a small player to listen before saving */
+.p-music-row {
+  grid-template-columns: auto 64px minmax(0, 1fr) auto;
+}
+.p-music-row__file {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.p-music-row__player {
+  width: min(100%, 22rem);
+  height: 2.25rem;
+}
+@media (max-width: 40rem) {
+  .p-music-row {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
 }

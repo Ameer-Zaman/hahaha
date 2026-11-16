@@ -5,7 +5,7 @@ import { env } from '../config/env.js'
 import { mediaBucket } from '../db.js'
 import { HttpError } from '../middleware/errors.js'
 import { Media } from '../models/Media.js'
-import { ALLOWED_FORMATS, deliveryUrl, destroy, fetchResource, stillUrl, verifyUploadSignature } from './cloudinary.js'
+import { ALLOWED_FORMATS, deliveryUrl, destroy, fetchResource, isAudioFormat, stillUrl, verifyUploadSignature } from './cloudinary.js'
 
 /**
  * Accepted upload types, recognised by their first bytes (not just the file name), so a
@@ -15,7 +15,28 @@ const SIGNATURES = [
   { type: 'image/jpeg', kind: 'image', test: (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },
   { type: 'image/png', kind: 'image', test: (b) => b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) },
   { type: 'image/gif', kind: 'image', test: (b) => b.subarray(0, 4).toString('ascii') === 'GIF8' },
-  { type: 'image/webp', kind: 'image', test: (b) => b.subarray(0, 4).toString('ascii') === 'RIFF' && b.subarray(8, 12).toString('ascii') === 'WEBP' },
+  {
+    type: 'image/webp',
+    kind: 'image',
+    test: (b) => b.subarray(0, 4).toString('ascii') === 'RIFF' && b.subarray(8, 12).toString('ascii') === 'WEBP',
+  },
+  // songs: an M4A is an MP4 box too, so it's told apart by its brand before the video check
+  {
+    type: 'audio/mp4',
+    kind: 'audio',
+    test: (b) => b.subarray(4, 8).toString('ascii') === 'ftyp' && /^M4A |^M4B /.test(b.subarray(8, 12).toString('ascii')),
+  },
+  {
+    type: 'audio/mpeg',
+    kind: 'audio',
+    test: (b) => b.subarray(0, 3).toString('ascii') === 'ID3' || (b[0] === 0xff && (b[1] & 0xe6) === 0xe2),
+  },
+  { type: 'audio/ogg', kind: 'audio', test: (b) => b.subarray(0, 4).toString('ascii') === 'OggS' },
+  {
+    type: 'audio/wav',
+    kind: 'audio',
+    test: (b) => b.subarray(0, 4).toString('ascii') === 'RIFF' && b.subarray(8, 12).toString('ascii') === 'WAVE',
+  },
   { type: 'video/mp4', kind: 'video', test: (b) => b.subarray(4, 8).toString('ascii') === 'ftyp' },
   { type: 'video/webm', kind: 'video', test: (b) => b.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3])) },
 ]
@@ -24,14 +45,22 @@ export function detectType(buffer) {
   return SIGNATURES.find((sig) => buffer.length >= 12 && sig.test(buffer)) ?? null
 }
 
-const cleanName = (name) => String(name || 'upload').replace(/[^\w.\- ]+/g, '').slice(0, 120) || 'upload'
+const UNSUPPORTED = 'Only JPG, PNG, WebP, GIF images, MP4 or WebM videos and MP3, OGG, WAV or M4A songs can be uploaded.'
+const limitFor = (kind) =>
+  kind === 'image' ? env.uploads.imageMaxBytes : kind === 'audio' ? env.uploads.audioMaxBytes : env.uploads.videoMaxBytes
+const kindOf = (resourceType, format) => (resourceType === 'video' && isAudioFormat(format) ? 'audio' : resourceType)
+
+const cleanName = (name) =>
+  String(name || 'upload')
+    .replace(/[^\w.\- ]+/g, '')
+    .slice(0, 120) || 'upload'
 
 /** Stores one uploaded file in GridFS and returns its public description. */
 export async function storeUpload(file, user) {
   if (!file?.buffer?.length) throw new HttpError(400, 'No file received.')
   const sig = detectType(file.buffer)
-  if (!sig) throw new HttpError(415, 'Only JPG, PNG, WebP, GIF images and MP4 or WebM videos can be uploaded.')
-  const limit = sig.kind === 'image' ? env.uploads.imageMaxBytes : env.uploads.videoMaxBytes
+  if (!sig) throw new HttpError(415, UNSUPPORTED)
+  const limit = limitFor(sig.kind)
   if (file.buffer.length > limit) {
     throw new HttpError(413, `That ${sig.kind} is too large (max ${Math.round(limit / 1024 / 1024)} MB).`)
   }
@@ -52,7 +81,10 @@ export async function storeUpload(file, user) {
 /** The raw GridFS file (database storage), for streaming. */
 export async function findGridFile(id) {
   if (!mongoose.isValidObjectId(id)) return null
-  const files = await mediaBucket().find({ _id: new mongoose.Types.ObjectId(String(id)) }).limit(1).toArray()
+  const files = await mediaBucket()
+    .find({ _id: new mongoose.Types.ObjectId(String(id)) })
+    .limit(1)
+    .toArray()
   return files[0] ?? null
 }
 
@@ -98,19 +130,21 @@ export async function registerCloudUpload({ publicId, version, signature, resour
   if (!env.cloudinary.enabled) throw new HttpError(409, 'Cloudinary is not configured on the server.')
   if (!['image', 'video'].includes(resourceType)) throw new HttpError(400, 'Unknown file type.')
   if (typeof publicId !== 'string' || !publicId.startsWith(`${env.cloudinary.folder}/`) || publicId.includes('..')) {
-    throw new HttpError(400, 'That file is not in this site\'s Cloudinary folder.')
+    throw new HttpError(400, "That file is not in this site's Cloudinary folder.")
   }
   if (!verifyUploadSignature({ publicId, version, signature })) throw new HttpError(400, 'The upload could not be verified.')
 
   const info = await fetchResource(resourceType, publicId)
   const format = String(info.format ?? '').toLowerCase()
-  const limit = resourceType === 'image' ? env.uploads.imageMaxBytes : env.uploads.videoMaxBytes
+  const kind = kindOf(resourceType, format)
+  const limit = limitFor(kind)
   const reject = async (message, status) => {
     await destroy(resourceType, publicId).catch(() => {})
     throw new HttpError(status, message)
   }
-  if (!ALLOWED_FORMATS[resourceType].includes(format)) await reject('Only JPG, PNG, WebP, GIF images and MP4, WebM or MOV videos can be uploaded.', 415)
-  if (Number(info.bytes) > limit) await reject(`That ${resourceType} is too large (max ${Math.round(limit / 1024 / 1024)} MB).`, 413)
+  if (!ALLOWED_FORMATS[kind].includes(format)) await reject(UNSUPPORTED, 415)
+  if (Number(info.bytes) > limit)
+    await reject(`That ${kind === 'audio' ? 'song' : kind} is too large (max ${Math.round(limit / 1024 / 1024)} MB).`, 413)
 
   const doc = await Media.findOneAndUpdate(
     { publicId },
@@ -135,8 +169,10 @@ export function describeCloud(m) {
   return {
     id: m._id.toString(),
     name: m.name,
-    kind: m.resourceType,
-    contentType: `${m.resourceType}/${m.format === 'jpg' ? 'jpeg' : m.format === 'mov' ? 'quicktime' : m.format}`,
+    kind: kindOf(m.resourceType, m.format),
+    contentType: isAudioFormat(m.format)
+      ? `audio/${m.format === 'mp3' ? 'mpeg' : m.format === 'm4a' ? 'mp4' : m.format}`
+      : `${m.resourceType}/${m.format === 'jpg' ? 'jpeg' : m.format === 'mov' ? 'quicktime' : m.format}`,
     size: m.bytes,
     uploadedAt: m.createdAt,
     uploadedBy: m.uploadedBy,
@@ -182,7 +218,12 @@ export async function resolveStillUrls(ids) {
   const wanted = [...new Set(ids.filter((id) => id && mongoose.isValidObjectId(id)).map(String))]
   const map = new Map()
   if (wanted.length) {
-    const docs = await Media.find({ _id: { $in: wanted }, resourceType: 'image', format: 'gif', publicId: { $exists: true, $ne: '' } }).lean()
+    const docs = await Media.find({
+      _id: { $in: wanted },
+      resourceType: 'image',
+      format: 'gif',
+      publicId: { $exists: true, $ne: '' },
+    }).lean()
     for (const d of docs) map.set(d._id.toString(), stillUrl(d))
   }
   return (id) => (id ? (map.get(String(id)) ?? null) : null)

@@ -38,15 +38,15 @@ export function MediaLibrary() {
         title="Media library"
         sub={
           storage?.provider === 'cloudinary'
-            ? `Stored on Cloudinary and delivered from its network. Photos (JPG, PNG, WebP, GIF · up to ${formatBytes(storage.limits.image)}) and videos (MP4, WebM, MOV · up to ${formatBytes(storage.limits.video)}). Pick them from here for gangs, staff and the homepage.`
-            : `Photos (JPG, PNG, WebP, GIF · up to ${formatBytes(storage?.limits.image ?? 5 * 1024 * 1024)}) and videos (MP4, WebM · up to ${formatBytes(storage?.limits.video ?? 60 * 1024 * 1024)}). Stored in the database; connect Cloudinary on the server for bigger files and faster delivery.`
+            ? `Stored on Cloudinary and delivered from its network. Photos (JPG, PNG, WebP, GIF · up to ${formatBytes(storage.limits.image)}), videos (MP4, WebM, MOV · up to ${formatBytes(storage.limits.video)}) and songs (MP3, OGG, WAV, M4A · up to ${formatBytes(storage.limits.audio ?? 40 * 1024 * 1024)}). Pick them from here for gangs, staff and the homepage.`
+            : `Photos (JPG, PNG, WebP, GIF · up to ${formatBytes(storage?.limits.image ?? 5 * 1024 * 1024)}), videos (MP4, WebM · up to ${formatBytes(storage?.limits.video ?? 60 * 1024 * 1024)}) and songs (MP3, OGG, WAV, M4A · up to ${formatBytes(storage?.limits.audio ?? 20 * 1024 * 1024)}). Stored in the database; connect Cloudinary on the server for bigger files and faster delivery.`
         }
       >
         <UploadButton label="Upload files" onUploaded={(file) => setData((d) => ({ files: [file, ...d.files] }))} />
       </PageHead>
 
       <div className="p-tabs" role="group" aria-label="Show">
-        {['all', 'image', 'video'].map((f) => (
+        {['all', 'image', 'video', 'audio'].map((f) => (
           <button
             key={f}
             type="button"
@@ -54,7 +54,7 @@ export function MediaLibrary() {
             aria-pressed={filter === f}
             onClick={() => setFilter(f)}
           >
-            {f === 'all' ? `All (${data.files.length})` : f === 'image' ? 'Images' : 'Videos'}
+            {f === 'all' ? `All (${data.files.length})` : f === 'image' ? 'Images' : f === 'video' ? 'Videos' : 'Songs'}
           </button>
         ))}
       </div>
@@ -68,6 +68,7 @@ export function MediaLibrary() {
               <a href={file.url} target="_blank" rel="noreferrer" className="p-library__preview">
                 <Thumb id={file.id} kind={file.kind} alt={file.name} />
                 {file.kind === 'video' && <span className="p-tag p-library__kind">Video</span>}
+                {file.kind === 'audio' && <span className="p-tag p-library__kind">Song</span>}
               </a>
               <p className="p-library__name" title={file.name}>
                 {file.name}

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { ACCEPT, adminApi, checkUpload, formatBytes, getStorage, uploadMedia } from './panelApi'
+import { ACCEPT, adminApi, checkUpload, formatBytes, getStorage, kindOfFile, uploadMedia } from './panelApi'
 import { useAuth } from './authContext'
 import { mediaUrl } from './format'
 import { useToast } from './hooks'
@@ -9,6 +9,16 @@ import { Empty, ErrorNote, Loading } from './ui'
 /** A small preview of a stored file. */
 export function Thumb({ id, kind = 'image', alt = '', className = '', onDuration }) {
   if (!id) return <span className={`p-thumb p-thumb--empty ${className}`} aria-hidden="true" />
+  if (kind === 'audio')
+    return (
+      <span className={`p-thumb p-thumb--audio ${className}`} role="img" aria-label={alt || 'Song'}>
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path d="M9 18V6l10-2v12" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+          <circle cx="6.5" cy="18" r="2.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+          <circle cx="16.5" cy="16" r="2.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+        </svg>
+      </span>
+    )
   return kind === 'video' ? (
     <video
       className={`p-thumb ${className}`}
@@ -40,14 +50,17 @@ export function UploadButton({ onUploaded, kind, multiple, label = 'Upload', cla
   const accept = kind
     ? ACCEPT.split(',')
         .filter((t) => t.startsWith(kind))
+        .concat(kind === 'audio' ? ['.mp3', '.ogg', '.wav', '.m4a', '.aac'] : [])
         .join(',')
-    : ACCEPT
+    : `${ACCEPT},.m4a`
 
   async function handle(files) {
     for (const file of files) {
       const problem =
         checkUpload(file) ??
-        (kind && !file.type.startsWith(kind) ? `${file.name} is not ${kind === 'video' ? 'a video' : 'an image'}.` : null)
+        (kind && kindOfFile(file) !== kind
+          ? `${file.name} is not ${kind === 'video' ? 'a video' : kind === 'audio' ? 'a song' : 'an image'}.`
+          : null)
       if (problem) {
         toast(problem, 'error')
         continue
@@ -126,7 +139,7 @@ export function MediaPicker({ open, kind, onPick, onClose }) {
     <dialog ref={dialog} className="p-dialog" onClose={onClose} aria-labelledby="picker-title">
       <div className="p-dialog__head">
         <h2 id="picker-title" className="p-card__title">
-          Choose {kind === 'video' ? 'a video' : kind === 'image' ? 'an image' : 'a file'}
+          Choose {kind === 'video' ? 'a video' : kind === 'image' ? 'an image' : kind === 'audio' ? 'a song' : 'a file'}
         </h2>
         <div className="p-row">
           <UploadButton

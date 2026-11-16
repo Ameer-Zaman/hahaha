@@ -560,7 +560,7 @@ export const settingsSiteSchema = z
   .strict()
   .refine((v) => v.sections || v.maintenance, 'Nothing to change.')
 
-export const uploadTicketSchema = z.object({ kind: z.enum(['image', 'video']) })
+export const uploadTicketSchema = z.object({ kind: z.enum(['image', 'video', 'audio']) })
 
 export const cloudUploadSchema = z.object({
   publicId: z.string().trim().min(1).max(300),
@@ -568,6 +568,14 @@ export const cloudUploadSchema = z.object({
   signature: z.string().regex(/^[a-f0-9]{40}$/),
   resourceType: z.enum(['image', 'video']),
   name: z.string().trim().max(200).optional().default(''),
+})
+
+/** Panel → Music: the songs visitors can choose from in the header's music menu. */
+export const musicSchema = z.object({
+  tracks: z
+    .array(z.object({ title: text(60).min(1, 'give the song a name'), media: z.string().regex(/^[a-f0-9]{24}$/, 'choose a song file') }))
+    .max(30)
+    .default([]),
 })
 
 export const settingsMediaSchema = z.object({

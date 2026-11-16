@@ -47,6 +47,15 @@ test('uploads are recognised by their bytes, not their name', () => {
   assert.equal(detectType(jpg)?.type, 'image/jpeg')
   assert.equal(detectType(mp4)?.kind, 'video')
   assert.equal(detectType(svg), null)
+  // songs
+  const pad = (b) => Buffer.concat([b, Buffer.alloc(12)])
+  assert.equal(detectType(pad(Buffer.from('ID3\x04\x00')))?.type, 'audio/mpeg')
+  assert.equal(detectType(pad(Buffer.from('fffb9064', 'hex')))?.kind, 'audio')
+  assert.equal(detectType(pad(Buffer.from('OggS')))?.type, 'audio/ogg')
+  assert.equal(detectType(Buffer.concat([Buffer.from('RIFF'), Buffer.alloc(4), Buffer.from('WAVEfmt ')]))?.type, 'audio/wav')
+  const m4a = Buffer.concat([Buffer.from('00000020', 'hex'), Buffer.from('ftypM4A '), Buffer.alloc(4)])
+  assert.equal(detectType(m4a)?.type, 'audio/mp4')
+  assert.equal(detectType(jpg)?.kind, 'image') // a JPEG's ff d8 is not an MP3 frame
 })
 
 test('staff social links must be https links on the platform itself', () => {
@@ -219,4 +228,14 @@ test('a dhadha: a crew of 10 at most, named players, real dates and known result
   assert.equal(fight({ date: '16/11/2026' }), false)
   assert.equal(fight({ result: 'maybe' }), false)
   assert.equal(fight({ opponent: '' }), false)
+})
+
+test('music: named songs pointing at a media file, 30 at most', async () => {
+  const { musicSchema } = await import('../src/validation/schemas.js')
+  const ok = (tracks) => musicSchema.safeParse({ tracks }).success
+  assert.equal(ok([]), true)
+  assert.equal(ok([{ title: 'Theme', media: id(1) }]), true)
+  assert.equal(ok([{ title: '', media: id(1) }]), false)
+  assert.equal(ok([{ title: 'Theme', media: '../x' }]), false)
+  assert.equal(ok(Array.from({ length: 31 }, (_, i) => ({ title: `T${i}`, media: id(i) }))), false)
 })

@@ -1,3 +1,9 @@
+.music {
+  position: relative;
+  display: inline-grid;
+  justify-items: center;
+  flex: none;
+}
 .music-btn {
   position: relative;
   display: inline-grid;
@@ -52,4 +58,173 @@
   display: block;
   width: 3rem;
   height: 1.7rem;
+}
+
+/* ---- the small arrow under the button, and the list of songs ---- */
+.song-menu {
+  position: absolute;
+  top: calc(100% - 0.55rem);
+  left: 50%;
+  translate: -50% 0;
+}
+.song-menu__toggle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--c-gold-light);
+  opacity: 0.65;
+  cursor: pointer;
+  transition:
+    opacity 0.2s,
+    transform 0.25s;
+}
+/* a bigger target than it looks */
+.song-menu__toggle::before {
+  content: '';
+  position: absolute;
+  inset: -0.5rem -0.6rem;
+}
+.song-menu__toggle:hover,
+.song-menu__toggle.is-open {
+  opacity: 1;
+}
+.song-menu__toggle.is-open svg {
+  transform: rotate(180deg);
+}
+.song-menu__toggle svg {
+  transition: transform 0.25s;
+}
+.song-menu__toggle:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.song-menu__panel {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: -2rem; /* lined up with the music button's right edge, so it never runs off the screen */
+  z-index: 60;
+  width: max-content;
+  min-width: 15rem;
+  max-width: min(20rem, calc(100vw - 2rem));
+  padding: 0.5rem;
+  border: 1px solid rgb(var(--rgb-ivory) / 0.12);
+  border-radius: 2px;
+  background: #0a0a0a;
+  box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.9);
+  animation: song-menu-in 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes song-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.song-menu__head {
+  margin: 0;
+  padding: 0.35rem 0.6rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgb(var(--rgb-ivory) / 0.5);
+}
+.song-menu__list {
+  display: grid;
+  max-height: min(60vh, 22rem);
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.song-menu__item {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.6rem;
+  border: 0;
+  border-top: 1px solid rgb(var(--rgb-ivory) / 0.06);
+  border-radius: 0;
+  background: none;
+  color: var(--fg);
+  font: inherit;
+  font-size: var(--fs-sm);
+  text-align: left;
+  cursor: pointer;
+}
+li:first-child > .song-menu__item {
+  border-top: 0;
+}
+.song-menu__item:hover {
+  background: rgb(var(--rgb-ivory) / 0.04);
+}
+.song-menu__item:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.song-menu__item.is-current {
+  color: var(--c-gold-light);
+}
+.song-menu__title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.song-menu__now {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-gold);
+}
+/* three little bars: still for the other songs, dancing for the one playing */
+.song-menu__eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 0.75rem;
+}
+.song-menu__eq i {
+  width: 2px;
+  height: 30%;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.45;
+}
+.song-menu__item.is-current .song-menu__eq i {
+  opacity: 1;
+}
+.song-menu__eq.is-playing i {
+  animation: song-eq 0.9s ease-in-out infinite alternate;
+}
+.song-menu__eq.is-playing i:nth-child(2) {
+  animation-delay: -0.3s;
+  animation-duration: 0.7s;
+}
+.song-menu__eq.is-playing i:nth-child(3) {
+  animation-delay: -0.6s;
+  animation-duration: 1.1s;
+}
+@keyframes song-eq {
+  to {
+    height: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .song-menu__panel,
+  .song-menu__eq.is-playing i {
+    animation: none;
+  }
+  .song-menu__eq.is-playing i {
+    height: 70%;
+  }
 }

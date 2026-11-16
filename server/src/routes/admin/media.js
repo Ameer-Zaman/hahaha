@@ -18,7 +18,7 @@ const router = Router()
 
 export const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: Math.max(env.uploads.imageMaxBytes, env.uploads.videoMaxBytes), files: 1 },
+  limits: { fileSize: Math.max(env.uploads.imageMaxBytes, env.uploads.videoMaxBytes, env.uploads.audioMaxBytes), files: 1 },
 })
 
 export async function handleUpload(req, res) {
@@ -58,7 +58,7 @@ router.post('/', upload.single('file'), handleUpload)
 router.get('/storage', (req, res) => {
   res.json({
     provider: env.cloudinary.enabled ? 'cloudinary' : 'database',
-    limits: { image: env.uploads.imageMaxBytes, video: env.uploads.videoMaxBytes },
+    limits: { image: env.uploads.imageMaxBytes, video: env.uploads.videoMaxBytes, audio: env.uploads.audioMaxBytes },
   })
 })
 

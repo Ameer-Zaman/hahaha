@@ -35,6 +35,7 @@ export const AREA_GROUPS = [
       { key: 'media', label: 'Media library', hint: 'Deleting files. Choosing and uploading pictures works in every page they can open.' },
       { key: 'homeMedia', label: 'Homepage media' },
       { key: 'storyMedia', label: 'Story media' },
+      { key: 'music', label: 'Music', hint: 'The songs visitors can choose in the header' },
     ],
   },
 ]

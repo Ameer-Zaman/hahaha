@@ -20,6 +20,7 @@ export const PANEL_AREAS = [
   'store',
   'gallery',
   'dhadhas',
+  'music',
   'rules',
   'media',
   'homeMedia',

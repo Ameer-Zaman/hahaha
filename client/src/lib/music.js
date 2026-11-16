@@ -12,13 +12,18 @@ import { getAudioContext } from './introSound'
  * visit; the next visit plays it again.
  */
 const PREF_KEY = 'shyastha:music'
+const TRACK_KEY = 'shyastha:track' // the song this visitor picked (kept between visits)
 const VOLUME = 0.32
 
-let url = null
-let buffer = null
-let loading = null
-let voice = null // { source, gain }
-let state = { playing: false }
+/*
+ * The songs: the site's own theme by default, or the list staff keep in Panel → Music
+ * (fetched at start-up). The visitor picks one from the header's music menu.
+ */
+let tracks = [] // [{ id, title, url }]
+let current = null // id of the chosen song
+const buffers = new Map() // url → Promise<AudioBuffer | null>
+let voice = null // { source, gain, id }
+let state = { playing: false, tracks: [], current: null }
 const listeners = new Set()
 
 const emit = (next) => {
@@ -56,23 +61,57 @@ export function holdMusicForIntro() {
   }
 }
 
+const savedTrack = () => {
+  try {
+    return window.localStorage.getItem(TRACK_KEY)
+  } catch {
+    return null
+  }
+}
+const track = () => tracks.find((t) => t.id === current) ?? tracks[0] ?? null
+
+/** The site's own theme, used until (or unless) staff add songs. */
 export function configureMusic(musicUrl) {
-  url = musicUrl
+  tracks = musicUrl ? [{ id: 'theme', title: 'Rameirah theme', url: musicUrl }] : []
+  current = tracks[0]?.id ?? null
+  emit({ tracks, current })
 }
 
-function load() {
-  if (loading || !url) return loading
+/** Ask the server for the songs staff added; switch to the visitor's saved pick if it's there. */
+export async function loadMusicTracks() {
+  try {
+    const res = await fetch('/api/public/music', { headers: { Accept: 'application/json' } })
+    if (!res.ok) return
+    const list = ((await res.json())?.tracks ?? []).filter((t) => t?.id && t.url)
+    if (!list.length) return
+    tracks = list
+    const want = list.find((t) => t.id === savedTrack())?.id ?? list[0].id
+    const was = voice?.id ?? null
+    current = want
+    emit({ tracks, current })
+    // already playing the theme (the welcome screen started it): move over to the chosen song
+    if (was && was !== want) crossfade()
+  } catch {
+    /* no list: keep the theme */
+  }
+}
+
+function load(t = track()) {
+  if (!t) return null
+  if (buffers.has(t.url)) return buffers.get(t.url)
   const c = getAudioContext()
   if (!c) return null
-  loading = fetch(url)
+  const pending = fetch(t.url)
     .then((res) => (res.ok ? res.arrayBuffer() : Promise.reject(new Error(String(res.status)))))
     .then((data) => c.decodeAudioData(data))
-    .then((decoded) => (buffer = decoded))
     .catch(() => {
-      loading = null
+      buffers.delete(t.url)
       return null
     })
-  return loading
+  buffers.set(t.url, pending)
+  // keep at most three songs decoded in memory
+  while (buffers.size > 3) buffers.delete(buffers.keys().next().value)
+  return pending
 }
 
 /** Fetch and decode the music early (used by the intro preloader). */
@@ -113,7 +152,10 @@ async function start({ delay = 0, fade = 4 } = {}) {
     await Promise.race([c.resume().catch(() => {}), wait(800)])
     if (c.state !== 'running') return
   }
-  if (!(await load()) || voice) return
+  const t = track()
+  const buffer = await load(t)
+  // nothing to play, something already started, or the visitor picked another song meanwhile
+  if (!buffer || voice || track() !== t) return
   const source = c.createBufferSource()
   source.buffer = buffer
   source.loop = true
@@ -124,7 +166,7 @@ async function start({ delay = 0, fade = 4 } = {}) {
   gain.gain.linearRampToValueAtTime(VOLUME, at + fade)
   source.connect(gain).connect(meter(c))
   source.start(at)
-  voice = { source, gain }
+  voice = { source, gain, id: t.id }
   emit({ playing: true })
 }
 
@@ -139,6 +181,38 @@ function stop(fade = 1.2) {
   source.stop(now + fade + 0.05)
   voice = null
   emit({ playing: false })
+}
+
+/** Swap the playing song for the chosen one: the old fades out as the new fades in. */
+function crossfade() {
+  if (!voice) return
+  stop(0.9)
+  start({ delay: 0, fade: 1.4 })
+}
+
+/**
+ * The music menu: play this song. Remembered for next time. Runs inside a click, so it can
+ * always unlock audio; picking a song also turns the music on.
+ */
+export function selectTrack(id) {
+  if (!tracks.some((t) => t.id === id)) return
+  try {
+    window.localStorage.setItem(TRACK_KEY, id)
+  } catch {
+    /* storage unavailable */
+  }
+  const same = id === current
+  current = id
+  emit({ current })
+  if (state.playing) {
+    if (!same) crossfade()
+    return
+  }
+  remember(true)
+  getAudioContext()
+    ?.resume()
+    .catch(() => {})
+  start({ delay: 0, fade: 1.2 })
 }
 
 /** Called as the visitor enters through the welcome screen: the music blends in under the intro. */

@@ -192,5 +192,7 @@ export const env = {
     // Cloudinary's free plan allows 10 MB images and 100 MB videos; the database is smaller
     imageMaxBytes: Number(process.env.IMAGE_MAX_MB ?? (cloudinary.enabled ? 10 : 5)) * 1024 * 1024,
     videoMaxBytes: Number(process.env.VIDEO_MAX_MB ?? (cloudinary.enabled ? 100 : 60)) * 1024 * 1024,
+    // songs for the music player (MP3 is best: small, plays everywhere)
+    audioMaxBytes: Number(process.env.AUDIO_MAX_MB ?? (cloudinary.enabled ? 40 : 20)) * 1024 * 1024,
   },
 }

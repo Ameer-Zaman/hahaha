@@ -26,6 +26,7 @@ import Creators from './screens/Creators'
 import { ProductEditor, StoreList } from './screens/Store'
 import Gallery from './screens/Gallery'
 import { DhadhaEditor, DhadhaList } from './screens/Dhadhas'
+import Music from './screens/Music'
 import Tdm from './screens/Tdm'
 import Wars from './screens/Wars'
 import { ErrorNote, Loading, ToastProvider } from './ui'
@@ -64,6 +65,7 @@ const NAV = [
       { to: '/panel/media', area: 'media', label: 'Media library' },
       { to: '/panel/site-media', area: 'homeMedia', label: 'Homepage media' },
       { to: '/panel/story-media', area: 'storyMedia', label: 'Story media' },
+      { to: '/panel/music', area: 'music', label: 'Music' },
     ],
   },
   {
@@ -386,6 +388,14 @@ function Shell() {
             element={
               <Area name="media">
                 <MediaLibrary />
+              </Area>
+            }
+          />
+          <Route
+            path="music"
+            element={
+              <Area name="music">
+                <Music />
               </Area>
             }
           />

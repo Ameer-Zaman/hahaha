@@ -15,8 +15,7 @@ export const authApi = {
   me: () => api('/auth/me', { timeout: 20_000 }),
   login: (email, password) => api('/auth/login', { method: 'POST', body: { email, password }, timeout: 25_000 }),
   logout: () => api('/auth/logout', { method: 'POST' }),
-  changePassword: (currentPassword, newPassword) =>
-    api('/auth/password', { method: 'POST', body: { currentPassword, newPassword } }),
+  changePassword: (currentPassword, newPassword) => api('/auth/password', { method: 'POST', body: { currentPassword, newPassword } }),
   /** The second step, when an account uses two-step sign-in. */
   loginTwoFactor: (ticket, code) => api('/auth/login/2fa', { method: 'POST', body: { ticket, code }, timeout: 25_000 }),
   twoFactor: () => api('/auth/2fa'),
@@ -54,9 +53,23 @@ export const UPLOAD_TYPES = {
   'video/mp4': 'video',
   'video/webm': 'video',
   'video/quicktime': 'video', // .mov — accepted when uploads go to Cloudinary
+  // songs for the music player
+  'audio/mpeg': 'audio',
+  'audio/mp3': 'audio',
+  'audio/ogg': 'audio',
+  'audio/wav': 'audio',
+  'audio/x-wav': 'audio',
+  'audio/wave': 'audio',
+  'audio/mp4': 'audio',
+  'audio/x-m4a': 'audio',
+  'audio/aac': 'audio',
 }
+/** Kinds by file extension, for browsers that leave a file's type blank (common with .m4a). */
+const BY_EXTENSION = { mp3: 'audio', ogg: 'audio', wav: 'audio', m4a: 'audio', aac: 'audio' }
+export const kindOfFile = (file) =>
+  UPLOAD_TYPES[file.type] ?? (file.type ? null : BY_EXTENSION[file.name.split('.').pop()?.toLowerCase()]) ?? null
 /** Updated from the server (`/admin/media/storage`) once known. */
-export const UPLOAD_LIMITS = { image: 5 * 1024 * 1024, video: 60 * 1024 * 1024 }
+export const UPLOAD_LIMITS = { image: 5 * 1024 * 1024, video: 60 * 1024 * 1024, audio: 20 * 1024 * 1024 }
 
 let storagePromise = null
 /** Where uploads go ('cloudinary' or 'database') and the size limits. Asked once. */
@@ -75,14 +88,14 @@ export function getStorage() {
 }
 export const ACCEPT = Object.keys(UPLOAD_TYPES).join(',')
 
-export const formatBytes = (n) =>
-  n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`
+export const formatBytes = (n) => (n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`)
 
 /** Checks a file before uploading (the server checks again, by its actual bytes). */
 export function checkUpload(file) {
-  const kind = UPLOAD_TYPES[file.type]
-  if (!kind) return 'Only JPG, PNG, WebP or GIF images and MP4 or WebM videos can be uploaded.'
-  if (file.size > UPLOAD_LIMITS[kind]) return `${file.name} is too large (max ${formatBytes(UPLOAD_LIMITS[kind])} for ${kind}s).`
+  const kind = kindOfFile(file)
+  if (!kind) return 'Only JPG, PNG, WebP or GIF images, MP4 or WebM videos and MP3, OGG, WAV or M4A songs can be uploaded.'
+  if (file.size > UPLOAD_LIMITS[kind])
+    return `${file.name} is too large (max ${formatBytes(UPLOAD_LIMITS[kind])} for ${kind === 'audio' ? 'songs' : `${kind}s`}).`
   return null
 }
 
@@ -127,7 +140,8 @@ export async function uploadMedia(file, onProgress) {
         /* not JSON */
       }
       if (xhr.status >= 200 && xhr.status < 300 && data?.file) resolve(data.file)
-      else if (xhr.status === 504) reject(new ApiError(504, 'The upload took too long through the website. Set VITE_API_DIRECT_URL to upload big videos directly.'))
+      else if (xhr.status === 504)
+        reject(new ApiError(504, 'The upload took too long through the website. Set VITE_API_DIRECT_URL to upload big videos directly.'))
       else reject(new ApiError(xhr.status, data?.message ?? `Upload failed (${xhr.status}).`))
     }
     xhr.send(form)
@@ -136,7 +150,7 @@ export async function uploadMedia(file, onProgress) {
 
 /** Sends a file straight to Cloudinary (signed by our server), then records it in the library. */
 async function uploadToCloudinary(file, onProgress) {
-  const kind = UPLOAD_TYPES[file.type]
+  const kind = kindOfFile(file)
   const ticket = await adminApi.post('/media/cloudinary-ticket', { kind })
   const form = new FormData()
   form.append('file', file, file.name)
@@ -159,7 +173,13 @@ async function uploadToCloudinary(file, onProgress) {
         /* not JSON */
       }
       if (xhr.status >= 200 && xhr.status < 300 && data?.public_id) resolve(data)
-      else reject(new ApiError(xhr.status, data?.error?.message ? `Cloudinary: ${data.error.message}` : `Upload to Cloudinary failed (${xhr.status}).`))
+      else
+        reject(
+          new ApiError(
+            xhr.status,
+            data?.error?.message ? `Cloudinary: ${data.error.message}` : `Upload to Cloudinary failed (${xhr.status}).`,
+          ),
+        )
     }
     xhr.send(form)
   })

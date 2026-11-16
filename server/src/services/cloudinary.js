@@ -13,7 +13,11 @@ const c = () => env.cloudinary
 export const ALLOWED_FORMATS = {
   image: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
   video: ['mp4', 'webm', 'mov'],
+  audio: ['mp3', 'ogg', 'wav', 'm4a', 'aac'],
 }
+/** Cloudinary keeps sound files with videos ("video" resources); we still call them audio. */
+export const isAudioFormat = (format) => ALLOWED_FORMATS.audio.includes(String(format ?? '').toLowerCase())
+const cloudResource = (kind) => (kind === 'audio' ? 'video' : kind)
 
 /** Cloudinary's signature: params sorted by name, "k=v" joined with &, plus the secret, SHA-1. */
 export function signParams(params, secret = c().apiSecret) {
@@ -35,7 +39,7 @@ export function uploadTicket(kind) {
     allowed_formats: ALLOWED_FORMATS[kind].join(','),
   }
   return {
-    uploadUrl: `${c().apiBase}/v1_1/${c().cloudName}/${kind}/upload`,
+    uploadUrl: `${c().apiBase}/v1_1/${c().cloudName}/${cloudResource(kind)}/upload`,
     apiKey: c().apiKey,
     ...params,
     signature: signParams(params),
@@ -81,6 +85,7 @@ export function deliveryUrl(m, { thumb = false, width } = {}) {
   const base = `${c().deliveryBase}/${c().cloudName}/${m.resourceType}/upload`
   const file = `v${m.version}/${m.publicId}`
   if (m.resourceType === 'image') return `${base}/f_auto,q_auto,c_limit,w_${width ?? (thumb ? 480 : 2400)}/${file}`
+  if (isAudioFormat(m.format)) return `${base}/${file}.${m.format}` // a song: no still to show
   if (thumb) return `${base}/so_0,c_limit,w_480/${file}.jpg` // a still from the first frame
   return `${base}/${file}.${m.format || 'mp4'}`
 }

@@ -111,6 +111,10 @@ const settingsSchema = new mongoose.Schema(
       type: [{ _id: false, media: String, caption: { type: String, default: '' }, credit: { type: String, default: '' } }],
       default: [],
     },
+    /** The songs visitors can pick from the header's music menu (empty = the site's own theme only). */
+    music: {
+      tracks: { type: [{ _id: false, title: String, media: String }], default: [] },
+    },
     /** Rules for every panel account, set by a Super Admin. Never sent to the website. */
     security: {
       /** Everyone must finish setting up two-step sign-in before they can use the panel. */
@@ -130,4 +134,9 @@ export const readStore = (settings) => ({
   comingSoon: settings?.store?.comingSoon === true, // open unless a Super Admin/Admin switched it on
   buyUrl: settings?.store?.buyUrl ?? '',
   note: settings?.store?.note ?? '',
+})
+
+/** The music player's songs as saved. */
+export const readMusic = (settings) => ({
+  tracks: (settings?.music?.tracks ?? []).filter((t) => t?.media).map((t) => ({ title: t.title ?? '', media: t.media })),
 })

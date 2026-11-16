@@ -11,7 +11,7 @@ import { LiveAlert } from '../models/LiveAlert.js'
 import { Media } from '../models/Media.js'
 import { RuleBook } from '../models/RuleBook.js'
 import { Product } from '../models/Product.js'
-import { MEDIA_SLOTS, Settings, readBrandLogo, readChatBot, readSections, readSocials, readStore } from '../models/Settings.js'
+import { MEDIA_SLOTS, Settings, readBrandLogo, readChatBot, readMusic, readSections, readSocials, readStore } from '../models/Settings.js'
 import { Staff } from '../models/Staff.js'
 import { TdmBoard } from '../models/TdmBoard.js'
 import { War } from '../models/War.js'
@@ -129,6 +129,13 @@ router.get('/announcements', async (req, res) => {
         link: a.linkUrl ? { url: a.linkUrl, label: a.linkLabel || 'Read more' } : null,
       })),
   })
+})
+
+/** The music menu's songs: a name and a playable address each (empty = the site's own theme). */
+router.get('/music', async (req, res) => {
+  const { tracks } = readMusic(await Settings.findOne({ key: 'main' }, 'music').lean())
+  const mediaUrl = await resolveMediaUrls(tracks.map((t) => t.media))
+  res.json({ tracks: tracks.map((t) => ({ id: t.media, title: t.title, url: mediaUrl(t.media) })).filter((t) => t.url) })
 })
 
 /** The Dhadhas page: every Dhadha with his crew (rank position, coins, fights), with picture addresses. */
