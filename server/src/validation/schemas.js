@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { SECTION_KEYS } from '../models/Settings.js'
+import { DHADHAS_STATUSES, SECTION_KEYS } from '../models/Settings.js'
 import { PANEL_AREAS } from '../models/User.js'
 import { STORE_PLANS, validSub } from '../config/storeTaxonomy.js'
 
@@ -410,6 +410,32 @@ export const gallerySchema = z.object({
       }),
     )
     .max(150),
+})
+
+/** Panel → Dhadhas: the clan page. */
+export const dhadhasSchema = z.object({
+  status: z.enum(DHADHAS_STATUSES).default('soon'),
+  motto: text(90).optional().default(''),
+  about: text(1200).optional().default(''),
+  crest: mediaId,
+  creed: z.array(text(180).min(1, 'a line of the oath is empty')).max(10).default([]),
+  ranks: z
+    .array(z.object({ title: text(40).min(1, 'name the rank'), line: text(160).optional().default('') }))
+    .max(10)
+    .default([]),
+  members: z
+    .array(
+      z.object({
+        name: text(40).min(1, 'a member needs a name'),
+        rank: text(40).optional().default(''),
+        line: text(120).optional().default(''),
+        photo: mediaId,
+      }),
+    )
+    .max(80)
+    .default([]),
+  requirements: z.array(text(160).min(1, 'a requirement is empty')).max(10).default([]),
+  applyUrl: webLink,
 })
 
 /** Staff switching a creator to "live now" by hand, for a while, with where to watch. */

@@ -122,7 +122,7 @@ export const navigation = [
     children: [
       { label: 'Gangs', to: '/gangs', hint: 'Crews, war records, players' },
       { label: 'Clubs', to: '/clubs', hint: 'The clubs of the city' },
-      { label: 'Dhadhas', to: '/dhadhas', hint: 'A new faction, coming soon' },
+      { label: 'Dhadhas', to: '/dhadhas', hint: 'The clan' },
     ],
   },
   { label: 'Events', to: '/events' },

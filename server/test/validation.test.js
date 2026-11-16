@@ -184,3 +184,17 @@ test('store categories: a sub-category must belong to its category', async () =>
   assert.equal(ok('resident', 'custom-vehicle/tank'), false)
   assert.equal(ok('shop', ''), false)
 })
+
+test('dhadhas page: plain web links only, named members, a known recruiting state', async () => {
+  const { dhadhasSchema } = await import('../src/validation/schemas.js')
+  const ok = (body) => dhadhasSchema.safeParse(body).success
+  assert.equal(ok({}), true)
+  assert.equal(dhadhasSchema.parse({}).status, 'soon')
+  assert.equal(ok({ status: 'open', applyUrl: 'https://discord.gg/abc' }), true)
+  assert.equal(ok({ applyUrl: 'javascript:alert(1)' }), false)
+  assert.equal(ok({ status: 'recruiting-maybe' }), false)
+  assert.equal(ok({ members: [{ name: 'A', photo: id(1) }] }), true)
+  assert.equal(ok({ members: [{ name: '  ' }] }), false)
+  assert.equal(ok({ members: [{ name: 'A', photo: '../x' }] }), false)
+  assert.equal(ok({ creed: Array(11).fill('x') }), false)
+})

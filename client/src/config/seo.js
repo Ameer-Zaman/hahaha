@@ -108,10 +108,10 @@ export const pages = [
   {
     path: '/dhadhas',
     title: 'Dhadhas',
-    heading: 'Dhadhas',
-    description: `Dhadhas, a new faction coming to ${site.name}. Who they are and how to join will be announced on the Discord.`,
-    intro: 'A new faction is on its way to Rameirah Empire. Who they are and how to join will be announced on our Discord.',
-    priority: 0.4,
+    heading: 'The Dhadhas',
+    description: `The Dhadhas, a clan of ${site.name}: their oath, their ranks, the family and how to join.`,
+    intro: 'A clan of Rameirah Empire — their oath, their ranks, the family and how to join.',
+    priority: 0.6,
     changefreq: 'weekly',
   },
   {

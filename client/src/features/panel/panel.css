@@ -2555,3 +2555,55 @@ svg.p-logo__img {
     justify-self: end;
   }
 }
+
+/* Dhadhas: ranks, members and line lists (built on the gallery rows) */
+.p-dh-row {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+.p-dh-member {
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+}
+.p-dh-photo {
+  display: grid;
+  place-items: center;
+  width: 4.5rem;
+  aspect-ratio: 4 / 5;
+  padding: 0;
+  overflow: hidden;
+  border: 1px dashed rgb(255 255 255 / 0.2);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.03);
+  color: var(--fg-muted);
+  font-size: var(--fs-2xs);
+  cursor: pointer;
+}
+.p-dh-photo__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.p-dh-pair {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.4fr) minmax(0, 1fr);
+  gap: 0.45rem;
+}
+.p-dh-unphoto {
+  justify-self: start;
+}
+.p-dh-add {
+  margin-top: 0.8rem;
+}
+@media (max-width: 40rem) {
+  .p-dh-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .p-dh-member {
+    grid-template-columns: 4rem minmax(0, 1fr);
+  }
+  .p-dh-photo {
+    width: 4rem;
+  }
+  .p-dh-pair {
+    grid-template-columns: 1fr;
+  }
+}

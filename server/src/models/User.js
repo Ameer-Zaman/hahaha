@@ -19,6 +19,7 @@ export const PANEL_AREAS = [
   'creators',
   'store',
   'gallery',
+  'dhadhas',
   'rules',
   'media',
   'homeMedia',

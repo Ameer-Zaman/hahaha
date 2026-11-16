@@ -25,6 +25,7 @@ export const AREA_GROUPS = [
       { key: 'creators', label: 'Creators' },
       { key: 'store', label: 'Store' },
       { key: 'gallery', label: 'Gallery' },
+      { key: 'dhadhas', label: 'Dhadhas' },
       { key: 'rules', label: 'Rules' },
     ],
   },

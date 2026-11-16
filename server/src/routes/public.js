@@ -10,7 +10,7 @@ import { LiveAlert } from '../models/LiveAlert.js'
 import { Media } from '../models/Media.js'
 import { RuleBook } from '../models/RuleBook.js'
 import { Product } from '../models/Product.js'
-import { MEDIA_SLOTS, Settings, readBrandLogo, readChatBot, readSections, readSocials, readStore } from '../models/Settings.js'
+import { MEDIA_SLOTS, Settings, readBrandLogo, readChatBot, readDhadhas, readSections, readSocials, readStore } from '../models/Settings.js'
 import { Staff } from '../models/Staff.js'
 import { TdmBoard } from '../models/TdmBoard.js'
 import { War } from '../models/War.js'
@@ -127,6 +127,17 @@ router.get('/announcements', async (req, res) => {
         at: a.startsAt ?? a.createdAt,
         link: a.linkUrl ? { url: a.linkUrl, label: a.linkLabel || 'Read more' } : null,
       })),
+  })
+})
+
+/** The Dhadhas clan page: everything staff wrote in Panel → Dhadhas, with picture addresses. */
+router.get('/dhadhas', async (req, res) => {
+  const d = readDhadhas(await Settings.findOne({ key: 'main' }, 'dhadhas').lean())
+  const mediaUrl = await resolveMediaUrls([d.crest, ...d.members.map((m) => m.photo)])
+  res.json({
+    ...d,
+    crest: mediaUrl(d.crest),
+    members: d.members.map((m) => ({ ...m, photo: mediaUrl(m.photo) })),
   })
 })
 

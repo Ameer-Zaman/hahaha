@@ -33,6 +33,9 @@ export const STORY_SLOTS = Object.entries(STORY_PLACES).flatMap(([chapter, place
 MEDIA_SLOTS.push(...STORY_SLOTS)
 
 /** Website sections that can be switched off from the panel (Home is always on). */
+/** Where the Dhadhas stand on recruiting. */
+export const DHADHAS_STATUSES = ['soon', 'open', 'invite', 'closed']
+
 export const SECTION_KEYS = [
   'story',
   'staff',
@@ -111,6 +114,33 @@ const settingsSchema = new mongoose.Schema(
       type: [{ _id: false, media: String, caption: { type: String, default: '' }, credit: { type: String, default: '' } }],
       default: [],
     },
+    /**
+     * The Dhadhas clan page: its seal, motto, oath, ranks, members and how to join. Everything
+     * is written by staff in Panel → Dhadhas; with nothing filled in the page is a teaser.
+     */
+    dhadhas: {
+      /** Recruitment: soon (not yet), open, invite (invitation only) or closed. */
+      status: { type: String, enum: DHADHAS_STATUSES, default: 'soon' },
+      motto: { type: String, default: '' },
+      about: { type: String, default: '' },
+      crest: { type: String, default: null },
+      creed: { type: [String], default: [] },
+      ranks: { type: [{ _id: false, title: String, line: { type: String, default: '' } }], default: [] },
+      members: {
+        type: [
+          {
+            _id: false,
+            name: String,
+            rank: { type: String, default: '' },
+            line: { type: String, default: '' },
+            photo: { type: String, default: null },
+          },
+        ],
+        default: [],
+      },
+      requirements: { type: [String], default: [] },
+      applyUrl: { type: String, default: '' },
+    },
     /** Rules for every panel account, set by a Super Admin. Never sent to the website. */
     security: {
       /** Everyone must finish setting up two-step sign-in before they can use the panel. */
@@ -131,3 +161,19 @@ export const readStore = (settings) => ({
   buyUrl: settings?.store?.buyUrl ?? '',
   note: settings?.store?.note ?? '',
 })
+
+/** The Dhadhas page content as saved, with every field present. */
+export const readDhadhas = (settings) => {
+  const d = settings?.dhadhas ?? {}
+  return {
+    status: DHADHAS_STATUSES.includes(d.status) ? d.status : 'soon',
+    motto: d.motto ?? '',
+    about: d.about ?? '',
+    crest: d.crest ?? null,
+    creed: [...(d.creed ?? [])],
+    ranks: (d.ranks ?? []).map((r) => ({ title: r.title ?? '', line: r.line ?? '' })),
+    members: (d.members ?? []).map((m) => ({ name: m.name ?? '', rank: m.rank ?? '', line: m.line ?? '', photo: m.photo ?? null })),
+    requirements: [...(d.requirements ?? [])],
+    applyUrl: d.applyUrl ?? '',
+  }
+}
