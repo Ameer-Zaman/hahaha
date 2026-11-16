@@ -187,71 +187,13 @@ export default function MusicButton({ className = '' }) {
   )
 }
 
-/*
- * The player's orb: soft blobs of gold, amber, rose and ivory drifting inside a sphere and
- * blending into each other, swelling with the music. Drawn on a canvas, additive light.
- */
-const BLOBS = [
-  { color: '255,196,92', r: 0.62, sx: 0.31, sy: 0.27, ph: 0 },
-  { color: '255,122,58', r: 0.55, sx: -0.23, sy: 0.37, ph: 1.7 },
-  { color: '255,94,120', r: 0.48, sx: 0.41, sy: -0.21, ph: 3.1 },
-  { color: '255,240,214', r: 0.4, sx: -0.37, sy: -0.29, ph: 4.4 },
-  { color: '178,120,255', r: 0.36, sx: 0.19, sy: 0.43, ph: 5.6 },
-]
-
-function drawOrb(ctx, size, t, level) {
-  const c = size / 2
-  const R = size * (0.3 + 0.06 * level)
-  ctx.clearRect(0, 0, size, size)
-  // the halo around the sphere
-  const halo = ctx.createRadialGradient(c, c, R * 0.6, c, c, c * 0.98) // fades out before the canvas edge
-  halo.addColorStop(0, `rgba(255,170,80,${0.28 + 0.3 * level})`)
-  halo.addColorStop(1, 'rgba(255,120,60,0)')
-  ctx.fillStyle = halo
-  ctx.fillRect(0, 0, size, size)
-  // the blobs, clipped to the sphere
-  ctx.save()
-  ctx.beginPath()
-  ctx.arc(c, c, R, 0, Math.PI * 2)
-  ctx.clip()
-  ctx.fillStyle = '#0b0605'
-  ctx.fillRect(0, 0, size, size)
-  ctx.globalCompositeOperation = 'lighter'
-  for (const b of BLOBS) {
-    const speed = 0.35 + level * 0.9
-    const x = c + Math.sin(t * speed * (0.6 + b.sx) + b.ph) * R * 0.55
-    const y = c + Math.cos(t * speed * (0.5 + b.sy) + b.ph * 1.3) * R * 0.55
-    const rr = R * b.r * (1 + 0.35 * level * Math.sin(t * 2.3 + b.ph))
-    const g = ctx.createRadialGradient(x, y, 0, x, y, rr * 1.6)
-    g.addColorStop(0, `rgba(${b.color},0.95)`)
-    g.addColorStop(0.45, `rgba(${b.color},0.45)`)
-    g.addColorStop(1, `rgba(${b.color},0)`)
-    ctx.fillStyle = g
-    ctx.fillRect(0, 0, size, size)
-  }
-  // a glassy highlight and a soft dark rim, so it reads as a sphere
-  ctx.globalCompositeOperation = 'source-over'
-  const shine = ctx.createRadialGradient(c - R * 0.35, c - R * 0.45, 0, c - R * 0.35, c - R * 0.45, R * 0.7)
-  shine.addColorStop(0, 'rgba(255,255,255,0.35)')
-  shine.addColorStop(1, 'rgba(255,255,255,0)')
-  ctx.fillStyle = shine
-  ctx.fillRect(0, 0, size, size)
-  const rim = ctx.createRadialGradient(c, c, R * 0.75, c, c, R)
-  rim.addColorStop(0, 'rgba(0,0,0,0)')
-  rim.addColorStop(1, 'rgba(0,0,0,0.45)')
-  ctx.fillStyle = rim
-  ctx.fillRect(0, 0, size, size)
-  ctx.restore()
-}
-
 /**
- * The song player, opened with a double click: light flowing round the edges of the screen,
- * a glowing orb that moves with the music, the song's name, play/pause and previous/next,
- * and every song in a list. Esc, ×, or a click outside the controls closes it.
+ * The song player, opened with a double click: light flowing round the edges of the screen
+ * that brightens with the music, the song's name, play/pause and previous/next, and every
+ * song in a list. Esc, ×, or a click outside the controls closes it.
  */
 function SongDialog({ open, onClose, tracks, current, playing }) {
   const ref = useRef(null)
-  const orb = useRef(null)
   const glow = useRef(null)
   const at = Math.max(
     0,
@@ -270,15 +212,9 @@ function SongDialog({ open, onClose, tracks, current, playing }) {
     if (!open && dialog.open) dialog.close()
   }, [open])
 
-  // the orb and the edge light follow the music while the player is open
+  // the edge light follows the music while the player is open
   useEffect(() => {
-    if (!open) return undefined
-    const el = orb.current
-    const ctx = el.getContext('2d')
-    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const dpr = Math.min(2, window.devicePixelRatio || 1)
-    const size = Math.round(el.clientWidth * dpr)
-    el.width = el.height = size
+    if (!open || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
     let raf = 0
     let level = 0
     let last = performance.now()
@@ -287,9 +223,8 @@ function SongDialog({ open, onClose, tracks, current, playing }) {
       last = now
       const target = musicLevel() ? Math.min(1, 0.25 + musicLevel()) : 0.12
       level += (target - level) * (1 - Math.exp(-(target > level ? 12 : 4) * dt))
-      drawOrb(ctx, size, still ? 1 : now / 1000, still ? 0.5 : level)
       glow.current?.style.setProperty('--level', level.toFixed(3))
-      if (!still) raf = requestAnimationFrame(frame)
+      raf = requestAnimationFrame(frame)
     }
     raf = requestAnimationFrame(frame)
     return () => cancelAnimationFrame(raf)
@@ -317,7 +252,6 @@ function SongDialog({ open, onClose, tracks, current, playing }) {
         </button>
 
         <div className="player__main">
-          <canvas ref={orb} className="player__orb" aria-hidden="true" />
           <p className="player__kicker">{playing ? 'Now playing' : 'Paused'}</p>
           <h2 id="player-title" className="player__title">
             {now?.title}

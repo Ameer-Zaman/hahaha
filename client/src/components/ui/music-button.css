@@ -39,8 +39,8 @@
 
 /* =========================================================
    The song player (opened by a double click): light flowing round
-   the edges of the screen, a glowing orb that moves with the music,
-   the controls and the list, floating on a dark, blurred backdrop.
+   the edges of the screen that brightens with the music, the song's
+   name, the controls and the list, on dark glass.
    ========================================================= */
 @property --player-angle {
   syntax: '<angle>';
@@ -154,11 +154,7 @@
   min-height: 0;
   text-align: center;
 }
-.player__orb {
-  width: min(52vw, 36svh, 300px);
-  aspect-ratio: 1;
-  margin-bottom: 0.6rem;
-}
+
 .player__kicker {
   margin: 0;
   font-family: var(--font-mono);
@@ -171,7 +167,7 @@
   max-width: 18ch;
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(2rem, 1.3rem + 2.6vw, 3.4rem);
+  font-size: clamp(2.6rem, 1.6rem + 4vw, 5rem);
   font-weight: 400;
   line-height: 0.95;
   text-transform: uppercase;
