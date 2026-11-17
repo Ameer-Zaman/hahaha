@@ -3,21 +3,19 @@ import { createPortal } from 'react-dom'
 
 import { site } from '../../config/site'
 import { preloadHomeAssets, releasePreload, usePreloadProgress } from '../../lib/preload'
-import { startCityScene } from './cityScene'
 import './loading-screen.css'
 
 /**
- * The loading screen shown when the homepage is opened: the city at night in black and gold (palms,
- * a striped gold moon-sun, the skyline switching its lights on, light trails on the coast road),
- * the name, a progress bar and a percentage while the homepage's videos, images and sounds
- * download. It leaves with slanted panels sweeping across the screen. It ends as soon as
+ * The loading screen shown when the homepage is opened: the name in gold, the stage of the
+ * load, a progress bar and the percentage while the homepage's videos, images and sounds
+ * download. It leaves with slanted gold panels sweeping across the screen. It ends as soon as
  * everything is ready (never sooner than MIN_MS, so it doesn't flash, and never later than
  * MAX_MS, after which anything unfinished streams as usual) and hands over to the welcome
  * screen. Returning visitors load from the browser's saved copies, so it's brief for them.
  */
-const MIN_MS = 1600 // long enough to see the city come alive, short enough not to keep anyone waiting
+const MIN_MS = 1200 // long enough for the name to land, short enough not to keep anyone waiting
 const MAX_MS = 12000
-const EXIT_MS = 950
+const EXIT_MS = 1000
 
 /** What the line above the bar says as the load goes on. */
 const STAGES = [
@@ -35,13 +33,6 @@ export default function LoadingScreen({ onLeave, onDone }) {
   const target = useRef(progress)
   const onDoneRef = useRef(onDone)
   const onLeaveRef = useRef(onLeave)
-  const sceneRef = useRef(null)
-
-  useEffect(() => {
-    if (!sceneRef.current) return undefined
-    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    return startCityScene(sceneRef.current, { still })
-  }, [])
 
   useEffect(() => {
     target.current = done ? 1 : progress
@@ -102,7 +93,6 @@ export default function LoadingScreen({ onLeave, onDone }) {
       aria-valuemax={100}
       aria-valuenow={pct}
     >
-      <canvas ref={sceneRef} className="loader__scene" aria-hidden="true" />
       <div className="loader__inner">
         <p className="loader__kicker" aria-hidden="true">
           <span>Now entering</span>
