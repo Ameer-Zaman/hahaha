@@ -16,10 +16,12 @@ import {
 } from '../../models/Settings.js'
 import { audit } from '../../services/audit.js'
 import { findFile } from '../../services/media.js'
+import { getCityStatus, parseCityAddress, resetCityStatus } from '../../services/cityStatus.js'
 import { requireRole } from '../../middleware/auth.js'
 import {
   settingsBrandSchema,
   settingsChatBotSchema,
+  settingsGameServerSchema,
   settingsMediaSchema,
   settingsSecuritySchema,
   settingsSiteSchema,
@@ -53,7 +55,26 @@ router.get('/', async (req, res) => {
     socials: readSocials(settings),
     brand: { logo: readBrandLogo(settings) },
     security: securityState(settings),
+    gameServer: { address: settings.gameServer?.address ?? '' },
   })
+})
+
+/** The city server's address for the players-online indicator. Answers with a fresh reading, so staff see it work. */
+router.get('/game-server/status', requireArea('site'), async (req, res) => {
+  res.json({ status: await getCityStatus({ force: true }) })
+})
+
+router.put('/game-server', requireArea('site'), validateBody(settingsGameServerSchema), async (req, res) => {
+  const parsed = parseCityAddress(req.body.address)
+  const address = parsed ? parsed.label : ''
+  const settings = await getSettings()
+  const before = settings.gameServer?.address ?? ''
+  settings.gameServer = { ...(settings.gameServer ?? {}), address }
+  settings.markModified('gameServer')
+  await settings.save()
+  resetCityStatus()
+  if (before !== address) await audit(req, 'settings.gameServer', 'site', address || 'removed (indicator hidden)')
+  res.json({ gameServer: { address }, status: await getCityStatus({ force: true }) })
 })
 
 /** The site logo (header, footer, maintenance screen, browser tab). Must be a picture from the media library. */

@@ -17,6 +17,7 @@ import { Staff } from '../models/Staff.js'
 import { TdmBoard } from '../models/TdmBoard.js'
 import { War } from '../models/War.js'
 import { deliveryUrl } from '../services/cloudinary.js'
+import { getCityStatus } from '../services/cityStatus.js'
 import { resolveMediaUrls, resolveStillUrls } from '../services/media.js'
 import { channelOf, liveSupport, refreshLive, refreshStats } from '../services/creatorLive.js'
 
@@ -501,6 +502,14 @@ router.get('/rules', async (req, res) => {
     extras: { notice: x.notice ?? '', penalties: x.penalties ?? [], appeals: x.appeals ?? '', glossary: x.glossary ?? [] },
     lastUpdated: book.publishedAt,
   })
+})
+
+/** Players in the city right now (Panel → Site settings → City server). { state: 'off' } = show nothing. */
+router.get('/city', async (req, res) => {
+  const status = await getCityStatus()
+  res.set('Cache-Control', 'public, max-age=30')
+  // the panel-only reason never goes to visitors
+  res.json(status.state === 'error' ? { state: 'off' } : status)
 })
 
 router.get('/site', async (req, res) => {

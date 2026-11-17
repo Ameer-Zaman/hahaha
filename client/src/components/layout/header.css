@@ -503,6 +503,24 @@
   }
 }
 
+/* ---- Players in the city: before the bell. Phones show the count only; the tag needs room ---- */
+@media (max-width: 59.99rem) {
+  .site-header__city {
+    margin-left: auto;
+  }
+  .site-header__city + .site-header__bell {
+    margin-left: 0;
+  }
+}
+.site-header__city .city__tag {
+  display: none;
+}
+@media (max-width: 26rem) {
+  .site-header__city .city__max {
+    display: none;
+  }
+}
+
 /* ---- Navigation dropdown (Factions → Gangs, Clubs) ---- */
 .nav-dd {
   position: relative;

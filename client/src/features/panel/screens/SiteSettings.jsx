@@ -188,6 +188,8 @@ function SettingsForm({ data, setData }) {
         </div>
       </Panel>
 
+      <CityServer initial={data.gameServer?.address ?? ''} />
+
       <CommunityLinks initial={data.socials} />
 
       {isSuper && (
@@ -209,6 +211,87 @@ function SettingsForm({ data, setData }) {
         </Panel>
       )}
     </>
+  )
+}
+
+/* ------------------------------------------------------------- city server */
+
+/** What the last reading says, in words, for the panel. */
+function cityLine(status) {
+  if (!status || status.state === 'off') return null
+  if (status.state === 'online')
+    return { tone: 'ok', text: `Online — ${status.players}${status.max ? ` of ${status.max}` : ''} players in the city right now.` }
+  if (status.state === 'error')
+    return { tone: 'bad', text: 'That address points inside a private network, so the website can’t read it. Use the public address.' }
+  return {
+    tone: 'bad',
+    text: 'Not answering right now. If the city is open, check the address — or the server may block the player list (it needs /dynamic.json or /players.json open, or use the cfx.re join link).',
+  }
+}
+
+/**
+ * The FiveM server, for the "players in the city" indicator in the header and on the home
+ * page. Empty = the indicator is hidden. Only the number of players is ever shown.
+ */
+function CityServer({ initial }) {
+  const [address, setAddress] = useState(initial)
+  const [saved, setSaved] = useState(initial)
+  const [status, setStatus] = useState(null)
+  const [run, busy] = useAction()
+  const changed = address.trim() !== saved
+
+  async function save(next) {
+    const res = await run(
+      () => adminApi.put('/settings/game-server', { address: next }),
+      next ? 'Saved — the indicator updates within a minute' : 'Removed — the indicator is hidden',
+    )
+    if (res) {
+      setAddress(res.gameServer.address)
+      setSaved(res.gameServer.address)
+      setStatus(res.status)
+    }
+  }
+
+  async function test() {
+    const res = await run(() => adminApi.get('/settings/game-server/status'))
+    if (res) setStatus(res.status)
+  }
+
+  const line = cityLine(status)
+  return (
+    <Panel
+      title="City server"
+      sub="Shows how many players are in the city on every page (in the top bar on phones, in the bottom-left corner on computers) and on the home page. Leave it empty to hide it. Only the number is shown — never player names."
+    >
+      <TextField
+        label="Server address"
+        value={address}
+        onChange={setAddress}
+        maxLength={120}
+        placeholder="cfx.re/join/abc123  or  203.0.113.7:30120"
+        hint="The cfx.re join link is the most reliable. An IP or host with its port works too (30120 if you leave it out)."
+      />
+      {line && (
+        <p className={`p-note ${line.tone === 'ok' ? 'p-note--ok' : 'p-note--warn'}`} role="status">
+          {line.text}
+        </p>
+      )}
+      <div className="p-row">
+        <button type="button" className="pbtn pbtn--gold" onClick={() => save(address.trim())} disabled={busy || !changed}>
+          {busy ? 'Saving…' : 'Save address'}
+        </button>
+        {saved && !changed && (
+          <button type="button" className="pbtn pbtn--ghost" onClick={test} disabled={busy}>
+            Check now
+          </button>
+        )}
+        {saved && (
+          <ConfirmButton className="pbtn pbtn--ghost" onConfirm={() => save('')} disabled={busy}>
+            Remove
+          </ConfirmButton>
+        )}
+      </div>
+    </Panel>
   )
 }
 

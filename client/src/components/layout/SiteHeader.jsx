@@ -10,6 +10,7 @@ import MusicButton from '../ui/MusicButton'
 import { MobileNavGroup, NavDropdown } from './NavDropdown'
 import SocialHub from './SocialHub'
 import LiveBell from '../live/LiveBell'
+import CityPulse from '../city/CityPulse'
 
 const YEAR = new Date().getFullYear()
 
@@ -134,6 +135,7 @@ export default function SiteHeader({ tone = 'dark' }) {
           )}
         </nav>
 
+        <CityPulse className="site-header__city" />
         <LiveBell className="site-header__bell" />
         <MusicButton className="site-header__music" />
 

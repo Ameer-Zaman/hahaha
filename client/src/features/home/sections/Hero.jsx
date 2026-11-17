@@ -10,6 +10,7 @@ import { hero } from '../../../content/home'
 import { gsap, MOTION_OK, useGSAP } from '../../../lib/gsap'
 import { whenEntered } from '../../../lib/intro'
 import ApplyLink from '../../../components/ui/ApplyLink'
+import CityPulse from '../../../components/city/CityPulse'
 
 /**
  * Full-screen opening: the community name set huge in the top-left, a short pitch and
@@ -96,6 +97,7 @@ export default function Hero() {
             </a>
           )}
         </div>
+        <CityPulse variant="hero" />
       </div>
 
       <a href="#welcome" className="hero__scroll">

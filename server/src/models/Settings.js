@@ -133,6 +133,10 @@ const settingsSchema = new mongoose.Schema(
     music: {
       tracks: { type: [{ _id: false, title: String, media: String }], default: [] },
     },
+    /** The FiveM server, for the "players in the city" indicator: a cfx.re join code or IP:port. Empty = no indicator. */
+    gameServer: {
+      address: { type: String, default: '', maxlength: 120 },
+    },
     /** Rules for every panel account, set by a Super Admin. Never sent to the website. */
     security: {
       /** Everyone must finish setting up two-step sign-in before they can use the panel. */

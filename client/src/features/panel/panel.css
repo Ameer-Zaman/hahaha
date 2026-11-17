@@ -1582,6 +1582,17 @@
   line-height: 1.55;
   color: var(--fg-muted);
 }
+/* the result of a check (City server): a coloured edge says good or not */
+.p-note--ok,
+.p-note--warn {
+  margin-top: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--p-green);
+  color: var(--fg);
+}
+.p-note--warn {
+  border-left-color: var(--c-gold);
+}
 /* a single setting: its name and explanation on the left, its switch on the right */
 .p-setting {
   display: flex;

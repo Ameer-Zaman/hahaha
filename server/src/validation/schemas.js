@@ -4,6 +4,7 @@ import { CREW_MAX, FIGHT_RESULTS } from '../models/Dhadha.js'
 import { SECTION_KEYS } from '../models/Settings.js'
 import { PANEL_AREAS } from '../models/User.js'
 import { STORE_PLANS, validSub } from '../config/storeTaxonomy.js'
+import { parseCityAddress } from '../services/cityStatus.js'
 
 const text = (max) => z.string().trim().max(max)
 const mediaId = z
@@ -136,6 +137,13 @@ export const settingsChatBotSchema = z.object({
 })
 
 export const settingsSecuritySchema = z.object({ requireTwoFactor: z.boolean() })
+
+// the city server for the players-online indicator; empty = no indicator
+export const settingsGameServerSchema = z.object({
+  address: text(120).refine((v) => v === '' || parseCityAddress(v) !== null, {
+    message: 'use the cfx.re join link (cfx.re/join/abc123) or the IP and port (203.0.113.7:30120)',
+  }),
+})
 
 export const twoFactorOffSchema = z.object({
   password: z.string().min(1).max(200),
