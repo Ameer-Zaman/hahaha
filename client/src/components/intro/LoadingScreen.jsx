@@ -7,8 +7,8 @@ import { startCityScene } from './cityScene'
 import './loading-screen.css'
 
 /**
- * The loading screen shown when the homepage is opened: a city at dusk in motion (palms,
- * a striped setting sun, the skyline switching its lights on, light trails on the coast road),
+ * The loading screen shown when the homepage is opened: the city at night in black and gold (palms,
+ * a striped gold moon-sun, the skyline switching its lights on, light trails on the coast road),
  * the name, a progress bar and a percentage while the homepage's videos, images and sounds
  * download. It leaves with slanted panels sweeping across the screen. It ends as soon as
  * everything is ready (never sooner than MIN_MS, so it doesn't flash, and never later than

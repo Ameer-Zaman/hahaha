@@ -2,7 +2,7 @@
  * The loading screen's moving picture, drawn on one canvas with no files to download (so it is
  * on screen at once, while everything else loads):
  *
- *   a dusk sky running from night violet to a burning gold horizon, a few stars, a striped
+ *   a night sky running from black to a low gold horizon, a few stars, a striped
  *   setting sun with its glow and thin clouds drifting across it; two layers of skyline (a hazy
  *   far one and a black near one with windows switching on and red beacons blinking); the sea
  *   below with the sun's reflection shimmering in broken lines; a coast road where headlights
@@ -24,12 +24,12 @@ function seeded(seed) {
 }
 
 const SKY = [
-  [0, '#07060f'],
-  [0.3, '#1d0b2e'],
-  [0.55, '#5a1645'],
-  [0.75, '#c2384f'],
-  [0.9, '#f2793a'],
-  [1, '#ffc65c'],
+  [0, '#040405'],
+  [0.35, '#0b0a0b'],
+  [0.6, '#1c150c'],
+  [0.8, '#4a3416'],
+  [0.93, '#a87a2c'],
+  [1, '#e3b55a'],
 ]
 
 export function startCityScene(canvas, { still = false } = {}) {
@@ -113,7 +113,7 @@ export function startCityScene(canvas, { still = false } = {}) {
       count: 26,
       minH: unit * 0.06,
       maxH: unit * 0.24,
-      color: 'rgba(72,22,70,0.85)',
+      color: 'rgba(44,34,22,0.9)',
       windows: false,
       gapAt: sun.x,
       gapW: sun.r * 0.9,
@@ -122,7 +122,7 @@ export function startCityScene(canvas, { still = false } = {}) {
       count: 18,
       minH: unit * 0.03,
       maxH: unit * 0.3,
-      color: '#0b0710',
+      color: '#070607',
       windows: true,
       beacons: true,
       gapAt: sun.x,
@@ -162,9 +162,9 @@ export function startCityScene(canvas, { still = false } = {}) {
     const y = horizon - r * 0.12 - Math.min(1, t / 6) * r * 0.05 // rises a touch as it loads
     // glow
     const glow = ctx.createRadialGradient(x, y, r * 0.5, x, y, r * 3.2)
-    glow.addColorStop(0, 'rgba(255,170,80,0.55)')
-    glow.addColorStop(0.35, 'rgba(240,90,90,0.18)')
-    glow.addColorStop(1, 'rgba(240,90,90,0)')
+    glow.addColorStop(0, 'rgba(242,207,128,0.5)')
+    glow.addColorStop(0.35, 'rgba(227,181,90,0.16)')
+    glow.addColorStop(1, 'rgba(227,181,90,0)')
     ctx.fillStyle = glow
     ctx.fillRect(0, 0, W, horizon)
     // the disc, with stripes that slide down through its lower half (cut on its own layer,
@@ -177,9 +177,9 @@ export function startCityScene(canvas, { still = false } = {}) {
     sg.globalCompositeOperation = 'source-over'
     const cx = size / 2
     const disc = sg.createLinearGradient(0, cx - r, 0, cx + r * 0.3)
-    disc.addColorStop(0, '#fff1b8')
-    disc.addColorStop(0.5, '#ffb347')
-    disc.addColorStop(1, '#ff4f6d')
+    disc.addColorStop(0, '#fff2c9')
+    disc.addColorStop(0.5, '#f2cf80')
+    disc.addColorStop(1, '#b5852f')
     sg.fillStyle = disc
     sg.beginPath()
     sg.arc(cx, cx, r, 0, Math.PI * 2)
@@ -203,8 +203,8 @@ export function startCityScene(canvas, { still = false } = {}) {
     const sway = Math.sin(t * 0.7 + p.phase) * 0.035
     const topX = p.x + p.height * (p.lean + sway)
     const topY = p.base - p.height
-    ctx.strokeStyle = '#050307'
-    ctx.fillStyle = '#050307'
+    ctx.strokeStyle = '#030303'
+    ctx.fillStyle = '#030303'
     ctx.lineCap = 'round'
     // the trunk: a gentle curve, thicker at the foot
     for (let i = 0; i < 3; i++) {
@@ -283,9 +283,9 @@ export function startCityScene(canvas, { still = false } = {}) {
     for (const c of clouds) {
       const x = ((c.x + t * c.speed) % (W + c.w)) - c.w
       const g = ctx.createLinearGradient(x, 0, x + c.w, 0)
-      g.addColorStop(0, 'rgba(110,30,80,0)')
-      g.addColorStop(0.5, `rgba(110,30,80,${c.alpha})`)
-      g.addColorStop(1, 'rgba(110,30,80,0)')
+      g.addColorStop(0, 'rgba(18,13,8,0)')
+      g.addColorStop(0.5, `rgba(18,13,8,${c.alpha + 0.25})`)
+      g.addColorStop(1, 'rgba(18,13,8,0)')
       ctx.fillStyle = g
       ctx.fillRect(x, c.y, c.w, c.h)
     }
@@ -299,10 +299,10 @@ export function startCityScene(canvas, { still = false } = {}) {
         if (t < l.on) continue // the city switching its lights on as it loads
         const flick = Math.sin(t * 0.6 + l.x * 0.13 + l.y * 0.07) > -0.96
         if (!flick) continue
-        ctx.fillStyle = l.warm ? 'rgba(255,196,110,0.85)' : 'rgba(170,210,255,0.7)'
+        ctx.fillStyle = l.warm ? 'rgba(242,207,128,0.85)' : 'rgba(255,242,201,0.7)'
         ctx.fillRect(l.x + pan, l.y, 2, 3)
       } else if (Math.sin(t * 2.4 + l.phase) > 0.55) {
-        ctx.fillStyle = '#ff3b4e'
+        ctx.fillStyle = '#ffd27a'
         ctx.beginPath()
         ctx.arc(l.x + pan, l.y, 2.2, 0, Math.PI * 2)
         ctx.fill()
@@ -311,9 +311,9 @@ export function startCityScene(canvas, { still = false } = {}) {
 
     // the sea, with the sun's reflection breaking up in lines
     const sea = ctx.createLinearGradient(0, horizon, 0, H)
-    sea.addColorStop(0, '#2a0d2a')
-    sea.addColorStop(0.5, '#0c0610')
-    sea.addColorStop(1, '#040305')
+    sea.addColorStop(0, '#1b140b')
+    sea.addColorStop(0.5, '#080706')
+    sea.addColorStop(1, '#030303')
     ctx.fillStyle = sea
     ctx.fillRect(0, horizon, W, H - horizon)
     const { x: sx, r: sr } = scene.sun
@@ -323,7 +323,7 @@ export function startCityScene(canvas, { still = false } = {}) {
       const w = sr * (1.1 - depth * 0.6) * (0.6 + 0.4 * Math.sin(t * 1.8 + i * 1.7))
       const a = 0.5 * (1 - depth * 1.1)
       if (a <= 0) break
-      ctx.fillStyle = `rgba(255,${150 - depth * 80},${90 - depth * 30},${a})`
+      ctx.fillStyle = `rgba(${242 - depth * 40},${200 - depth * 60},${120 - depth * 50},${a})`
       ctx.fillRect(sx - w / 2 + Math.sin(t * 1.1 + i) * sr * 0.08, y, w, 1.6)
     }
 
@@ -333,7 +333,7 @@ export function startCityScene(canvas, { still = false } = {}) {
       const x = ((((c.x + c.dir * t * c.speed) % (W + c.len * 2)) + W + c.len * 2) % (W + c.len * 2)) - c.len
       const y = roadY + (c.dir > 0 ? 0 : H * 0.018) + c.lane * H * 0.01
       const g = ctx.createLinearGradient(x, 0, x + c.dir * c.len, 0)
-      const color = c.dir > 0 ? '255,230,180' : '255,60,70'
+      const color = c.dir > 0 ? '255,242,201' : '200,140,50'
       g.addColorStop(0, `rgba(${color},0)`)
       g.addColorStop(1, `rgba(${color},0.9)`)
       ctx.fillStyle = g
@@ -366,7 +366,7 @@ export function startCityScene(canvas, { still = false } = {}) {
   }
   build()
   start = performance.now()
-  raf = requestAnimationFrame(frame)
+  frame(start) // the first picture right away, not a frame later (it schedules the next itself)
   window.addEventListener('resize', onResize)
   return () => {
     cancelAnimationFrame(raf)
