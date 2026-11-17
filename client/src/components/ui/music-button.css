@@ -31,10 +31,15 @@
   outline-offset: 2px;
 }
 .music-btn__wave {
-  position: relative;
+  /* larger than the button, so the orb's glow can spill round it without being cut off */
+  position: absolute;
+  left: 50%;
+  top: 50%;
   display: block;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 4rem;
+  height: 4rem;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
 /* =========================================================
