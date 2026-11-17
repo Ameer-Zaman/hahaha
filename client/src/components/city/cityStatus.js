@@ -61,21 +61,3 @@ export function useCityStatus() {
 
 const nf = new Intl.NumberFormat()
 export const formatCount = (n) => nf.format(n ?? 0)
-
-/* Whether the home page's own line is on screen — the floating badge steps aside while it is. */
-let heroInView = false
-const heroListeners = new Set()
-export function setHeroInView(next) {
-  if (heroInView === next) return
-  heroInView = next
-  heroListeners.forEach((fn) => fn())
-}
-export function useHeroInView() {
-  return useSyncExternalStore(
-    (fn) => {
-      heroListeners.add(fn)
-      return () => heroListeners.delete(fn)
-    },
-    () => heroInView,
-  )
-}

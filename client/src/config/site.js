@@ -115,6 +115,8 @@ export const navigation = [
     children: [
       { label: 'Staffs', to: '/staff', hint: 'The team that runs the city' },
       { label: 'Creators', to: '/creators', hint: 'Streamers, and who is live' },
+      { label: 'Events', to: '/events', hint: 'What’s on in the city' },
+      { label: 'Gallery', to: '/gallery', hint: 'Photos from the city' },
     ],
   },
   {
@@ -123,11 +125,9 @@ export const navigation = [
       { label: 'Gangs', to: '/gangs', hint: 'Crews, war records, players' },
       { label: 'Clubs', to: '/clubs', hint: 'The clubs of the city' },
       { label: 'Dhadhas', to: '/dhadhas', hint: 'Every Dhadha and his crew' },
+      { label: 'Leaderboard', to: '/leaderboard', hint: 'Who’s on top' },
     ],
   },
-  { label: 'Events', to: '/events' },
-  { label: 'Leaderboard', to: '/leaderboard' },
-  { label: 'Gallery', to: '/gallery' },
   { label: 'Rules', to: '/rules' },
   { label: 'Store', to: '/store' },
 ]

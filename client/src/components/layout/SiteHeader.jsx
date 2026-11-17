@@ -128,16 +128,19 @@ export default function SiteHeader({ tone = 'dark' }) {
               ),
             )}
           </ul>
+        </nav>
+
+        {/* the right-hand group: players in the city, the community links, the bell and music */}
+        <div className="site-header__actions">
+          <CityPulse className="site-header__city" />
           {socials.length > 0 && (
             <div className="site-nav__social">
               <SocialHub links={socials} />
             </div>
           )}
-        </nav>
-
-        <CityPulse className="site-header__city" />
-        <LiveBell className="site-header__bell" />
-        <MusicButton className="site-header__music" />
+          <LiveBell className="site-header__bell" />
+          <MusicButton className="site-header__music" />
+        </div>
 
         <button
           ref={toggleRef}

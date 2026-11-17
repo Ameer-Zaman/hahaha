@@ -72,37 +72,6 @@
   text-transform: uppercase;
 }
 
-/* wide screens: a badge in the bottom-left corner (the chat button has the right) */
-.city--float {
-  position: fixed;
-  left: max(1rem, env(safe-area-inset-left));
-  bottom: max(1rem, env(safe-area-inset-bottom));
-  z-index: 90;
-  height: 2.25rem;
-  padding: 0 0.9rem;
-  border: 1px solid rgb(255 255 255 / 0.1);
-  border-radius: 999px;
-  background: rgb(8 8 10 / 0.82);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
-}
-.city--float.is-off .city__count {
-  color: var(--fg-muted);
-}
-/* the header has no room on wide screens, and phones have room in the header */
-@media (max-width: 59.99rem) {
-  .city--float {
-    display: none;
-  }
-}
-@media (min-width: 60rem) {
-  .city--header {
-    display: none;
-  }
-}
-
 /* home page: a line under the buttons, with how full the city is */
 .city--hero {
   margin-top: var(--sp-5);
@@ -165,12 +134,5 @@
 @media (prefers-reduced-motion: reduce) {
   .city {
     animation: none;
-  }
-}
-
-/* a live gang-situation card shares the corner: it sits just above the badge */
-@media (min-width: 60rem) {
-  body:has(.city--float) .live {
-    bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 3rem);
   }
 }

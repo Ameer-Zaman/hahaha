@@ -261,7 +261,7 @@ function CityServer({ initial }) {
   return (
     <Panel
       title="City server"
-      sub="Shows how many players are in the city on every page (in the top bar on phones, in the bottom-left corner on computers) and on the home page. Leave it empty to hide it. Only the number is shown — never player names."
+      sub="Shows how many players are in the city in the top bar of every page and on the home page. Leave it empty to hide it. Only the number is shown — never player names."
     >
       <TextField
         label="Server address"
