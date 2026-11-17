@@ -59,6 +59,8 @@ const creatorSchema = new mongoose.Schema(
     stats: {
       youtube: {
         subscribers: { type: Number, default: null },
+        views: { type: Number, default: null },
+        videos: { type: Number, default: null },
         avatar: { type: String, default: '' },
         banner: { type: String, default: '' },
       },

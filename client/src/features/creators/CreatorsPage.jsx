@@ -9,6 +9,7 @@ import usePageTitle from '../../hooks/usePageTitle'
 import { usePublic } from '../../lib/publicData'
 import { useNow } from '../events/eventsModel'
 import CardFrame from './CardFrame'
+import CreatorStats from './CreatorStats'
 import WatchEye from './WatchEye'
 import './creators.css'
 
@@ -469,6 +470,8 @@ function ProfilePopout({ creator: c, now, onClose }) {
                   </ul>
                 </section>
               )}
+
+              <CreatorStats key={c.id} id={c.id} />
             </div>
           </div>
         </div>

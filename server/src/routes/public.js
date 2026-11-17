@@ -4,6 +4,7 @@ import mongoose from 'mongoose'
 import { Announcement, isLive } from '../models/Announcement.js'
 import { Club } from '../models/Club.js'
 import { Creator, manualOn } from '../models/Creator.js'
+import { CreatorDay, CreatorStream } from '../models/CreatorHistory.js'
 import { Dhadha } from '../models/Dhadha.js'
 import { endOf, Event, eventState } from '../models/Event.js'
 import { Gang } from '../models/Gang.js'
@@ -258,6 +259,52 @@ function pictures(c, st, mediaUrl, stillOf) {
   const banner = pick(c.bannerSource, c.banner, 'banner', ['kick', 'youtube', 'twitch'])
   return { photo: photo.url, photoStill: photo.still, banner: banner.url, bannerStill: banner.still }
 }
+
+/**
+ * One creator's graphs: channel numbers by day (last 90 days), their streams (last 60 days:
+ * when, how long, peak and average viewers) and the viewer curve of the live or latest stream.
+ * Only what the site itself has recorded since it started keeping history — never estimates.
+ */
+router.get('/creators/:id/stats', async (req, res) => {
+  if (!/^[a-f0-9]{24}$/.test(req.params.id)) return res.status(404).json({ message: 'Creator not found.' })
+  const creator = await Creator.findOne({ _id: req.params.id, visible: true }, '_id').lean()
+  if (!creator) return res.status(404).json({ message: 'Creator not found.' })
+  res.set('Cache-Control', 'public, max-age=60')
+  const since90 = new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10)
+  const [days, streams, first] = await Promise.all([
+    CreatorDay.find({ creator: creator._id, day: { $gte: since90 } }, '-_id -creator')
+      .sort({ day: 1 })
+      .lean(),
+    CreatorStream.find({ creator: creator._id, startedAt: { $gte: new Date(Date.now() - 60 * 864e5) } })
+      .sort({ startedAt: -1 })
+      .limit(60)
+      .lean(),
+    Promise.all([
+      CreatorDay.findOne({ creator: creator._id }, 'day').sort({ day: 1 }).lean(),
+      CreatorStream.findOne({ creator: creator._id }, 'startedAt').sort({ startedAt: 1 }).lean(),
+    ]),
+  ])
+  const firstDates = [first[0]?.day && new Date(`${first[0].day}T00:00:00Z`), first[1]?.startedAt].filter(Boolean)
+  const minutes = (s) => Math.max(1, Math.round(((s.endedAt ?? s.lastSeen) - s.startedAt) / 60_000))
+  const latest = streams[0]
+  res.json({
+    since: firstDates.length ? new Date(Math.min(...firstDates.map(Number))) : null,
+    days,
+    streams: streams.map((s) => ({
+      platform: s.platform,
+      title: s.title,
+      startedAt: s.startedAt,
+      live: !s.endedAt,
+      minutes: minutes(s),
+      peak: s.peak,
+      average: s.samples ? Math.round(s.sum / s.samples) : 0,
+    })),
+    // the viewer curve of the stream that's live now, or the last one
+    curve: latest
+      ? { platform: latest.platform, live: !latest.endedAt, startedAt: latest.startedAt, points: latest.points.map((p) => [p.t, p.v]) }
+      : null,
+  })
+})
 
 router.get('/creators', async (req, res) => {
   res.set('Cache-Control', 'public, max-age=20')

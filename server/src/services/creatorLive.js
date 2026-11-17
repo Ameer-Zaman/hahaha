@@ -1,5 +1,6 @@
 import { env } from '../config/env.js'
 import { Creator } from '../models/Creator.js'
+import { CreatorDay, CreatorStream, MAX_POINTS } from '../models/CreatorHistory.js'
 
 /**
  * Live checks for the Creators page, with each platform's own free API:
@@ -254,6 +255,48 @@ async function run(force) {
     writes.push({ updateOne: { filter: { _id: c._id }, update: { live } } })
   }
   if (writes.length) await Creator.bulkWrite(writes)
+  await recordStreams(
+    writes.map((w) => ({ creator: w.updateOne.filter._id, live: w.updateOne.update.live })),
+    checkedAt,
+  ).catch(() => {})
+}
+
+/*
+ * Streams, for the viewer graphs: a stream opens when a creator is seen live, gains a viewer
+ * reading at every check, and closes when they're seen offline. A stream that drops for a few
+ * minutes (a crash, a restart) and comes back on the same platform carries on as the same one.
+ */
+const RESUME_MS = 12 * 60_000
+async function recordStreams(rows, at) {
+  for (const { creator, live } of rows) {
+    const open = await CreatorStream.findOne({ creator, endedAt: null }).sort({ startedAt: -1 })
+    if (!live.on) {
+      if (open) await CreatorStream.updateOne({ _id: open._id }, { endedAt: open.lastSeen })
+      continue
+    }
+    let stream = open && open.platform === live.platform ? open : null
+    if (open && !stream) await CreatorStream.updateOne({ _id: open._id }, { endedAt: open.lastSeen }) // moved platform
+    if (!stream) {
+      const recent = await CreatorStream.findOne({ creator, platform: live.platform, lastSeen: { $gte: new Date(at - RESUME_MS) } }).sort({
+        lastSeen: -1,
+      })
+      stream = recent ?? null
+      if (stream) stream.endedAt = null
+    }
+    if (!stream) {
+      stream = new CreatorStream({ creator, platform: live.platform, startedAt: live.startedAt ?? at, lastSeen: at })
+    }
+    const v = Math.max(0, Math.round(live.viewers || 0))
+    stream.title = live.title || stream.title
+    stream.lastSeen = at
+    stream.peak = Math.max(stream.peak, v)
+    stream.sum += v
+    stream.samples += 1
+    stream.points.push({ t: at, v })
+    // long streams: keep every other reading once there are too many, so the record stays small
+    if (stream.points.length > MAX_POINTS) stream.points = stream.points.filter((_, i) => i % 2 === 0)
+    await stream.save()
+  }
 }
 
 /* ---------------- channel numbers and pictures (every 10 minutes) ---------------- */
@@ -294,6 +337,8 @@ async function youtubeStats(creators) {
       const banner = item.brandingSettings?.image?.bannerExternalUrl
       const stats = {
         subscribers: item.statistics?.hiddenSubscriberCount ? null : num(item.statistics?.subscriberCount),
+        views: num(item.statistics?.viewCount),
+        videos: num(item.statistics?.videoCount),
         avatar: item.snippet?.thumbnails?.high?.url ?? item.snippet?.thumbnails?.default?.url ?? '',
         // the middle strip of the banner (the part every device shows), at a sensible size
         banner: banner ? `${banner}=w1280-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj` : '',
@@ -399,7 +444,7 @@ async function runStats() {
   ])
   if (yt) delete lastErrors.youtubeStats
   const empty = {
-    youtube: { subscribers: null, avatar: '', banner: '' },
+    youtube: { subscribers: null, views: null, videos: null, avatar: '', banner: '' },
     kick: { followers: null, avatar: '', banner: '' },
     twitch: { avatar: '', banner: '' },
   }
@@ -417,6 +462,22 @@ async function runStats() {
     return { updateOne: { filter: { _id: c._id }, update: { stats } } }
   })
   await Creator.bulkWrite(writes)
+  // today's numbers, for the follower graphs
+  const day = new Date().toISOString().slice(0, 10)
+  const days = writes
+    .map(({ updateOne: { filter, update } }) => {
+      const s = update.stats
+      const row = {
+        ytSubs: num(s.youtube?.subscribers),
+        ytViews: num(s.youtube?.views),
+        ytVideos: num(s.youtube?.videos),
+        kickFollowers: num(s.kick?.followers),
+      }
+      if (Object.values(row).every((v) => v === null)) return null
+      return { updateOne: { filter: { creator: filter._id, day }, update: { $set: row }, upsert: true } }
+    })
+    .filter(Boolean)
+  if (days.length) await CreatorDay.bulkWrite(days)
 }
 
 /** Kick fields that came back this time (a refused lookup leaves the old follower count). */

@@ -2,6 +2,7 @@ import { Router } from 'express'
 
 import { HttpError } from '../../middleware/errors.js'
 import { validateBody } from '../../middleware/validate.js'
+import { CreatorDay, CreatorStream } from '../../models/CreatorHistory.js'
 import { Creator } from '../../models/Creator.js'
 import { audit } from '../../services/audit.js'
 import { liveErrors, liveSupport, refreshLive, refreshStats } from '../../services/creatorLive.js'
@@ -66,6 +67,8 @@ router.post('/:id/live/end', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   const creator = await Creator.findByIdAndDelete(req.params.id)
   if (!creator) throw new HttpError(404, 'Creator not found.')
+  // their graph history goes with them
+  await Promise.all([CreatorDay.deleteMany({ creator: creator._id }), CreatorStream.deleteMany({ creator: creator._id })])
   await audit(req, 'creator.delete', creator.id, creator.name)
   res.json({ ok: true })
 })
