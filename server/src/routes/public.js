@@ -466,7 +466,7 @@ router.get('/site', async (req, res) => {
   res.json({
     media,
     sections: readSections(settings),
-    chatBot: { name: bot.name, avatar: mediaUrl(bot.avatar) },
+    chatBot: { name: bot.name, avatar: mediaUrl(bot.avatar), joinGuide: bot.joinGuide },
     brand: { logo: logo ? mediaUrl(logo) : null },
     socials: readSocials(settings),
     maintenance: { on: Boolean(settings?.maintenance?.on), message: settings?.maintenance?.message ?? '' },

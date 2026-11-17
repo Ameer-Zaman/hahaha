@@ -8,6 +8,7 @@ import {
   STORY_SLOTS,
   readBrandLogo,
   readChatBot,
+  DEFAULT_JOIN_GUIDE,
   readSections,
   readSocials,
   SECTION_KEYS,
@@ -87,7 +88,7 @@ router.put('/socials', requireArea('site'), validateBody(settingsSocialsSchema),
 
 /** The chat assistant's name and picture. The picture must be an image from the media library. */
 router.put('/chat-bot', requireArea('chat'), validateBody(settingsChatBotSchema), async (req, res) => {
-  const { name, avatar } = req.body
+  const { name, avatar, joinGuide } = req.body
   if (avatar) {
     const file = await findFile(avatar)
     if (!file) throw new HttpError(400, 'That picture is not in the media library.')
@@ -95,12 +96,15 @@ router.put('/chat-bot', requireArea('chat'), validateBody(settingsChatBotSchema)
   }
   const settings = await getSettings()
   const before = readChatBot(settings)
-  settings.chatBot = { name, avatar: avatar ?? null }
+  // unchanged when not sent; the default text saved back counts as "use the default"
+  const guide = joinGuide === undefined ? (settings.chatBot?.joinGuide ?? '') : joinGuide === DEFAULT_JOIN_GUIDE ? '' : joinGuide
+  settings.chatBot = { name, avatar: avatar ?? null, joinGuide: guide }
   settings.markModified('chatBot')
   await settings.save()
   const changes = [
     name !== before.name && `name ${before.name} → ${name}`,
     avatar !== before.avatar && (avatar ? 'new picture' : 'picture removed'),
+    (guide.trim() || DEFAULT_JOIN_GUIDE) !== before.joinGuide && (guide.trim() ? 'join answer updated' : 'join answer reset to default'),
   ].filter(Boolean)
   if (changes.length) await audit(req, 'settings.chat_bot', 'chat', changes.join(', '))
   res.json({ chatBot: readChatBot(settings) })

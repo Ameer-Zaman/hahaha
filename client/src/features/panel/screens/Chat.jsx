@@ -125,13 +125,16 @@ function BotSettings() {
   const { data, error, loading, reload } = useResource(() => adminApi.get('/settings'))
   if (error) return <ErrorNote message={error} onRetry={reload} />
   if (loading || !data) return <Loading />
-  return <BotForm key={`${data.chatBot.name}|${data.chatBot.avatar}`} initial={data.chatBot} />
+  return <BotForm key={`${data.chatBot.name}|${data.chatBot.avatar}|${data.chatBot.joinGuide}`} initial={data.chatBot} />
 }
 
 function BotForm({ initial }) {
   const [form, setForm] = useState(initial)
   const [run, busy] = useAction()
-  const changed = form.name.trim() !== initial.name || (form.avatar ?? null) !== (initial.avatar ?? null)
+  const changed =
+    form.name.trim() !== initial.name ||
+    (form.avatar ?? null) !== (initial.avatar ?? null) ||
+    form.joinGuide.trim() !== initial.joinGuide.trim()
 
   async function save(e) {
     e.preventDefault()
@@ -140,6 +143,7 @@ function BotForm({ initial }) {
         adminApi.put('/settings/chat-bot', {
           name: form.name.trim(),
           avatar: form.avatar ?? null,
+          joinGuide: form.joinGuide.trim(),
         }),
       'Saved — the chat shows it within a minute',
     )
@@ -165,6 +169,18 @@ function BotForm({ initial }) {
           onChange={(avatar) => setForm((f) => ({ ...f, avatar }))}
           fallback="Shown on the chat button on every page and beside the bot's messages. A square picture works best; it shows in a circle. Without one, the button shows the first letter of the name."
         />
+        <div className="p-form-grid">
+          <TextField
+            label="Answer to “how do I join / get whitelisted?”"
+            hint="Sent whenever someone asks how to join, apply, get whitelisted, get the Resident role and so on, with a Join our Discord button under it. Use **bold** and numbered steps (1. 2. 3.), one per line. Empty = the built-in guide."
+            value={form.joinGuide}
+            onChange={(joinGuide) => setForm((f) => ({ ...f, joinGuide }))}
+            maxLength={3000}
+            multiline
+            rows={12}
+            wide
+          />
+        </div>
         <div className="p-row">
           <button type="submit" className="pbtn pbtn--gold" disabled={busy || !changed || !form.name.trim()}>
             {busy ? 'Saving…' : 'Save'}

@@ -131,6 +131,8 @@ export const settingsBrandSchema = z.object({ logo: mediaId })
 export const settingsChatBotSchema = z.object({
   name: text(30).min(1, 'give the bot a name'),
   avatar: mediaId.default(null),
+  // the answer to "how do I join / get whitelisted?"; empty = the built-in guide
+  joinGuide: z.string().trim().max(3000, 'keep the join answer under 3,000 characters').optional(),
 })
 
 export const settingsSecuritySchema = z.object({ requireTwoFactor: z.boolean() })

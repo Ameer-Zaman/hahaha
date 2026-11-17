@@ -55,7 +55,11 @@ function normalise(data) {
   return {
     sections: { ...ALL_ON, ...saved },
     maintenance: { on: Boolean(data?.maintenance?.on), message: data?.maintenance?.message ?? '' },
-    chatBot: { name: data?.chatBot?.name?.trim() || DEFAULT_BOT.name, avatar: data?.chatBot?.avatar ?? null },
+    chatBot: {
+      name: data?.chatBot?.name?.trim() || DEFAULT_BOT.name,
+      avatar: data?.chatBot?.avatar ?? null,
+      joinGuide: data?.chatBot?.joinGuide?.trim() || '', // empty = the built-in guide (content/joinGuide.js)
+    },
     // null = never set in the panel: the links in config/site.js are used instead
     socials: Array.isArray(data?.socials) ? data.socials : null,
     // the community logo from Panel → Site settings; null = the placeholder mark

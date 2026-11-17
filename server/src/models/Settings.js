@@ -55,10 +55,26 @@ export const readSocials = (settings) =>
 /** The chat assistant's name until the team picks another in the panel. */
 export const DEFAULT_BOT_NAME = 'Vexy'
 
+/**
+ * The bot's answer to "how do I join / get whitelisted?" until staff write their own.
+ * The website keeps the same text in client/src/content/joinGuide.js.
+ */
+export const DEFAULT_JOIN_GUIDE = `**How to get whitelisted — Rameirah Empire**
+
+1. **Apply for the whitelist.** Apply on Discord in **🔱・ᴡʜɪᴛᴇʟɪꜱᴛ-ᴀᴘᴘʟʏ** (press **Whitelist Form**) or through the website. Fill in your real character name, age and details.
+2. **Wait for staff review.** Our staff will review your application. When your application is pending, join the **Resident Waiting** voice channel and wait there until the final verification.
+3. **Interview questions.** After you are verified, go to the website and fill in your interview questions. Log in with Discord, read the rules first, and answer the questions yourself.
+4. **IP whitelist.** Whitelist your IP on the website.
+
+Once everything is done you get your **Resident** role, and you can join the city.
+
+⚠️ **Fake details and alt accounts are not allowed. One account per person.**`
+
 /** The saved bot settings, with the defaults filled in. */
 export const readChatBot = (settings) => ({
   name: settings?.chatBot?.name?.trim() || DEFAULT_BOT_NAME,
   avatar: settings?.chatBot?.avatar ?? null,
+  joinGuide: settings?.chatBot?.joinGuide?.trim() || DEFAULT_JOIN_GUIDE,
 })
 
 export const defaultSections = () => Object.fromEntries(SECTION_KEYS.map((key) => [key, true]))
@@ -94,6 +110,8 @@ const settingsSchema = new mongoose.Schema(
     chatBot: {
       name: { type: String, default: DEFAULT_BOT_NAME, maxlength: 30 },
       avatar: { type: String, default: null },
+      /** Its answer to "how do I join / get whitelisted?" (markdown). Empty = the default guide. */
+      joinGuide: { type: String, default: '' },
     },
     /** The community's logo (a media id): header, footer, maintenance screen and browser tab. */
     brand: {

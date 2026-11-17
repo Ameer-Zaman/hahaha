@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { applyLink, site } from '../../config/site'
+import { applyLink } from '../../config/site'
 import { ApiError, USE_API } from '../../lib/api'
 import { useRuleBook } from '../../lib/ruleBook'
 import { indexRules, searchRules } from '../../lib/ruleSearch'
@@ -9,6 +9,7 @@ import { useCommunityLinks, useSiteSettings } from '../../lib/siteSettings'
 import { severityLabel, severityOf } from '../../features/rules/bookMeta'
 import Markdown from '../../features/rules/Markdown'
 import { SOCIAL_PLATFORMS } from '../ui/socialPlatforms'
+import { DEFAULT_JOIN_GUIDE } from '../../content/joinGuide'
 import './chat.css'
 
 const DISCORD_PATH = SOCIAL_PLATFORMS.find((p) => p.id === 'discord')?.icon.path ?? ''
@@ -103,8 +104,9 @@ function smallTalk(text, botName = '') {
 }
 
 /**
- * "How do I join?", "how to apply", "server ip", "discord link" … — answered here with the
- * Discord link straight away (applications are handled on Discord), instead of searching the rules.
+ * "How do I join?", "how to get whitelisted", "how to apply", "resident role", "server ip" … —
+ * answered here with the whitelist guide (Panel → Rules help chat → The bot, or the built-in one)
+ * and the Discord link, instead of searching the rules.
  */
 const JOIN = [
   /\b(how|where|what)\b.*\b(join|apply|play|get in|get into|connect|enter|start|whitelist(ed)?|access)\b/,
@@ -114,6 +116,8 @@ const JOIN = [
   /^(join|apply|whitelist|application|discord|ip|server ip)\??$/,
   /\bwhitelist/,
   /\b(applications?|recruit(ing|ment)?)\b.*\b(open|closed|start)/,
+  /\b(resident role|interview (questions?|form)|ip whitelist|whitelist (form|process|steps?))\b/,
+  /\b(get|become|be)\b.*\b(resident|verified|whitelisted)\b/,
 ]
 function joinTalk(text) {
   const t = text
@@ -311,9 +315,8 @@ function RulesChat({ bot }) {
       reply(
         q,
         say('bot', {
-          text: discord
-            ? `${site.launch.isLive ? '' : 'The city isn’t open yet — '}${site.launch.isLive ? 'Applications' : 'applications'} are handled on our Discord. Join it and apply there; the staff will take it from there.`
-            : 'Applications are handled on our Discord — the invite link will be posted here soon.',
+          md: true,
+          text: bot.joinGuide || DEFAULT_JOIN_GUIDE,
           links: discord ? [{ href: discord, label: 'Join our Discord' }] : undefined,
         }),
       )
