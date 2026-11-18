@@ -534,8 +534,10 @@ router.get('/rules', async (req, res) => {
 router.get('/city', async (req, res) => {
   const status = await getCityStatus()
   res.set('Cache-Control', 'public, max-age=30')
-  // the panel-only reason never goes to visitors
-  res.json(status.state === 'error' ? { state: 'off' } : status)
+  // why a check failed is for the panel only; visitors get the state and the count
+  if (status.state === 'error') return res.json({ state: 'off' })
+  const { reason, detail, ...shown } = status // eslint-disable-line no-unused-vars
+  res.json(shown)
 })
 
 router.get('/site', async (req, res) => {

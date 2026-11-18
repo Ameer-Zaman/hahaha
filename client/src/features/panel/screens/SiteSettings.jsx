@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../authContext'
 
 import { formatWhen, mediaUrl } from '../format'
@@ -217,6 +217,20 @@ function SettingsForm({ data, setData }) {
 
 /* ------------------------------------------------------------- city server */
 
+/** Why a check failed, in words staff can act on. */
+const CITY_REASONS = {
+  'not-listed':
+    'The FiveM server list doesn’t have this join code right now — the city is closed, or the code is wrong. Check it in the FiveM server list or txAdmin.',
+  timeout: 'The server didn’t answer in time. If the city is open, its port may be closed to the internet, or the address is wrong.',
+  refused: 'Nothing answered at that address and port. Check the IP and the port (usually 30120).',
+  dns: 'That host name doesn’t exist. Check the spelling, or use the IP.',
+  blocked:
+    'The server answered, but it keeps its player list private (a setting like sv_requestParanoia). Use the cfx.re join link instead, or ask your developer to allow /dynamic.json.',
+  'not-fivem': 'Something answered at that address, but it isn’t a FiveM server. Check the IP and port.',
+  'http-403': 'The FiveM server list refused the request from the website’s server. Try the IP and port instead.',
+  'http-429': 'The FiveM server list says too many requests — it will try again in a minute.',
+}
+
 /** What the last reading says, in words, for the panel. */
 function cityLine(status) {
   if (!status || status.state === 'off') return null
@@ -224,10 +238,10 @@ function cityLine(status) {
     return { tone: 'ok', text: `Online — ${status.players}${status.max ? ` of ${status.max}` : ''} players in the city right now.` }
   if (status.state === 'error')
     return { tone: 'bad', text: 'That address points inside a private network, so the website can’t read it. Use the public address.' }
-  return {
-    tone: 'bad',
-    text: 'Not answering right now. If the city is open, check the address — or the server may block the player list (it needs /dynamic.json or /players.json open, or use the cfx.re join link).',
-  }
+  const why =
+    CITY_REASONS[status.reason] ??
+    (status.reason?.startsWith('http-') ? `The server answered with an error (${status.reason.slice(5)}).` : 'It couldn’t be reached.')
+  return { tone: 'bad', text: `Shows as offline. ${why}${status.detail ? ` [${status.detail}]` : ''}` }
 }
 
 /**
@@ -257,6 +271,19 @@ function CityServer({ initial }) {
     const res = await run(() => adminApi.get('/settings/game-server/status'))
     if (res) setStatus(res.status)
   }
+
+  // show where things stand as soon as the card opens
+  useEffect(() => {
+    if (!initial) return undefined
+    let live = true
+    adminApi
+      .get('/settings/game-server/status')
+      .then((res) => live && setStatus(res.status))
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+  }, [initial])
 
   const line = cityLine(status)
   return (

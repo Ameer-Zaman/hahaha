@@ -95,18 +95,47 @@ async function publicIp(host) {
 
 /* -------------------------------------------------------------------- reads */
 
+/** A failed read, with a short reason the panel can explain (never shown to visitors). */
+class ReadError extends Error {
+  constructor(reason, detail = '') {
+    super(detail || reason)
+    this.reason = reason
+    this.detail = detail
+  }
+}
+
+/** Why a request didn't get through, in one word. */
+function failure(err, where) {
+  if (err instanceof ReadError) return err
+  if (err.name === 'TimeoutError' || err.name === 'AbortError') return new ReadError('timeout', where)
+  const code = err.cause?.code ?? err.code
+  if (code === 'ECONNREFUSED') return new ReadError('refused', where)
+  if (code === 'ENOTFOUND' || code === 'EAI_AGAIN') return new ReadError('dns', where)
+  if (err instanceof SyntaxError) return new ReadError('not-fivem', where)
+  return new ReadError('network', `${where}: ${code || err.message}`)
+}
+
 async function getJson(url, headers = {}) {
-  const res = await fetch(url, {
-    headers: { 'User-Agent': UA, Accept: 'application/json', ...headers },
-    redirect: 'manual',
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-  })
+  let res
+  try {
+    res = await fetch(url, {
+      headers: { 'User-Agent': UA, Accept: 'application/json', ...headers },
+      redirect: 'manual',
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    })
+  } catch (err) {
+    throw failure(err, new URL(url).host)
+  }
   if (res.status === 404) return { notFound: true }
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  if (Number(res.headers.get('content-length') ?? 0) > MAX_BYTES) throw new Error('too large')
+  if (!res.ok) throw new ReadError(`http-${res.status}`, new URL(url).host)
+  if (Number(res.headers.get('content-length') ?? 0) > MAX_BYTES) throw new ReadError('not-fivem', 'too large')
   const text = await res.text()
-  if (text.length > MAX_BYTES) throw new Error('too large')
-  return { data: JSON.parse(text) }
+  if (text.length > MAX_BYTES) throw new ReadError('not-fivem', 'too large')
+  try {
+    return { data: JSON.parse(text) }
+  } catch {
+    throw new ReadError('not-fivem', `${new URL(url).host} did not answer with JSON`)
+  }
 }
 
 const count = (v) => {
@@ -114,32 +143,66 @@ const count = (v) => {
   return Number.isFinite(n) && n >= 0 ? Math.floor(n) : null
 }
 
+/**
+ * The FiveM server list, by join code. Cfx moved it to frontend.cfx-services.net in 2026;
+ * the old servers-frontend.fivem.net address is tried second in case it comes back.
+ */
+const LIST_HOSTS = ['https://frontend.cfx-services.net', 'https://servers-frontend.fivem.net']
+
 async function readCfx(code) {
-  const { data, notFound } = await getJson(`https://servers-frontend.fivem.net/api/servers/single/${encodeURIComponent(code)}`)
-  // the list drops a server a few minutes after it stops answering
-  if (notFound || !data?.Data) return { online: false }
-  const d = data.Data
-  return {
-    online: true,
-    players: count(d.clients ?? d.selfReportedClients ?? d.players?.length),
-    max: count(d.sv_maxclients ?? d.svMaxclients ?? d.vars?.sv_maxClients),
+  let last
+  for (const host of LIST_HOSTS) {
+    try {
+      const { data, notFound } = await getJson(`${host}/api/servers/single/${encodeURIComponent(code)}`)
+      // the list drops a server a few minutes after it stops answering
+      if (notFound || !data?.Data) return { online: false, reason: 'not-listed' }
+      const d = data.Data
+      return {
+        online: true,
+        players: count(d.clients ?? d.selfReportedClients ?? d.players?.length),
+        max: count(d.sv_maxclients ?? d.svMaxclients ?? d.vars?.sv_maxClients),
+      }
+    } catch (err) {
+      last = failure(err, host)
+    }
   }
+  throw last
 }
 
 async function readDirect({ host, port }) {
-  const ip = await publicIp(host)
+  let ip
+  try {
+    ip = await publicIp(host)
+  } catch (err) {
+    if (err.code === 'private') throw err
+    throw new ReadError('dns', host)
+  }
   const base = `http://${net.isIPv6(ip) ? `[${ip}]` : ip}:${port}`
+  let first
   try {
     const { data } = await getJson(`${base}/dynamic.json`)
     if (data && data.clients !== undefined) return { online: true, players: count(data.clients), max: count(data.sv_maxclients) }
   } catch (err) {
-    if (err.name === 'TimeoutError' || err.cause?.code === 'ECONNREFUSED') throw err
+    first = failure(err, 'dynamic.json')
+    // nothing listening at all: no point asking again
+    if (first.reason === 'timeout' || first.reason === 'refused') throw first
   }
   // some servers switch dynamic.json off; players.json gives the count (names are dropped here)
-  const { data } = await getJson(`${base}/players.json`)
-  if (!Array.isArray(data)) throw new Error('not a FiveM server')
-  return { online: true, players: data.length, max: null }
+  try {
+    const { data, notFound } = await getJson(`${base}/players.json`)
+    if (Array.isArray(data)) return { online: true, players: data.length, max: null }
+    if (notFound) throw new ReadError('blocked', 'players.json')
+    throw new ReadError('not-fivem', 'players.json')
+  } catch (err) {
+    const second = failure(err, 'players.json')
+    // the server answered but keeps its player list to itself (e.g. sv_requestParanoia)
+    if (/^http-4/.test(second.reason) || second.reason === 'blocked') throw new ReadError('blocked', second.detail)
+    throw first && first.reason !== 'not-fivem' ? first : second
+  }
 }
+
+/** One reading of a parsed address, for tests: { online, players, max } or a thrown ReadError. */
+export const readCityServer = (target) => (target.kind === 'cfx' ? readCfx(target.code) : readDirect(target))
 
 /* -------------------------------------------------------------------- cache */
 
@@ -154,27 +217,29 @@ export function resetCityStatus() {
 }
 
 async function check(target) {
+  const at = new Date().toISOString()
   try {
-    const r = target.kind === 'cfx' ? await readCfx(target.code) : await readDirect(target)
-    if (!r.online) {
-      misses = 0
-      return { state: 'offline', checkedAt: new Date().toISOString() }
-    }
+    const r = await readCityServer(target)
     misses = 0
-    return { state: 'online', players: r.players ?? 0, max: r.max, checkedAt: new Date().toISOString() }
+    if (!r.online) return { state: 'offline', reason: r.reason, checkedAt: at }
+    return { state: 'online', players: r.players ?? 0, max: r.max, checkedAt: at }
   } catch (err) {
-    if (err.code === 'private') return { state: 'error', reason: 'private', checkedAt: new Date().toISOString() }
+    if (err.code === 'private') return { state: 'error', reason: 'private', checkedAt: at }
+    const reason = err.reason ?? 'network'
+    console.warn(`[city] ${target.label}: ${reason}${err.detail ? ` (${err.detail})` : ''}`)
     // one failed read can be a hiccup: keep the last good reading once before saying "offline"
     misses += 1
     if (misses < 2 && cache.status.state === 'online') return { ...cache.status }
-    return { state: 'offline', checkedAt: new Date().toISOString() }
+    return { state: 'offline', reason, detail: err.detail || undefined, checkedAt: at }
   }
 }
 
 /**
  * { state: 'off' }                                      — no address set: show nothing
  * { state: 'online', players, max, checkedAt }          — max is null when the server doesn't say
- * { state: 'offline', checkedAt }                       — not answering / not on the server list
+ * { state: 'offline', reason, checkedAt }               — not answering / not on the server list; the
+ *                                                         reason (timeout, refused, blocked, http-403,
+ *                                                         not-listed…) is for the panel only
  * { state: 'error', reason: 'private', checkedAt }      — the address points inside a private network (panel only)
  */
 export async function getCityStatus({ force = false } = {}) {
