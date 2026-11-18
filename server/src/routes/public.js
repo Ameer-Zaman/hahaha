@@ -533,7 +533,7 @@ router.get('/rules', async (req, res) => {
 /** Players in the city right now (Panel → Site settings → City server). { state: 'off' } = show nothing. */
 router.get('/city', async (req, res) => {
   const status = await getCityStatus()
-  res.set('Cache-Control', 'public, max-age=30')
+  res.set('Cache-Control', 'public, max-age=10')
   // why a check failed is for the panel only; visitors get the state and the count
   if (status.state === 'error') return res.json({ state: 'off' })
   const { reason, detail, ...shown } = status // eslint-disable-line no-unused-vars

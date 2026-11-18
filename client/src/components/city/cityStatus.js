@@ -4,13 +4,13 @@ import { api, USE_API } from '../../lib/api'
 
 /**
  * Players in the city right now, from /api/public/city (the server reads the FiveM server).
- * Shared by every indicator on the page, refreshed once a minute while one is on screen, and
+ * Shared by every indicator on the page, refreshed every 15 seconds while one is on screen (and at once when the tab comes back), and
  * kept out of the page's loading line — a slow game server never holds the page up.
  *
  * null until there is a real reading; the indicators show nothing until then, and nothing at
  * all when no server address is set in the panel ({ state: 'off' }).
  */
-const REFRESH_MS = 60_000
+const REFRESH_MS = 15_000
 const TIMEOUT_MS = 9000
 
 let status = null

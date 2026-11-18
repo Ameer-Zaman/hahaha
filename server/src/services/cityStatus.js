@@ -14,11 +14,11 @@ import { Settings } from '../models/Settings.js'
  * own /dynamic.json (or /players.json when that is switched off). Only the count leaves this
  * file: player names and identifiers are never stored or sent to the website.
  *
- * Checked on demand and kept for 45 seconds, so any number of visitors cost one check a minute
- * at most, and nothing runs while nobody is looking.
+ * Checked on demand and kept for 10 seconds, so the count is close to live while any number of
+ * visitors cost one check every 10 seconds at most, and nothing runs while nobody is looking.
  */
 
-const FRESH_MS = 45_000
+const FRESH_MS = 10_000
 const TIMEOUT_MS = 6000
 const MAX_BYTES = 2_000_000
 const DEFAULT_PORT = 30120
