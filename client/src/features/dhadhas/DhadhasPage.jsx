@@ -2,8 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import ApplyLink from '../../components/ui/ApplyLink'
-import ParallaxScope from '../../components/ui/ParallaxScope'
-import ParallaxWord from '../../components/ui/ParallaxWord'
 import { Skeleton, SkeletonGroup } from '../../components/ui/Skeleton'
 import usePageTitle from '../../hooks/usePageTitle'
 import { usePublic } from '../../lib/publicData'
@@ -49,16 +47,10 @@ function profile(d, place) {
   }
 }
 
-const SORTS = [
-  { id: 'coins', label: 'Most coins', by: (a, b) => b.coins - a.coins },
-  { id: 'wins', label: 'Most wins', by: (a, b) => b.record.win - a.record.win || b.coins - a.coins },
-  { id: 'name', label: 'A–Z', by: (a, b) => a.name.localeCompare(b.name) },
-]
-
 /**
- * Dhadhas — every Dhadha in the city: a club of up to ten members. One card each (photo,
- * total coins, members out of ten, record); opening a card pops up the club: its total coins,
- * record, previous fights (every member's, newest first) and its members by rank.
+ * Dhadhas — every Dhadha in the city: a club of up to ten members, drawn as a family tree on
+ * a dark board. Opening any face pops up the club: its total coins, record, previous fights
+ * (every member's, newest first) and its members by rank.
  *
  * An open Dhadha has its own address (/dhadhas/<dhadha>), so it can be shared.
  */
@@ -79,35 +71,32 @@ export default function DhadhasPage() {
 
   return (
     <>
-      <ParallaxScope as="section" className="page-head page-head--word theme-dark" aria-labelledby="dhadhas-title">
-        <ParallaxWord text="Dhadhas" motion="x:6%:-10%" className="page-head__word" />
-        <div className="container">
-          <h1 id="dhadhas-title" className="page-head__title">
+      <section className="dk theme-black" aria-labelledby="dhadhas-title">
+        <div className="dk-intro container">
+          <h1 id="dhadhas-title" className="dk-title">
             Dhadhas
           </h1>
-          <p className="lede">Every Dhadha in the city — a club of up to ten. Open one to see its fights, members and total coins.</p>
+          <p className="dk-sub">
+            Every club in the city and the ten who stand with it. Choose a face to see the club’s fights and total coins.
+          </p>
         </div>
-      </ParallaxScope>
 
-      <section className="dx theme-black section" aria-label="All Dhadhas">
-        <div className="container">
-          {entry.status === 'loading' && <GridSkeleton />}
-          {(entry.status === 'error' || entry.status === 'off' || entry.status === 'missing') && (
-            <p className="dx-note" role="status">
-              The Dhadhas can’t be loaded right now. Try again in a moment.
-            </p>
-          )}
-          {entry.status === 'ok' &&
-            (all.length === 0 ? (
-              <div className="dx-empty">
-                <p className="dx-empty__title">The Dhadhas are on their way</p>
-                <p className="dx-note">Who they are and who rides with them will be announced on our Discord.</p>
-                <ApplyLink className="btn btn--primary">Get updates on Discord</ApplyLink>
-              </div>
-            ) : (
-              <Board all={all} onOpen={show} />
-            ))}
-        </div>
+        {entry.status === 'loading' && <BoardSkeleton />}
+        {(entry.status === 'error' || entry.status === 'off' || entry.status === 'missing') && (
+          <p className="dk-note container" role="status">
+            The Dhadhas can’t be loaded right now. Try again in a moment.
+          </p>
+        )}
+        {entry.status === 'ok' &&
+          (all.length === 0 ? (
+            <div className="dk-empty container">
+              <p className="dk-empty__title">The Dhadhas are on their way</p>
+              <p className="dk-note">Who they are and who rides with them will be announced on our Discord.</p>
+              <ApplyLink className="btn btn--primary">Get updates on Discord</ApplyLink>
+            </div>
+          ) : (
+            <FamilyBoard all={all} onOpen={show} />
+          ))}
       </section>
 
       <Popup dhadha={open} onClose={() => show(null)} />
@@ -115,293 +104,169 @@ export default function DhadhasPage() {
   )
 }
 
-/* ------------------------------------------------------------------ the board */
+/* ------------------------------------------------------------------ the family board */
 
-function Board({ all, onOpen }) {
-  const [sort, setSort] = useState('coins')
+/**
+ * The board: one family per Dhadha, side by side, and as many as there are — it pans sideways
+ * (drag with the mouse, swipe, scroll sideways, or the arrows). Each family is the Dhadha at the
+ * top with the club's numbers, and below him a spine with his members branching off it, best
+ * ranked first; slots not filled yet stand as unknown faces. Pointing at a family lights it and
+ * fades the others; pointing at a member lights their branch. Any face opens the club.
+ */
+function FamilyBoard({ all, onOpen }) {
   const [query, setQuery] = useState('')
-  const richest = useMemo(() => all.reduce((top, d) => (d.coins > (top?.coins ?? 0) ? d : top), null), [all])
+  const boardRef = useRef(null)
+  const drag = useRef(null)
+  const dragged = useRef(false)
   const list = useMemo(() => {
     const q = query.trim().toLowerCase()
-    const found = q ? all.filter((d) => d.name.toLowerCase().includes(q) || d.members.some((m) => m.name.toLowerCase().includes(q))) : all
-    return [...found].sort(SORTS.find((s) => s.id === sort).by)
-  }, [all, sort, query])
-  const players = all.reduce((n, d) => n + d.members.length, 0)
+    return q ? all.filter((d) => d.name.toLowerCase().includes(q) || d.members.some((m) => m.name.toLowerCase().includes(q))) : all
+  }, [all, query])
+  const members = all.reduce((n, d) => n + d.members.length, 0)
+
+  const step = (dir) => {
+    const board = boardRef.current
+    const col = board?.querySelector('.dk-family')
+    if (board && col) board.scrollBy({ left: dir * (col.offsetWidth + 1), behavior: 'smooth' })
+  }
+
+  // a mouse drags the board sideways; touch scrolls it natively
+  const onPointerDown = (e) => {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return
+    drag.current = { x: e.clientX, left: boardRef.current.scrollLeft, moved: false }
+  }
+  const onPointerMove = (e) => {
+    const d = drag.current
+    if (!d) return
+    const dx = e.clientX - d.x
+    if (!d.moved && Math.abs(dx) > 5) {
+      d.moved = true
+      boardRef.current.classList.add('is-dragging')
+    }
+    if (d.moved) boardRef.current.scrollLeft = d.left - dx
+  }
+  const endDrag = () => {
+    const d = drag.current
+    if (!d) return
+    drag.current = null
+    boardRef.current?.classList.remove('is-dragging')
+    // the click that ends a drag shouldn't open anything
+    if (d.moved) {
+      dragged.current = true
+      setTimeout(() => (dragged.current = false), 0)
+    }
+  }
+  const open = (d) => {
+    if (!dragged.current) onOpen(d)
+  }
 
   return (
     <>
-      <div className="dx-bar">
-        <p className="dx-count">
-          {two(all.length)} {all.length === 1 ? 'Dhadha' : 'Dhadhas'} · {players} {players === 1 ? 'member' : 'members'}
+      <div className="dk-bar container">
+        <p className="dk-count">
+          {two(all.length)} {all.length === 1 ? 'family' : 'families'} · {members} {members === 1 ? 'member' : 'members'}
         </p>
-        <div className="dx-tools">
+        <div className="dk-tools">
           {all.length > 3 && (
-            <label className="dx-search">
+            <label className="dk-search">
               <span className="visually-hidden">Find a Dhadha or a member</span>
-              <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Find a Dhadha or member" />
+              <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Find a name" />
             </label>
           )}
-          <div className="dx-sort" role="group" aria-label="Sort">
-            {SORTS.map((s) => (
-              <button key={s.id} type="button" aria-pressed={sort === s.id} onClick={() => setSort(s.id)}>
-                {s.label}
+          {list.length > 1 && (
+            <span className="dk-arrows">
+              <button type="button" onClick={() => step(-1)} aria-label="Previous families">
+                ‹
               </button>
-            ))}
-          </div>
+              <button type="button" onClick={() => step(1)} aria-label="Next families">
+                ›
+              </button>
+            </span>
+          )}
         </div>
       </div>
 
       {list.length === 0 ? (
-        <p className="dx-note" role="status">
+        <p className="dk-note container" role="status">
           No Dhadha or member matches “{query}”.
         </p>
       ) : (
-        // a new order or search starts the gallery from the first again
-        <Gallery key={`${sort}|${query}`} list={list} richestId={all.length > 1 ? richest?.id : null} onOpen={onOpen} />
+        <div
+          ref={boardRef}
+          className="dk-board"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={endDrag}
+          onPointerLeave={endDrag}
+        >
+          <ol className="dk-families" role="list">
+            {list.map((d) => (
+              <Family key={d.id} dhadha={d} onOpen={() => open(d)} />
+            ))}
+          </ol>
+        </div>
       )}
     </>
   )
 }
 
-/* ------------------------------------------------------------------ the gallery */
-
-const SNAP_MS = 140 // a pause in the wheel this long snaps to the nearest Dhadha
-
-/**
- * The Dhadhas as a horizontal gallery on a gentle curve: the one in the middle faces you,
- * those either side turn away, shrink and dim. Scroll (wheel or trackpad), drag, the arrows
- * or the arrow keys move along it; it settles on the nearest Dhadha. Clicking the one in the
- * middle opens him; clicking another brings him to the middle. The bar below shows how far
- * along you are, and the caption names the one in the middle with his coins and members.
- *
- * The wheel only moves the gallery while there is somewhere to go in that direction, so the
- * page carries on scrolling at either end.
- */
-function Gallery({ list, richestId, onOpen }) {
-  const stageRef = useRef(null)
-  const cardRefs = useRef([])
-  const [active, setActive] = useState(0)
-  const motion = useRef({ pos: 0, target: 0, raf: 0, still: false, drag: null, wheelTimer: 0, moved: false })
-  const last = list.length - 1
-
-  // place every card for the current position (no React render per frame)
-  const paint = () => {
-    const m = motion.current
-    const stage = stageRef.current
-    if (!stage) return
-    const w = stage.clientWidth
-    const narrow = w < 640
-    const gap = narrow ? w * 0.62 : Math.min(360, w * 0.24)
-    cardRefs.current.forEach((el, i) => {
-      if (!el) return
-      const off = i - m.pos
-      const far = Math.abs(off)
-      const x = off * gap
-      const turn = Math.max(-55, Math.min(55, -off * 24))
-      const z = -Math.min(far, 4) * 140
-      const scale = 1 - Math.min(far, 3) * 0.06
-      el.style.transform = `translate(-50%, -50%) translate3d(${x.toFixed(1)}px, 0, ${z.toFixed(1)}px) rotateY(${turn.toFixed(2)}deg) scale(${scale.toFixed(3)})`
-      el.style.opacity = far > 3.6 ? '0' : String(1 - Math.min(far, 3) * 0.22)
-      el.style.zIndex = String(100 - Math.round(far * 10))
-      el.style.setProperty('--dim', Math.min(far, 1.5).toFixed(3))
-      el.style.visibility = far > 4 ? 'hidden' : 'visible'
-    })
-  }
-
-  const run = () => {
-    const m = motion.current
-    if (m.raf) return
-    const step = () => {
-      const k = m.drag ? 0.5 : 0.12
-      m.pos += (m.target - m.pos) * (m.still ? 1 : k)
-      if (Math.abs(m.target - m.pos) < 0.001) m.pos = m.target
-      paint()
-      const near = Math.round(m.pos)
-      setActive((a) => (a === near ? a : Math.max(0, Math.min(last, near))))
-      m.raf = m.pos !== m.target || m.drag ? requestAnimationFrame(step) : 0
-    }
-    m.raf = requestAnimationFrame(step)
-  }
-
-  const go = (to) => {
-    const m = motion.current
-    m.target = Math.max(0, Math.min(last, to))
-    run()
-  }
-
-  useEffect(() => {
-    const m = motion.current
-    m.still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    paint()
-    const stage = stageRef.current
-    const onResize = () => paint()
-    window.addEventListener('resize', onResize)
-
-    // the wheel moves the gallery while it can; at the ends the page scrolls on
-    const onWheel = (e) => {
-      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY
-      if (!delta) return
-      const forward = delta > 0
-      if ((forward && m.target >= last) || (!forward && m.target <= 0)) return
-      e.preventDefault()
-      const unit = e.deltaMode === 1 ? 0.33 : 1 / 260
-      m.target = Math.max(0, Math.min(last, m.target + delta * unit))
-      run()
-      clearTimeout(m.wheelTimer)
-      m.wheelTimer = setTimeout(() => go(Math.round(m.target)), SNAP_MS)
-    }
-    stage.addEventListener('wheel', onWheel, { passive: false })
-    return () => {
-      window.removeEventListener('resize', onResize)
-      stage.removeEventListener('wheel', onWheel)
-      cancelAnimationFrame(m.raf)
-      clearTimeout(m.wheelTimer)
-      m.raf = 0
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // dragging (mouse or touch); a drag that moved isn't a click
-  const onPointerDown = (e) => {
-    if (e.button !== 0) return
-    const m = motion.current
-    const gap =
-      stageRef.current.clientWidth < 640 ? stageRef.current.clientWidth * 0.62 : Math.min(360, stageRef.current.clientWidth * 0.24)
-    m.drag = { x: e.clientX, from: m.target, gap, id: e.pointerId, t: performance.now(), vx: 0, lastX: e.clientX }
-    m.moved = false
-  }
-  const onPointerMove = (e) => {
-    const m = motion.current
-    const d = m.drag
-    if (!d || e.pointerId !== d.id) return
-    const dx = e.clientX - d.x
-    if (!m.moved && Math.abs(dx) > 6) {
-      m.moved = true
-      stageRef.current.setPointerCapture?.(e.pointerId)
-    }
-    if (!m.moved) return
-    const now = performance.now()
-    d.vx = (e.clientX - d.lastX) / Math.max(1, now - d.t)
-    d.lastX = e.clientX
-    d.t = now
-    m.target = Math.max(-0.35, Math.min(last + 0.35, d.from - dx / d.gap))
-    run()
-  }
-  const onPointerUp = () => {
-    const m = motion.current
-    const d = m.drag
-    if (!d) return
-    m.drag = null
-    // a flick carries on a little further
-    go(Math.round(m.target - (d.vx * 180) / d.gap))
-  }
-
-  const onKey = (e) => {
-    const step = { ArrowRight: 1, ArrowLeft: -1 }[e.key]
-    if (step) {
-      e.preventDefault()
-      go(Math.round(motion.current.target) + step)
-    } else if (e.key === 'Home') {
-      e.preventDefault()
-      go(0)
-    } else if (e.key === 'End') {
-      e.preventDefault()
-      go(last)
-    }
-  }
-
-  const d = list[active]
-  const progress = list.length > 1 ? active / last : 1
-
+function Family({ dhadha: d, onOpen }) {
+  const empty = Math.max(0, CREW_MAX - d.members.length)
   return (
-    <div className="dxg">
-      <div
-        ref={stageRef}
-        className="dxg__stage"
-        role="region"
-        aria-roledescription="gallery"
-        aria-label="Dhadhas — scroll, drag or use the arrow keys"
-        tabIndex={0}
-        onKeyDown={onKey}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-      >
-        <ol className="dxg__track" role="list">
-          {list.map((x, i) => (
-            <li key={x.id} ref={(el) => (cardRefs.current[i] = el)} className={`dxg__item${i === active ? ' is-active' : ''}`}>
-              <button
-                type="button"
-                className="dxg__card"
-                tabIndex={i === active ? 0 : -1}
-                aria-haspopup={i === active ? 'dialog' : undefined}
-                aria-label={i === active ? `Open ${x.name}` : `Show ${x.name}`}
-                onClick={() => {
-                  if (motion.current.moved) return
-                  if (i === active) onOpen(x)
-                  else go(i)
-                }}
-              >
-                <span className="dxg__media" aria-hidden="true">
-                  {x.photo ? (
-                    <img src={x.photo} alt="" loading={i < 4 ? 'eager' : 'lazy'} decoding="async" draggable="false" />
-                  ) : (
-                    <b>{initial(x.name)}</b>
-                  )}
-                </span>
-                <span className="dxg__no" aria-hidden="true">
-                  {two(x.place + 1)}
-                </span>
-                {richestId === x.id && <span className="dxg__badge">Richest club</span>}
-                <span className="dxg__open" aria-hidden="true">
-                  Open
-                </span>
-              </button>
-            </li>
-          ))}
-        </ol>
-      </div>
-
-      <div className="dxg__caption" aria-live="polite">
-        <p key={d.id} className="dxg__cap">
-          <span className="dxg__title">{d.title || 'Dhadha'}</span>
-          <span className="dxg__name">
+    <li className="dk-family">
+      <header className="dk-head">
+        <span className="dk-no">{two(d.place + 1)}</span>
+        <h2 className="dk-name">
+          <button type="button" onClick={onOpen} aria-haspopup="dialog">
             {d.name}
-            <span className="visually-hidden">
-              , {active + 1} of {list.length}
-            </span>
-          </span>
-          <span className="dxg__facts">
-            <span>
-              <b>{number.format(d.coins)}</b> coins
-            </span>
-            <span>
-              <b>
-                {d.members.length}/{CREW_MAX}
-              </b>{' '}
-              members
-            </span>
-            <span>{d.fights.length ? recordText(d.record) : 'No fights yet'}</span>
-          </span>
-        </p>
-      </div>
+          </button>
+        </h2>
+        <p className="dk-role">{d.title || 'Dhadha'}</p>
+      </header>
 
-      <div className="dxg__nav">
-        <button type="button" className="dxg__arrow" onClick={() => go(active - 1)} disabled={active === 0} aria-label="Previous Dhadha">
-          ‹
-        </button>
-        <span className="dxg__hint" aria-hidden="true">
-          Scroll to explore
+      <button type="button" className="dk-leader" onClick={onOpen} aria-haspopup="dialog" aria-label={`Open ${d.name}`}>
+        <span className="dk-face dk-face--leader" aria-hidden="true">
+          {d.photo ? <img src={d.photo} alt="" loading="lazy" decoding="async" draggable="false" /> : <b>{initial(d.name)}</b>}
         </span>
-        <button type="button" className="dxg__arrow" onClick={() => go(active + 1)} disabled={active === last} aria-label="Next Dhadha">
-          ›
-        </button>
-      </div>
-      <div className="dxg__progress" aria-hidden="true">
-        <span style={{ '--p': progress, '--w': 1 / list.length }} />
-      </div>
-    </div>
+        <span className="dk-totals">
+          <span>
+            <b>{number.format(d.coins)}</b> coins
+          </span>
+          <span>
+            <b>
+              {d.members.length}/{CREW_MAX}
+            </b>{' '}
+            members
+          </span>
+          <span>{d.fights.length ? recordText(d.record) : 'No fights yet'}</span>
+        </span>
+      </button>
+
+      <ol className="dk-tree" role="list" aria-label={`${d.name}’s members`}>
+        {d.members.map((m, i) => (
+          <li key={`${m.name}-${i}`} className="dk-node">
+            <button type="button" className="dk-person" onClick={onOpen} aria-haspopup="dialog">
+              <span className="dk-face" aria-hidden="true">
+                {m.photo ? <img src={m.photo} alt="" loading="lazy" decoding="async" draggable="false" /> : <b>{initial(m.name)}</b>}
+              </span>
+              <span className="dk-pname">{m.name}</span>
+              <span className="dk-pmeta">
+                {m.rank ? `No. ${two(m.rank)}` : 'Unranked'} · {number.format(m.coins || 0)}
+                <span className="visually-hidden"> coins</span>
+              </span>
+            </button>
+          </li>
+        ))}
+        {Array.from({ length: empty }, (_, i) => (
+          <li key={`empty-${i}`} className="dk-node dk-node--unknown" aria-hidden="true">
+            <span className="dk-person">
+              <span className="dk-face">?</span>
+              <span className="dk-pname">Unknown</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </li>
   )
 }
 
@@ -582,11 +447,11 @@ function Popup({ dhadha: d, onClose }) {
   )
 }
 
-function GridSkeleton() {
+function BoardSkeleton() {
   return (
-    <SkeletonGroup label="Loading the Dhadhas" className="dx-grid">
-      {Array.from({ length: 6 }, (_, i) => (
-        <Skeleton key={i} w="100%" h="26rem" radius={0} style={{ display: 'block' }} />
+    <SkeletonGroup label="Loading the Dhadhas" className="dk-skel container">
+      {Array.from({ length: 3 }, (_, i) => (
+        <Skeleton key={i} w="100%" h="34rem" radius={0} style={{ display: 'block' }} />
       ))}
     </SkeletonGroup>
   )
