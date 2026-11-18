@@ -2,17 +2,21 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import ApplyLink from '../../components/ui/ApplyLink'
+import ParallaxScope from '../../components/ui/ParallaxScope'
+import ParallaxWord from '../../components/ui/ParallaxWord'
 import { Skeleton, SkeletonGroup } from '../../components/ui/Skeleton'
 import usePageTitle from '../../hooks/usePageTitle'
 import { usePublic } from '../../lib/publicData'
 import './dhadhas.css'
 
 const CREW_MAX = 10
+const FIGHTS_SHOWN = 8 // longer fight lists fold after this many
 const number = new Intl.NumberFormat('en-IN')
 const day = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 const formatDay = (iso) => (iso ? day.format(new Date(`${iso}T12:00:00`)) : '')
 const initial = (name) => [...(name ?? '').trim()][0]?.toUpperCase() ?? ''
 const two = (n) => String(n).padStart(2, '0')
+const RESULT = { win: 'Won', loss: 'Lost', draw: 'Draw' }
 
 /** Wins, losses and draws in a list of fights. */
 const record = (fights) => ({
@@ -20,394 +24,368 @@ const record = (fights) => ({
   loss: fights.filter((f) => f.result === 'loss').length,
   draw: fights.filter((f) => f.result === 'draw').length,
 })
+const recordText = (r) => `${r.win}W ${r.loss}L${r.draw ? ` ${r.draw}D` : ''}`
 
-/** The crew by rank position (1 first); players without one after, in the panel's order. */
+/** The members by rank position (1 first); those without one after, in the panel's order. */
 const byRank = (members) =>
   members.map((m, i) => ({ ...m, order: i })).sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity) || a.order - b.order)
 
-const newestFirst = (fights) => [...fights].sort((a, b) => (b.date || '').localeCompare(a.date || ''))
-
-/** Everything the stage shows about one Dhadha, worked out once. */
-function profile(d) {
-  const crew = byRank(d.members)
-  const fights = crew.flatMap((m) => m.fights)
+/** Everything a card and the pop-up show about one Dhadha, worked out once. */
+function profile(d, place) {
+  const members = byRank(d.members)
+  // the club's fights: every member's, newest first, each with who fought it
+  const fights = members
+    .flatMap((m) => m.fights.map((f) => ({ ...f, member: m.name })))
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+  const r = record(fights)
   return {
-    crew,
-    coins: crew.reduce((sum, m) => sum + (m.coins || 0), 0),
-    record: record(fights),
-    fights: fights.length,
-    top: crew.find((m) => m.rank) ?? null,
+    ...d,
+    place,
+    members,
+    fights,
+    record: r,
+    coins: members.reduce((sum, m) => sum + (m.coins || 0), 0),
+    winRate: fights.length ? Math.round((r.win / fights.length) * 100) : null,
   }
 }
 
+const SORTS = [
+  { id: 'coins', label: 'Most coins', by: (a, b) => b.coins - a.coins },
+  { id: 'wins', label: 'Most wins', by: (a, b) => b.record.win - a.record.win || b.coins - a.coins },
+  { id: 'name', label: 'A–Z', by: (a, b) => a.name.localeCompare(b.name) },
+]
+
 /**
- * Dhadhas — a fighter-select screen.
+ * Dhadhas — every Dhadha in the city: a club of up to ten members. One card each (photo,
+ * total coins, members out of ten, record); opening a card pops up the club: its total coins,
+ * record, previous fights (every member's, newest first) and its members by rank.
  *
- * The stage shows one Dhadha: his portrait in a slanted frame, his name huge and outlined
- * behind him, and a dossier (title, line, crew filled out of 10, coins, the crew's record).
- * The roster below lists every Dhadha as a slanted tile: pointing at one previews him,
- * choosing one selects him (and gives him his own address, /dhadhas/<dhadha>); the arrow keys
- * move along the roster. Under the stage his crew fills ten slots, best ranked first; each
- * player's card turns over to show their fights.
+ * An open Dhadha has its own address (/dhadhas/<dhadha>), so it can be shared.
  */
 export default function DhadhasPage() {
   const entry = usePublic('/dhadhas')
-  const list = useMemo(() => (entry.status === 'ok' ? (entry.data?.dhadhas ?? []) : []), [entry])
+  const all = useMemo(() => (entry.status === 'ok' ? (entry.data?.dhadhas ?? []).map(profile) : []), [entry])
   const { slug } = useParams()
   const navigate = useNavigate()
-  const chosen = (slug && list.find((d) => d.id === slug)) || list[0] || null
-  usePageTitle(slug && chosen ? `${chosen.name} · Dhadhas` : 'Dhadhas')
+  const open = slug ? (all.find((d) => d.id === slug) ?? null) : null
+  usePageTitle(open ? `${open.name} · Dhadhas` : 'Dhadhas')
 
-  // a link to a Dhadha who isn't there (any more): back to the first
+  // a link to a Dhadha who isn't there (any more): just show them all
   useEffect(() => {
-    if (slug && entry.status === 'ok' && !list.some((d) => d.id === slug)) navigate('/dhadhas', { replace: true })
-  }, [slug, entry.status, list, navigate])
+    if (slug && entry.status === 'ok' && !open) navigate('/dhadhas', { replace: true })
+  }, [slug, entry.status, open, navigate])
 
-  const select = (d) => navigate(`/dhadhas/${d.id}`, { replace: true, preventScrollReset: true })
-
-  return (
-    <div className="dx theme-black">
-      {entry.status === 'loading' && <StageSkeleton />}
-      {(entry.status === 'error' || entry.status === 'off' || entry.status === 'missing') && (
-        <section className="dx-stage dx-stage--plain">
-          <div className="container">
-            <h1 className="dx-kicker">Dhadhas</h1>
-            <p className="dx-note" role="status">
-              The Dhadhas can’t be loaded right now. Try again in a moment.
-            </p>
-          </div>
-        </section>
-      )}
-      {entry.status === 'ok' && list.length === 0 && (
-        <section className="dx-stage dx-stage--plain">
-          <div className="container">
-            <h1 className="dx-kicker">Dhadhas</h1>
-            <p className="dx-empty__title">The Dhadhas are on their way</p>
-            <p className="dx-note">Who they are and who rides with them will be announced on our Discord.</p>
-            <ApplyLink className="btn btn--primary">Get updates on Discord</ApplyLink>
-          </div>
-        </section>
-      )}
-      {entry.status === 'ok' && chosen && <Select list={list} chosen={chosen} onSelect={select} />}
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------- the select screen */
-
-function Select({ list, chosen, onSelect }) {
-  const [preview, setPreview] = useState(null) // the Dhadha being pointed at, shown without choosing him
-  const shown = preview ?? chosen
-  const place = list.indexOf(shown)
-  const info = useMemo(() => profile(shown), [shown])
-  const chosenInfo = useMemo(() => profile(chosen), [chosen])
+  const show = (d) => navigate(d ? `/dhadhas/${d.id}` : '/dhadhas', { preventScrollReset: true })
 
   return (
     <>
-      <section className="dx-stage" aria-labelledby="dx-title">
-        <div className="dx-stage__grain" aria-hidden="true" />
-        <div className="container dx-stage__inner">
-          <header className="dx-top">
-            <h1 id="dx-title" className="dx-kicker">
-              <span className="dx-kicker__mark" aria-hidden="true" />
-              <span className="visually-hidden">Dhadhas — </span>
-              Choose your Dhadha
-            </h1>
-            <p className="dx-top__count" aria-hidden="true">
-              {two(place + 1)} <span>/ {two(list.length)}</span>
+      <ParallaxScope as="section" className="page-head page-head--word theme-dark" aria-labelledby="dhadhas-title">
+        <ParallaxWord text="Dhadhas" motion="x:6%:-10%" className="page-head__word" />
+        <div className="container">
+          <h1 id="dhadhas-title" className="page-head__title">
+            Dhadhas
+          </h1>
+          <p className="lede">Every Dhadha in the city — a club of up to ten. Open one to see its fights, members and total coins.</p>
+        </div>
+      </ParallaxScope>
+
+      <section className="dx theme-black section" aria-label="All Dhadhas">
+        <div className="container">
+          {entry.status === 'loading' && <GridSkeleton />}
+          {(entry.status === 'error' || entry.status === 'off' || entry.status === 'missing') && (
+            <p className="dx-note" role="status">
+              The Dhadhas can’t be loaded right now. Try again in a moment.
             </p>
-          </header>
-
-          {/* keyed on the Dhadha, so every change plays the entrance again */}
-          <div key={shown.id} className="dx-show">
-            <p className="dx-bigname" aria-hidden="true">
-              {[...shown.name.toUpperCase()].map((ch, i) => (
-                <span key={i} style={{ '--i': i }}>
-                  {ch === ' ' ? ' ' : ch}
-                </span>
-              ))}
-            </p>
-
-            <figure className="dx-portrait">
-              <span className="dx-portrait__glow" aria-hidden="true" />
-              <span className="dx-portrait__frame">
-                {shown.photo ? (
-                  <img src={shown.photo} alt={`${shown.name}`} decoding="async" />
-                ) : (
-                  <span className="dx-portrait__initial" aria-hidden="true">
-                    {initial(shown.name)}
-                  </span>
-                )}
-                <span className="dx-portrait__slash" aria-hidden="true" />
-              </span>
-            </figure>
-
-            <div className="dx-dossier">
-              <p className="dx-dossier__title">{shown.title || 'Dhadha'}</p>
-              <h2 className="dx-dossier__name">{shown.name}</h2>
-              {shown.line && <p className="dx-dossier__line">“{shown.line}”</p>}
-
-              <dl className="dx-stats">
-                <div className="dx-stat">
-                  <dt>Crew</dt>
-                  <dd>
-                    <span className="dx-stat__value">
-                      {info.crew.length}
-                      <small>/{CREW_MAX}</small>
-                    </span>
-                    <span className="dx-pips" aria-hidden="true">
-                      {Array.from({ length: CREW_MAX }, (_, i) => (
-                        <i key={i} className={i < info.crew.length ? 'is-on' : ''} style={{ '--i': i }} />
-                      ))}
-                    </span>
-                  </dd>
-                </div>
-                <div className="dx-stat">
-                  <dt>Coins</dt>
-                  <dd>
-                    <span className="dx-stat__value">{number.format(info.coins)}</span>
-                  </dd>
-                </div>
-                <div className="dx-stat">
-                  <dt>Record</dt>
-                  <dd>
-                    {info.fights ? (
-                      <>
-                        <span className="dx-stat__value">
-                          {info.record.win}
-                          <small>W</small> {info.record.loss}
-                          <small>L</small>
-                          {info.record.draw ? (
-                            <>
-                              {' '}
-                              {info.record.draw}
-                              <small>D</small>
-                            </>
-                          ) : null}
-                        </span>
-                        <span className="dx-split" aria-hidden="true">
-                          <i className="dx-split__w" style={{ flexGrow: info.record.win }} />
-                          <i className="dx-split__d" style={{ flexGrow: info.record.draw }} />
-                          <i className="dx-split__l" style={{ flexGrow: info.record.loss }} />
-                        </span>
-                      </>
-                    ) : (
-                      <span className="dx-stat__value dx-stat__value--none">No fights yet</span>
-                    )}
-                  </dd>
-                </div>
-                {info.top && (
-                  <div className="dx-stat">
-                    <dt>Crew No. 1</dt>
-                    <dd>
-                      <span className="dx-stat__value dx-stat__value--text">{info.top.name}</span>
-                    </dd>
-                  </div>
-                )}
-              </dl>
-              {preview && preview.id !== chosen.id && <p className="dx-dossier__hint">Click to choose</p>}
-            </div>
-          </div>
-
-          <Roster list={list} chosen={chosen} onSelect={onSelect} onPreview={setPreview} />
+          )}
+          {entry.status === 'ok' &&
+            (all.length === 0 ? (
+              <div className="dx-empty">
+                <p className="dx-empty__title">The Dhadhas are on their way</p>
+                <p className="dx-note">Who they are and who rides with them will be announced on our Discord.</p>
+                <ApplyLink className="btn btn--primary">Get updates on Discord</ApplyLink>
+              </div>
+            ) : (
+              <Board all={all} onOpen={show} />
+            ))}
         </div>
       </section>
 
-      <Crew key={chosen.id} dhadha={chosen} crew={chosenInfo.crew} />
+      <Popup dhadha={open} onClose={() => show(null)} />
     </>
   )
 }
 
-/** Every Dhadha as a slanted tile. Arrow keys move along it and choose as they go. */
-function Roster({ list, chosen, onSelect, onPreview }) {
-  const refs = useRef([])
-  const index = list.indexOf(chosen)
+/* ------------------------------------------------------------------ the board */
 
-  // keep the chosen tile in view on a narrow, scrolling roster
-  useEffect(() => {
-    const tile = refs.current[index]
-    const strip = tile?.parentElement?.parentElement
-    if (tile && strip && strip.scrollWidth > strip.clientWidth) {
-      strip.scrollTo({ left: tile.offsetLeft - strip.clientWidth / 2 + tile.offsetWidth / 2, behavior: 'smooth' })
-    }
-  }, [index])
-
-  function onKey(e) {
-    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key]
-    let next = null
-    if (step) next = (index + step + list.length) % list.length
-    if (e.key === 'Home') next = 0
-    if (e.key === 'End') next = list.length - 1
-    if (next === null) return
-    e.preventDefault()
-    onSelect(list[next])
-    refs.current[next]?.focus()
-  }
+function Board({ all, onOpen }) {
+  const [sort, setSort] = useState('coins')
+  const [query, setQuery] = useState('')
+  const richest = useMemo(() => all.reduce((top, d) => (d.coins > (top?.coins ?? 0) ? d : top), null), [all])
+  const list = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const found = q ? all.filter((d) => d.name.toLowerCase().includes(q) || d.members.some((m) => m.name.toLowerCase().includes(q))) : all
+    return [...found].sort(SORTS.find((s) => s.id === sort).by)
+  }, [all, sort, query])
+  const players = all.reduce((n, d) => n + d.members.length, 0)
 
   return (
-    <nav className="dx-roster" aria-label="All Dhadhas">
-      <ul className="dx-roster__list" role="list" onPointerLeave={() => onPreview(null)}>
-        {list.map((d, i) => {
-          const on = d.id === chosen.id
-          return (
-            <li key={d.id} className="dx-tile-wrap">
-              <button
-                ref={(el) => (refs.current[i] = el)}
-                type="button"
-                className={`dx-tile${on ? ' is-on' : ''}`}
-                aria-current={on ? 'true' : undefined}
-                tabIndex={on ? 0 : -1}
-                onClick={() => {
-                  onPreview(null)
-                  onSelect(d)
-                }}
-                onPointerEnter={(e) => e.pointerType === 'mouse' && onPreview(d)}
-                onKeyDown={onKey}
-              >
-                <span className="dx-tile__img" aria-hidden="true">
-                  {d.photo ? <img src={d.photo} alt="" loading="lazy" decoding="async" /> : <b>{initial(d.name)}</b>}
-                </span>
-                <span className="dx-tile__no" aria-hidden="true">
-                  {two(i + 1)}
-                </span>
-                <span className="dx-tile__name">{d.name}</span>
-                {on && <span className="dx-tile__tag">Selected</span>}
+    <>
+      <div className="dx-bar">
+        <p className="dx-count">
+          {two(all.length)} {all.length === 1 ? 'Dhadha' : 'Dhadhas'} · {players} {players === 1 ? 'member' : 'members'}
+        </p>
+        <div className="dx-tools">
+          {all.length > 3 && (
+            <label className="dx-search">
+              <span className="visually-hidden">Find a Dhadha or a member</span>
+              <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Find a Dhadha or member" />
+            </label>
+          )}
+          <div className="dx-sort" role="group" aria-label="Sort">
+            {SORTS.map((s) => (
+              <button key={s.id} type="button" aria-pressed={sort === s.id} onClick={() => setSort(s.id)}>
+                {s.label}
               </button>
-            </li>
-          )
-        })}
-      </ul>
-    </nav>
-  )
-}
+            ))}
+          </div>
+        </div>
+      </div>
 
-/* ------------------------------------------------------------------ his crew */
-
-function Crew({ dhadha: d, crew }) {
-  const empty = Math.max(0, CREW_MAX - crew.length)
-  return (
-    <section className="dx-crew section" aria-labelledby="dx-crew-title">
-      <div className="container">
-        <header className="dx-crew__head">
-          <h2 id="dx-crew-title" className="dx-crew__title">
-            <span>{d.name}’s</span> crew
-          </h2>
-          <p className="dx-note">
-            {crew.length
-              ? `${crew.length} of ${CREW_MAX} slots filled, best ranked first. Turn a card over for that player’s fights.`
-              : 'His crew hasn’t been announced yet.'}
-          </p>
-        </header>
-        <ol className="dx-slots" role="list">
-          {crew.map((m, i) => (
-            <Card key={`${m.name}-${i}`} member={m} index={i} />
-          ))}
-          {Array.from({ length: empty }, (_, i) => (
-            <li key={`empty-${i}`} className="dx-slot dx-slot--empty" style={{ '--i': crew.length + i }} aria-hidden="true">
-              <span className="dx-slot__lock" />
-              <span>Empty slot</span>
-            </li>
+      {list.length === 0 ? (
+        <p className="dx-note" role="status">
+          No Dhadha or member matches “{query}”.
+        </p>
+      ) : (
+        <ol className="dx-grid" role="list">
+          {list.map((d, i) => (
+            <Card key={d.id} dhadha={d} index={i} richest={richest?.id === d.id && all.length > 1} onOpen={() => onOpen(d)} />
           ))}
         </ol>
-      </div>
-    </section>
+      )}
+    </>
   )
 }
 
-/**
- * One player: a card whose back lists their fights. Clicking anywhere on it turns it over; the
- * button in its corner does the same for keyboards and screen readers. The hidden face is inert.
- */
-function Card({ member: m, index }) {
-  const [flipped, setFlipped] = useState(false)
-  const r = record(m.fights)
-  const fights = useMemo(() => newestFirst(m.fights), [m.fights])
-  const form = fights.slice(0, 5)
-  const turn = () => setFlipped((v) => !v)
+function Card({ dhadha: d, index, richest, onOpen }) {
   return (
-    <li className={`dx-slot${flipped ? ' is-flipped' : ''}`} style={{ '--i': index }}>
-      {/* the whole card turns on click; the button below is the accessible way to do it */}
-      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
-      <div className="dx-card" onClick={(e) => !e.target.closest('button') && turn()}>
-        <article className="dx-card__face dx-card__front" inert={flipped} aria-label={m.name}>
-          <span className="dx-card__rank">
-            {m.rank ? two(m.rank) : '—'}
-            <span className="visually-hidden">{m.rank ? `, rank ${m.rank}` : ', not ranked yet'}</span>
+    <li className="dx-cell" style={{ '--i': index }}>
+      <button type="button" className="dx-card" onClick={onOpen} aria-haspopup="dialog">
+        <span className="dx-card__media" aria-hidden="true">
+          {d.photo ? <img src={d.photo} alt="" loading="lazy" decoding="async" /> : <b>{initial(d.name)}</b>}
+          <span className="dx-card__slash" />
+          <span className="dx-card__no">{two(d.place + 1)}</span>
+          {richest && <span className="dx-card__badge">Richest club</span>}
+        </span>
+        <span className="dx-card__body">
+          <span className="dx-card__title">{d.title || 'Dhadha'}</span>
+          <span className="dx-card__name">{d.name}</span>
+          <span className="dx-card__coins">
+            {number.format(d.coins)} <small>coins</small>
           </span>
-          <span className="dx-card__photo" aria-hidden="true">
-            {m.photo ? <img src={m.photo} alt="" loading="lazy" decoding="async" /> : <b>{initial(m.name)}</b>}
+          <span className="dx-card__row">
+            <span className="dx-card__crew">
+              <span className="dx-pips" aria-hidden="true">
+                {Array.from({ length: CREW_MAX }, (_, i) => (
+                  <i key={i} className={i < d.members.length ? 'is-on' : ''} />
+                ))}
+              </span>
+              {d.members.length}/{CREW_MAX}
+              <span className="visually-hidden"> members</span>
+            </span>
+            <span className="dx-card__record">{d.fights.length ? recordText(d.record) : 'No fights yet'}</span>
           </span>
-          <span className="dx-card__info">
-            <h3 className="dx-card__name">{m.name}</h3>
-            <span className="dx-card__coins">
-              {number.format(m.coins || 0)} <small>coins</small>
-            </span>
-            <span className="dx-form">
-              <span className="visually-hidden">Last fights, newest first: </span>
-              {form.length ? (
-                form.map((f, k) => (
-                  <i key={k} className={`dx-form__${f.result}`}>
-                    {f.result === 'win' ? 'W' : f.result === 'loss' ? 'L' : 'D'}
-                  </i>
-                ))
-              ) : (
-                <small>No fights yet</small>
-              )}
-            </span>
+          <span className="dx-card__open" aria-hidden="true">
+            Open club →
           </span>
-        </article>
-
-        <section className="dx-card__face dx-card__back" inert={!flipped} aria-label={`${m.name}’s fights`}>
-          <p className="dx-card__backhead">
-            <span>{m.name}</span>
-            <span>
-              {r.win}W {r.loss}L{r.draw ? ` ${r.draw}D` : ''}
-            </span>
-          </p>
-          {fights.length === 0 ? (
-            <p className="dx-card__none">No fights recorded yet.</p>
-          ) : (
-            <ul className="dx-card__fights" role="list">
-              {fights.map((f, k) => (
-                <li key={k} className={`dx-bout dx-bout--${f.result}`}>
-                  <span className="dx-bout__res">{f.result === 'win' ? 'Won' : f.result === 'loss' ? 'Lost' : 'Draw'}</span>
-                  <span className="dx-bout__vs">vs {f.opponent}</span>
-                  {f.date && (
-                    <time className="dx-bout__date" dateTime={f.date}>
-                      {formatDay(f.date)}
-                    </time>
-                  )}
-                  {f.note && <span className="dx-bout__note">{f.note}</span>}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
-      <button type="button" className="dx-card__flip" aria-pressed={flipped} onClick={turn}>
-        {flipped ? 'Card' : 'Fights'}
-        <span className="visually-hidden"> — {m.name}</span>
+        </span>
       </button>
     </li>
   )
 }
 
-function StageSkeleton() {
+/* ------------------------------------------------------------------ the pop-up */
+
+/**
+ * One Dhadha, popped up: the header (photo, name, title, line), the club's numbers (total
+ * coins, members, record, win rate), its previous fights and its members by rank.
+ * Esc, the × or a click outside closes it.
+ */
+function Popup({ dhadha: d, onClose }) {
+  const ref = useRef(null)
+  const [closing, setClosing] = useState(false)
+  const [allFights, setAllFights] = useState(false)
+  const [kept, setKept] = useState(d) // keeps the content while the close animation plays
+  if (d && d !== kept) setKept(d)
+  const shown = d ?? kept
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return undefined
+    if (d && !el.open) {
+      setClosing(false)
+      setAllFights(false)
+      el.showModal()
+      el.scrollTop = 0
+      const prev = document.documentElement.style.overflow
+      document.documentElement.style.overflow = 'hidden'
+      return () => {
+        document.documentElement.style.overflow = prev
+      }
+    }
+    if (!d && el.open) el.close()
+    return undefined
+  }, [d])
+
+  function close() {
+    if (closing) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return onClose()
+    setClosing(true)
+    window.setTimeout(onClose, 180) // let the close animation play
+  }
+
+  const fights = shown ? (allFights ? shown.fights : shown.fights.slice(0, FIGHTS_SHOWN)) : []
+
   return (
-    <section className="dx-stage dx-stage--plain">
-      <SkeletonGroup label="Loading the Dhadhas" className="container dx-skel">
-        <Skeleton w="12rem" h="1rem" />
-        <div className="dx-skel__row">
-          <Skeleton w="100%" h="26rem" radius={0} />
-          <div className="dx-skel__col">
-            <Skeleton w="60%" h="3rem" />
-            <Skeleton w="80%" h="1rem" />
-            <Skeleton w="70%" h="1rem" />
-            <Skeleton w="50%" h="1rem" />
+    <dialog
+      ref={ref}
+      className={`dxp ${closing ? 'is-closing' : ''}`}
+      aria-labelledby="dxp-name"
+      onCancel={(e) => {
+        e.preventDefault()
+        close()
+      }}
+      onClick={(e) => {
+        if (e.target === ref.current) close()
+      }}
+    >
+      {shown && (
+        <div className="dxp__panel">
+          <button type="button" className="dxp__close" onClick={close} aria-label="Close">
+            ×
+          </button>
+
+          <header className="dxp__head">
+            <span className="dxp__photo" aria-hidden="true">
+              {shown.photo ? <img src={shown.photo} alt="" decoding="async" /> : <b>{initial(shown.name)}</b>}
+            </span>
+            <div className="dxp__who">
+              <p className="dxp__title">{shown.title || 'Dhadha'}</p>
+              <h2 id="dxp-name" className="dxp__name">
+                {shown.name}
+              </h2>
+              {shown.line && <p className="dxp__line">“{shown.line}”</p>}
+            </div>
+          </header>
+
+          <dl className="dxp__stats">
+            <div className="dxp__stat dxp__stat--coins">
+              <dt>Total coins</dt>
+              <dd>{number.format(shown.coins)}</dd>
+            </div>
+            <div className="dxp__stat">
+              <dt>Members</dt>
+              <dd>
+                {shown.members.length}
+                <small>/{CREW_MAX}</small>
+              </dd>
+            </div>
+            <div className="dxp__stat">
+              <dt>Record</dt>
+              <dd>{shown.fights.length ? recordText(shown.record) : '—'}</dd>
+            </div>
+            <div className="dxp__stat">
+              <dt>Win rate</dt>
+              <dd>{shown.winRate === null ? '—' : `${shown.winRate}%`}</dd>
+            </div>
+          </dl>
+          {shown.fights.length > 0 && (
+            <span className="dx-split dxp__split" aria-hidden="true">
+              <i className="dx-split__w" style={{ flexGrow: shown.record.win }} />
+              <i className="dx-split__d" style={{ flexGrow: shown.record.draw }} />
+              <i className="dx-split__l" style={{ flexGrow: shown.record.loss }} />
+            </span>
+          )}
+
+          <div className="dxp__cols">
+            <section className="dxp__block" aria-labelledby="dxp-fights">
+              <h3 id="dxp-fights" className="dxp__h">
+                Previous fights <span>{shown.fights.length}</span>
+              </h3>
+              {shown.fights.length === 0 ? (
+                <p className="dx-note">No fights recorded yet.</p>
+              ) : (
+                <>
+                  <ol className="dxp__fights" role="list">
+                    {fights.map((f, k) => (
+                      <li key={k} className={`dxp__fight dxp__fight--${f.result}`}>
+                        <span className="dxp__res">{RESULT[f.result] ?? f.result}</span>
+                        <span className="dxp__bout">
+                          <strong>{f.member}</strong> vs {f.opponent}
+                          {f.note && <span className="dxp__note">{f.note}</span>}
+                        </span>
+                        {f.date && (
+                          <time className="dxp__date" dateTime={f.date}>
+                            {formatDay(f.date)}
+                          </time>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                  {!allFights && shown.fights.length > FIGHTS_SHOWN && (
+                    <button type="button" className="dxp__more" onClick={() => setAllFights(true)}>
+                      Show all {shown.fights.length} fights
+                    </button>
+                  )}
+                </>
+              )}
+            </section>
+
+            <section className="dxp__block" aria-labelledby="dxp-members">
+              <h3 id="dxp-members" className="dxp__h">
+                Members <span>{shown.members.length}</span>
+              </h3>
+              {shown.members.length === 0 ? (
+                <p className="dx-note">The members haven’t been announced yet.</p>
+              ) : (
+                <ol className="dxp__members" role="list">
+                  {shown.members.map((m, k) => {
+                    const r = record(m.fights)
+                    return (
+                      <li key={`${m.name}-${k}`} className="dxp__member">
+                        <span className="dxp__rank">
+                          {m.rank ? two(m.rank) : '—'}
+                          <span className="visually-hidden">{m.rank ? `, rank ${m.rank}` : ', not ranked yet'}</span>
+                        </span>
+                        <span className="dxp__mphoto" aria-hidden="true">
+                          {m.photo ? <img src={m.photo} alt="" loading="lazy" decoding="async" /> : initial(m.name)}
+                        </span>
+                        <span className="dxp__mname">
+                          {m.name}
+                          <small>{m.fights.length ? recordText(r) : 'No fights yet'}</small>
+                        </span>
+                        <span className="dxp__mcoins">
+                          {number.format(m.coins || 0)}
+                          <span className="visually-hidden"> coins</span>
+                        </span>
+                      </li>
+                    )
+                  })}
+                </ol>
+              )}
+            </section>
           </div>
         </div>
-        <Skeleton w="100%" h="6rem" radius={0} />
-      </SkeletonGroup>
-    </section>
+      )}
+    </dialog>
+  )
+}
+
+function GridSkeleton() {
+  return (
+    <SkeletonGroup label="Loading the Dhadhas" className="dx-grid">
+      {Array.from({ length: 6 }, (_, i) => (
+        <Skeleton key={i} w="100%" h="26rem" radius={0} style={{ display: 'block' }} />
+      ))}
+    </SkeletonGroup>
   )
 }
