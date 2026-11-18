@@ -27,6 +27,7 @@ import settings from './settings.js'
 import staff from './staff.js'
 import gallery from './gallery.js'
 import dhadhas from './dhadhas.js'
+import updates from './updates.js'
 import music from './music.js'
 import store from './store.js'
 import tdm from './tdm.js'
@@ -108,6 +109,7 @@ router.use('/creators', staffRoles, requireArea('creators'), creators)
 router.use('/store', staffRoles, requireArea('store'), store)
 router.use('/gallery', staffRoles, requireArea('gallery'), gallery)
 router.use('/dhadhas', staffRoles, requireArea('dhadhas'), dhadhas)
+router.use('/updates', staffRoles, requireArea('updates'), updates)
 router.use('/music', staffRoles, requireArea('music'), music)
 router.use('/tdm', staffRoles, requireArea('tdm'), tdm)
 router.use('/rules', staffRoles, requireArea('rules'), rules)

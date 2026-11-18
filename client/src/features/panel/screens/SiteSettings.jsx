@@ -21,6 +21,7 @@ const SECTIONS = [
   { key: 'clubs', label: 'Clubs', path: '/clubs', note: 'In the Factions menu' },
   { key: 'dhadhas', label: 'Dhadhas', path: '/dhadhas', note: 'In the Factions menu' },
   { key: 'events', label: 'Events', path: '/events' },
+  { key: 'updates', label: 'City updates', path: '/updates', note: 'In the Community menu' },
   { key: 'leaderboard', label: 'Leaderboard', path: '/leaderboard' },
   { key: 'gallery', label: 'Gallery', path: '/gallery' },
   { key: 'rules', label: 'Rules', path: '/rules' },

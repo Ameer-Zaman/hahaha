@@ -239,3 +239,25 @@ test('music: named songs pointing at a media file, 30 at most', async () => {
   assert.equal(ok([{ title: 'Theme', media: '../x' }]), false)
   assert.equal(ok(Array.from({ length: 31 }, (_, i) => ({ title: `T${i}`, media: id(i) }))), false)
 })
+
+test('a city update: a title, a real day, known kinds of change', async () => {
+  const { cityUpdateSchema } = await import('../src/validation/schemas.js')
+  const base = { slug: 'test-update', title: 'TEST update', date: '2026-11-18' }
+  const ok = (body) => cityUpdateSchema.safeParse({ ...base, ...body }).success
+  assert.equal(ok({}), true)
+  assert.equal(
+    ok({
+      changes: [
+        { kind: 'new', text: 'TEST change' },
+        { kind: 'fixed', text: 'TEST fix' },
+      ],
+    }),
+    true,
+  )
+  assert.equal(ok({ changes: [{ kind: 'nerfed', text: 'TEST' }] }), false)
+  assert.equal(ok({ changes: [{ kind: 'new', text: '' }] }), false)
+  assert.equal(ok({ date: 'not a day' }), false)
+  assert.equal(ok({ title: '' }), false)
+  assert.equal(ok({ status: 'live' }), false)
+  assert.equal(ok({ changes: Array.from({ length: 81 }, () => ({ kind: 'new', text: 'TEST' })) }), false)
+})

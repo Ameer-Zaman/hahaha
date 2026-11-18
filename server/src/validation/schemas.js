@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { CHANGE_KINDS, CHANGES_MAX } from '../models/CityUpdate.js'
 import { CREW_MAX, FIGHT_RESULTS } from '../models/Dhadha.js'
 import { SECTION_KEYS } from '../models/Settings.js'
 import { PANEL_AREAS } from '../models/User.js'
@@ -421,6 +422,22 @@ export const gallerySchema = z.object({
       }),
     )
     .max(150),
+})
+
+/** Panel → Updates: one city update (patch notes): a title, the day, and its list of changes. */
+export const cityUpdateSchema = z.object({
+  slug,
+  title: text(100).min(1, 'the update needs a title'),
+  version: text(20).optional().default(''),
+  status: z.enum(['draft', 'published']).default('draft'),
+  date: z.coerce.date({ message: 'pick the day of the update' }),
+  summary: text(240).optional().default(''),
+  image: mediaId,
+  changes: z
+    .array(z.object({ kind: z.enum(CHANGE_KINDS), text: text(200).min(1, 'a change needs some text') }))
+    .max(CHANGES_MAX, `${CHANGES_MAX} changes at most — split it into two updates`)
+    .default([]),
+  notes: text(4000).optional().default(''),
 })
 
 /** Panel → Dhadhas: one Dhadha and his crew — rank position, coins and fights for each player. */

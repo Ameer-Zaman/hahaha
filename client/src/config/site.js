@@ -116,6 +116,7 @@ export const navigation = [
       { label: 'Staffs', to: '/staff', hint: 'The team that runs the city' },
       { label: 'Creators', to: '/creators', hint: 'Streamers, and who is live' },
       { label: 'Events', to: '/events', hint: 'What’s on in the city' },
+      { label: 'Updates', to: '/updates', hint: 'What’s new and what changed' },
       { label: 'Gallery', to: '/gallery', hint: 'Photos from the city' },
     ],
   },

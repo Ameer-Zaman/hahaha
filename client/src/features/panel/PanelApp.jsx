@@ -26,6 +26,7 @@ import Creators from './screens/Creators'
 import { ProductEditor, StoreList } from './screens/Store'
 import Gallery from './screens/Gallery'
 import { DhadhaEditor, DhadhaList } from './screens/Dhadhas'
+import { UpdateEditor, UpdateList } from './screens/Updates'
 import Music from './screens/Music'
 import Tdm from './screens/Tdm'
 import Wars from './screens/Wars'
@@ -50,6 +51,7 @@ const NAV = [
       { to: '/panel/wars', area: 'wars', label: 'Wars' },
       { to: '/panel/clubs', area: 'clubs', label: 'Clubs' },
       { to: '/panel/events', area: 'events', label: 'Events' },
+      { to: '/panel/updates', area: 'updates', label: 'City updates' },
       { to: '/panel/tdm', area: 'tdm', label: 'TDM leaderboard' },
       { to: '/panel/staff', area: 'staff', label: 'Staff' },
       { to: '/panel/creators', area: 'creators', label: 'Creators' },
@@ -372,6 +374,22 @@ function Shell() {
             element={
               <Area name="dhadhas">
                 <DhadhaEditor />
+              </Area>
+            }
+          />
+          <Route
+            path="updates"
+            element={
+              <Area name="updates">
+                <UpdateList />
+              </Area>
+            }
+          />
+          <Route
+            path="updates/:id"
+            element={
+              <Area name="updates">
+                <UpdateEditor />
               </Area>
             }
           />

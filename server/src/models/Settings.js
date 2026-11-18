@@ -40,6 +40,7 @@ export const SECTION_KEYS = [
   'gangs',
   'clubs',
   'dhadhas',
+  'updates',
   'events',
   'leaderboard',
   'gallery',

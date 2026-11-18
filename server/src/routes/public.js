@@ -2,6 +2,7 @@ import { Router } from 'express'
 import mongoose from 'mongoose'
 
 import { Announcement, isLive } from '../models/Announcement.js'
+import { CityUpdate } from '../models/CityUpdate.js'
 import { Club } from '../models/Club.js'
 import { Creator, manualOn } from '../models/Creator.js'
 import { CreatorDay, CreatorStream } from '../models/CreatorHistory.js'
@@ -138,6 +139,31 @@ router.get('/music', async (req, res) => {
   const { tracks } = readMusic(await Settings.findOne({ key: 'main' }, 'music').lean())
   const mediaUrl = await resolveMediaUrls(tracks.map((t) => t.media))
   res.json({ tracks: tracks.map((t) => ({ id: t.media, title: t.title, url: mediaUrl(t.media) })).filter((t) => t.url) })
+})
+
+/**
+ * The Updates page: the city's patch notes, newest first. Drafts, and published ones whose
+ * day hasn't come yet, never leave the server.
+ */
+router.get('/updates', async (req, res) => {
+  res.set('Cache-Control', 'public, max-age=60')
+  const updates = await CityUpdate.find({ status: 'published', date: { $lte: new Date() } })
+    .sort({ date: -1, createdAt: -1 })
+    .limit(60)
+    .lean()
+  const mediaUrl = await resolveMediaUrls(updates.map((u) => u.image))
+  res.json({
+    updates: updates.map((u) => ({
+      id: u.slug,
+      title: u.title,
+      version: u.version,
+      date: u.date,
+      summary: u.summary,
+      image: mediaUrl(u.image),
+      changes: u.changes.map((c) => ({ kind: c.kind, text: c.text })),
+      notes: u.notes,
+    })),
+  })
 })
 
 /** The Dhadhas page: every Dhadha with his crew (rank position, coins, fights), with picture addresses. */

@@ -20,6 +20,7 @@ export const AREA_GROUPS = [
       { key: 'wars', label: 'Wars' },
       { key: 'clubs', label: 'Clubs' },
       { key: 'events', label: 'Events' },
+      { key: 'updates', label: 'City updates' },
       { key: 'tdm', label: 'TDM leaderboard' },
       { key: 'staff', label: 'Staff' },
       { key: 'creators', label: 'Creators' },

@@ -17,6 +17,7 @@ const GangsPage = lazy(() => import('../features/gangs/GangsPage'))
 const GangPage = lazy(() => import('../features/gangs/GangPage'))
 const ClubsPage = lazy(() => import('../features/clubs/ClubsPage'))
 const DhadhasPage = lazy(() => import('../features/dhadhas/DhadhasPage'))
+const UpdatesPage = lazy(() => import('../features/updates/UpdatesPage'))
 const StoryPage = lazy(() => import('../features/story/StoryPage'))
 const LeaderboardPage = lazy(() => import('../features/leaderboard/LeaderboardPage'))
 const EventsPage = lazy(() => import('../features/events/EventsPage'))
@@ -94,6 +95,14 @@ export default function App() {
           element={
             <Section to="/dhadhas">
               <DhadhasPage />
+            </Section>
+          }
+        />
+        <Route
+          path="updates/:slug?"
+          element={
+            <Section to="/updates">
+              <UpdatesPage />
             </Section>
           }
         />

@@ -88,6 +88,15 @@ export const pages = [
     changefreq: 'daily',
   },
   {
+    path: '/updates',
+    title: 'City updates',
+    heading: 'City updates',
+    description: `What's new in ${site.name}: every update to the Rameirah RP city — new features, changes, fixes and rule updates, newest first.`,
+    intro: 'What’s new in the city and what changed — every update, newest first.',
+    priority: 0.6,
+    changefreq: 'weekly',
+  },
+  {
     path: '/leaderboard',
     title: 'Leaderboard',
     heading: 'Leaderboard',

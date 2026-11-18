@@ -22,6 +22,7 @@ const ALL_ON = {
   gangs: true,
   clubs: true,
   dhadhas: true,
+  updates: true,
   events: true,
   leaderboard: true,
   gallery: true,
