@@ -88,7 +88,7 @@
   outline-offset: 2px;
 }
 
-/* ---- the cards ---- */
+/* ---- loading placeholders ---- */
 .dx-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 16.5rem), 1fr));
@@ -97,220 +97,275 @@
   padding: 0;
   list-style: none;
 }
-.dx-cell {
-  animation: dx-up 0.6s var(--dx-ease) both;
-  animation-delay: calc(min(var(--i), 12) * 45ms);
-}
-@keyframes dx-up {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-}
 
-.dx-card {
+/* ---------------------------------------------------------------- the gallery
+   A horizontal track on a gentle curve: the middle card faces you, the others turn away,
+   shrink and dim (their transforms are set from script, frame by frame). */
+.dxg {
   position: relative;
-  display: flex;
-  flex-direction: column;
+  margin-inline: calc(-1 * var(--gutter));
+  padding-bottom: var(--sp-4);
+  user-select: none;
+}
+.dxg__stage {
+  position: relative;
+  height: clamp(22rem, 56svh, 36rem);
+  overflow: hidden;
+  perspective: 1400px;
+  perspective-origin: 50% 45%;
+  cursor: grab;
+  touch-action: pan-y;
+  outline: none;
+  /* fade the far ends into the dark */
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+.dxg__stage:active {
+  cursor: grabbing;
+}
+.dxg__stage:focus-visible {
+  box-shadow: inset 0 0 0 2px rgb(var(--rgb-gold) / 0.6);
+}
+.dxg__track {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transform-style: preserve-3d;
+}
+.dxg__item {
+  --dim: 1;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(13rem, 9rem + 14vw, 21rem);
+  aspect-ratio: 3 / 4;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+.dxg__card {
+  position: relative;
+  display: block;
   width: 100%;
   height: 100%;
   padding: 0;
-  border: 1px solid var(--rule);
-  background: linear-gradient(180deg, #0f0e11, #0a0a0c);
+  overflow: hidden;
+  border: 0;
+  border-radius: 14px;
+  background: #151417;
   color: inherit;
   font: inherit;
-  text-align: left;
   cursor: pointer;
-  transition:
-    transform 0.4s var(--dx-ease),
-    border-color 0.3s ease,
-    box-shadow 0.4s ease;
+  box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.9);
+  transition: box-shadow 0.4s ease;
 }
-.dx-card:hover,
-.dx-card:focus-visible {
-  transform: translateY(-6px);
-  border-color: rgb(var(--rgb-gold) / 0.55);
-  box-shadow: 0 22px 40px -22px rgb(var(--rgb-gold) / 0.55);
+.dxg__media {
+  position: absolute;
+  inset: 0;
 }
-.dx-card:focus-visible {
-  outline: 2px solid var(--c-gold);
-  outline-offset: 3px;
-}
-
-/* the photo, cut on a slant at the bottom */
-.dx-card__media {
-  position: relative;
-  display: block;
-  aspect-ratio: 5 / 4;
-  overflow: hidden;
-  clip-path: polygon(0 0, 100% 0, 100% 86%, 0 100%);
-  background: radial-gradient(circle at 50% 40%, #241d12, #0b0a0c 72%);
-}
-.dx-card__media img {
-  display: block;
+.dxg__media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: grayscale(0.65) brightness(0.8);
-  transform: scale(1.02);
-  transition:
-    filter 0.5s ease,
-    transform 0.8s var(--dx-ease);
+  pointer-events: none;
+  /* the further from the middle, the greyer and darker */
+  filter: grayscale(calc(var(--dim) * 0.9)) brightness(calc(1 - var(--dim) * 0.45));
+  transform: scale(1.04);
+  transition: transform 0.8s var(--dx-ease);
 }
-.dx-card__media b {
+.dxg__media b {
   display: grid;
   place-items: center;
   height: 100%;
   font-family: var(--font-display);
-  font-size: 5rem;
+  font-size: 6rem;
   font-weight: 400;
-  background: var(--gold-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  background: radial-gradient(circle at 50% 40%, #2a2216, #0d0c0f 70%);
+  color: rgb(var(--rgb-gold) / calc(0.9 - var(--dim) * 0.5));
 }
-.dx-card:hover .dx-card__media img,
-.dx-card:focus-visible .dx-card__media img {
-  filter: none;
-  transform: scale(1.08);
-}
-.dx-card__media::after {
+.dxg__card::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(rgb(6 7 10 / 0.55), transparent 35%, transparent 60%, rgb(6 7 10 / 0.6));
+  border-radius: inherit;
+  background: linear-gradient(transparent 55%, rgb(0 0 0 / 0.55));
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
   pointer-events: none;
 }
-/* a gold slash across the photo on hover */
-.dx-card__slash {
+.dxg__item.is-active .dxg__card {
+  box-shadow:
+    0 0 0 1px rgb(var(--rgb-gold) / 0.55),
+    0 40px 80px -30px rgb(var(--rgb-gold) / 0.35);
+}
+.dxg__item.is-active .dxg__card:hover .dxg__media img {
+  transform: scale(1.09);
+}
+.dxg__no {
   position: absolute;
   z-index: 1;
-  top: -10%;
-  bottom: -10%;
-  left: 0;
-  width: 22%;
-  background: linear-gradient(90deg, transparent, rgb(255 242 201 / 0.7), rgb(var(--rgb-gold) / 0.9), transparent);
-  transform: translateX(-160%) skewX(-18deg);
-  mix-blend-mode: screen;
-  pointer-events: none;
+  top: 0.8rem;
+  left: 0.95rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.1em;
+  color: rgb(255 255 255 / 0.75);
 }
-.dx-card:hover .dx-card__slash,
-.dx-card:focus-visible .dx-card__slash {
-  transition: transform 0.85s var(--dx-ease);
-  transform: translateX(560%) skewX(-18deg);
-}
-.dx-card__no {
+.dxg__badge {
   position: absolute;
-  z-index: 2;
-  top: 0.6rem;
-  left: 0.8rem;
-  font-family: var(--font-display);
-  font-size: 2.6rem;
-  line-height: 1;
-  color: transparent;
-  -webkit-text-stroke: 1px var(--c-gold);
-}
-.dx-card__badge {
-  position: absolute;
-  z-index: 2;
-  top: 0.85rem;
-  right: 0.8rem;
+  z-index: 1;
+  top: 0.75rem;
+  right: 0.75rem;
   padding: 0.25rem 0.6rem;
+  border-radius: 999px;
   background: var(--c-gold);
   color: #121008;
   font-family: var(--font-mono);
   font-size: 0.625rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  transform: skewX(var(--dx-slant));
-}
-
-.dx-card__body {
-  display: grid;
-  gap: 0.45rem;
-  padding: 0.4rem 1.1rem 1.1rem;
-  flex: 1;
-  align-content: start;
-}
-.dx-card__title {
-  font-family: var(--font-mono);
-  font-size: var(--fs-2xs);
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--c-gold);
-}
-.dx-card__name {
-  font-family: var(--font-display);
-  font-size: clamp(1.6rem, 1.3rem + 0.8vw, 2rem);
-  line-height: 1;
-  text-transform: uppercase;
-  overflow-wrap: anywhere;
-}
-.dx-card__coins {
-  font-family: var(--font-display);
-  font-size: 1.35rem;
-  line-height: 1.1;
-  color: var(--c-gold-light);
-}
-.dx-card__coins small {
-  font-family: var(--font-mono);
-  font-size: var(--fs-2xs);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--fg-muted);
 }
-.dx-card__row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem 1rem;
-  padding-top: 0.6rem;
-  border-top: 1px solid var(--rule);
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  color: var(--fg);
-}
-.dx-card__crew {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-}
-.dx-card__record {
-  color: var(--fg-muted);
-}
-.dx-card__open {
-  margin-top: 0.3rem;
+/* "Open" appears on the middle card */
+.dxg__open {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  bottom: 1rem;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  background: rgb(10 10 12 / 0.7);
+  border: 1px solid rgb(var(--rgb-gold) / 0.5);
+  color: var(--c-gold-light);
   font-family: var(--font-mono);
   font-size: var(--fs-2xs);
-  letter-spacing: 0.16em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--c-gold-light);
-  opacity: 0.7;
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transform: translate(-50%, 8px);
   transition:
     opacity 0.3s ease,
     transform 0.3s var(--dx-ease);
 }
-.dx-card:hover .dx-card__open,
-.dx-card:focus-visible .dx-card__open {
+.dxg__item.is-active .dxg__open {
   opacity: 1;
-  transform: translateX(4px);
+  transform: translate(-50%, 0);
 }
 
-/* ten slanted pips: members out of ten */
-.dx-pips {
-  display: inline-flex;
-  gap: 3px;
+/* the caption under the gallery: who is in the middle */
+.dxg__caption {
+  display: grid;
+  justify-items: center;
+  min-height: 7.5rem;
+  margin-top: var(--sp-4);
+  padding-inline: var(--gutter);
+  text-align: center;
 }
-.dx-pips i {
-  width: 0.4rem;
-  height: 0.8rem;
-  transform: skewX(var(--dx-slant));
-  border: 1px solid rgb(var(--rgb-gold) / 0.35);
+.dxg__cap {
+  display: grid;
+  justify-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  animation: dxg-cap 0.5s var(--dx-ease) both;
 }
-.dx-pips i.is-on {
-  background: var(--c-gold);
+@keyframes dxg-cap {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(4px);
+  }
+}
+.dxg__title {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--c-gold);
+}
+.dxg__name {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 1.4rem + 2.4vw, 3.4rem);
+  line-height: 1;
+  text-transform: uppercase;
+}
+.dxg__facts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem 1.25rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+  color: var(--fg-muted);
+}
+.dxg__facts b {
+  font-weight: 400;
+  color: var(--c-gold-light);
+}
+
+/* the "scroll to explore" bar and the progress line */
+.dxg__nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+}
+.dxg__hint {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.dxg__arrow {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0 0 0.15rem;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  background: none;
+  color: var(--fg);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+.dxg__arrow:hover:not(:disabled),
+.dxg__arrow:focus-visible {
   border-color: var(--c-gold);
+  color: var(--c-gold-light);
+}
+.dxg__arrow:focus-visible {
+  outline: 2px solid var(--c-gold);
+  outline-offset: 2px;
+}
+.dxg__arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.dxg__progress {
+  position: relative;
+  width: min(10rem, 40vw);
+  height: 3px;
+  margin: var(--sp-3) auto 0;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgb(255 255 255 / 0.1);
+}
+.dxg__progress span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(max(var(--w), 0.18) * 100%);
+  border-radius: inherit;
+  background: var(--c-gold);
+  /* slides from the left end to the right end as you go */
+  left: calc(var(--p) * (100% - max(var(--w), 0.18) * 100%));
+  transition: left 0.45s var(--dx-ease);
 }
 
 /* the record as one bar: wins, draws, losses */
@@ -686,6 +741,14 @@
 }
 
 /* ---------------------------------------------------------------- phones */
+@media (max-width: 40rem) {
+  .dxg__stage {
+    height: clamp(19rem, 50svh, 25rem);
+  }
+  .dxg__item {
+    width: min(62vw, 15rem);
+  }
+}
 @media (max-width: 48rem) {
   .dxp {
     width: 100%;
@@ -716,6 +779,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .dxg__cap,
   .dx-cell,
   .dxp[open],
   .dxp[open]::backdrop,
@@ -723,14 +787,9 @@
   .dx-split i {
     animation: none;
   }
-  .dx-card,
-  .dx-card__media img,
-  .dx-card__open {
+  .dxg__media img,
+  .dxg__open,
+  .dxg__progress span {
     transition: none;
-  }
-  .dx-card:hover .dx-card__slash,
-  .dx-card:focus-visible .dx-card__slash {
-    transition: none;
-    transform: translateX(-160%) skewX(-18deg);
   }
 }
