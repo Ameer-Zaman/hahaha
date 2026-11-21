@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import { site } from '../../config/site'
-import { playLoaderSound, primeLoaderSound } from '../../lib/loaderSound'
+import { playLoaderSound, prepareLoaderSound, primeLoaderSound } from '../../lib/loaderSound'
 import { preloadHomeAssets, releasePreload, usePreloadProgress } from '../../lib/preload'
 import { useSiteSettings } from '../../lib/siteSettings'
 import './loading-screen.css'
@@ -59,7 +59,7 @@ const PAD = 0.05 // room around the cropped logo, as a share of its width, on ev
 function prepare(img, url) {
   const natW = img.naturalWidth || 600
   const natH = img.naturalHeight || 240
-  const plain = { src: url, crop: url, ring: null, glow: null, ratio: natW / natH, fx: 0.5, fy: 0.5, iw: 1, ax: 0.5, ay: 0.5, pad: 0 }
+  const plain = { src: url, crop: url, ring: null, glow: null, ratio: natW / natH, fx: 0.5, fy: 0.5, pad: 0 }
   try {
     // 1. a small copy: the logo's box, and how deep inside the logo each pixel is
     const k = 160 / Math.max(natW, natH)
@@ -114,12 +114,12 @@ function prepare(img, url) {
         }
       }
 
-    // 2. the crop, outline and glow, drawn sharp at up to 1400px wide
+    // 2. the crop, outline and glow, drawn sharp at up to 1000px wide
     const bx = (x0 / w) * natW
     const by = (y0 / h) * natH
     const bw = ((x1 + 1 - x0) / w) * natW
     const bh = ((y1 + 1 - y0) / h) * natH
-    const z = Math.min(4, 1400 / bw)
+    const z = Math.min(4, 1000 / bw)
     const pad = Math.round(bw * z * PAD)
     const cw = Math.round(bw * z) + pad * 2
     const ch = Math.round(bh * z) + pad * 2
@@ -146,6 +146,27 @@ function prepare(img, url) {
     glow.drawImage(ringC, 0, 0)
     glow.drawImage(ringC, 0, 0)
 
+    // for the exit, the finished look flattened into one picture (a soft gold halo, the gold
+    // outline, the logo), and two colour-tinted copies for the jolt: plain pictures scale and
+    // fade far more cheaply than the layered, masked logo used while loading
+    const tint = (color, from) => {
+      const [c, x] = canvas()
+      x.drawImage(from, 0, 0)
+      x.globalCompositeOperation = 'source-in'
+      x.fillStyle = color
+      x.fillRect(0, 0, cw, ch)
+      return c
+    }
+    const [flatC, flat] = canvas()
+    flat.filter = `blur(${Math.round(cw * 0.012)}px)`
+    flat.globalAlpha = 0.55
+    flat.drawImage(tint('#e3b55a', cropC), 0, 0)
+    flat.filter = 'none'
+    flat.globalAlpha = 0.85
+    flat.drawImage(tint('#e3b55a', ringC), 0, 0)
+    flat.globalAlpha = 1
+    flat.drawImage(cropC, 0, 0)
+
     const ratio = bw / bh
     const fxs = ((fx / w) * natW - bx) / bw // the zoom point, as a share of the logo's box
     const fys = ((fy / h) * natH - by) / bh
@@ -154,15 +175,13 @@ function prepare(img, url) {
       crop: cropC.toDataURL(),
       ring: ringC.toDataURL(),
       glow: glowC.toDataURL(),
+      flat: flatC.toDataURL(),
+      warm: tint('#ff5a3c', cropC).toDataURL(),
+      cool: tint('#3cd8ff', cropC).toDataURL(),
       ratio,
       fx: fxs,
       fy: fys,
       pad: PAD,
-      // for the hole in the black, which uses the padded crop: its width in logo widths, and
-      // the zoom point measured from its corner (in logo widths / logo heights)
-      iw: 1 + PAD * 2,
-      ax: PAD + fxs,
-      ay: PAD * ratio + fys,
     }
   } catch {
     return plain
@@ -199,13 +218,13 @@ function useLogo() {
  * The logo in four layers, all prepared pictures, so playing it costs almost nothing:
  * the fine gold outline; a light that runs round it (a turning beam, seen only through the
  * outline) with a soft glow; and the logo itself, rising into view from the bottom with the
- * load (--fill).
+ * load.
  */
-function LogoMark({ mark }) {
+function LogoMark({ mark, fill }) {
   const ring = mark.ring ?? mark.crop // without a prepared outline, the silhouette stands in
   const through = (url) => ({ WebkitMaskImage: `url("${url}")`, maskImage: `url("${url}")` })
   return (
-    <div className={`lm ${mark.ring ? '' : 'lm--plain'}`} style={{ '--pad': mark.pad }} aria-hidden="true">
+    <div className={`lm ${mark.ring ? '' : 'lm--plain'} ${mark.flat ? 'lm--flat' : ''}`} aria-hidden="true">
       <span className="lm__layer lm__outline" style={through(ring)} />
       {mark.glow && (
         <span className="lm__layer lm__light lm__light--glow" style={through(mark.glow)}>
@@ -215,10 +234,20 @@ function LogoMark({ mark }) {
       <span className="lm__layer lm__light" style={through(ring)}>
         <i />
       </span>
-      <img className="lm__layer lm__fill" src={mark.crop} alt="" draggable="false" />
-      {/* the colour split for the jolt before the exit: tinted copies, shown only then */}
-      <span className="lm__layer lm__split lm__split--a" style={through(mark.crop)} />
-      <span className="lm__layer lm__split lm__split--b" style={through(mark.crop)} />
+      <span className="lm__layer lm__rise" style={{ transform: `translateY(${(1 - fill) * 100}%)` }}>
+        <span style={{ transform: `translateY(${(fill - 1) * 100}%)` }}>
+          <img src={mark.crop} alt="" draggable="false" />
+        </span>
+      </span>
+      {/* the exit's pictures: the finished logo in one flat picture, and the colour split's
+          tinted copies (all drawn ahead, nearly invisible, until the exit swaps them in) */}
+      {mark.flat && (
+        <>
+          <img className="lm__layer lm__flat" src={mark.flat} alt="" draggable="false" />
+          <img className="lm__layer lm__split lm__split--a" src={mark.warm} alt="" draggable="false" />
+          <img className="lm__layer lm__split lm__split--b" src={mark.cool} alt="" draggable="false" />
+        </>
+      )}
     </div>
   )
 }
@@ -237,7 +266,10 @@ export default function LoadingScreen({ onLeave, onDone }) {
     target.current = done ? 1 : progress
   }, [progress, done])
   useEffect(() => {
-    if (mark && !markAt.current) markAt.current = performance.now()
+    if (mark && !markAt.current) {
+      markAt.current = performance.now()
+      prepareLoaderSound()
+    }
   }, [mark])
   useEffect(() => {
     onDoneRef.current = onDone
@@ -310,12 +342,9 @@ export default function LoadingScreen({ onLeave, onDone }) {
   const vars = mark && {
     '--ratio': mark.ratio,
     '--mark': `url("${mark.crop}")`,
-    '--iw': mark.iw,
     '--fx': mark.fx,
     '--fy': mark.fy,
-    '--ax': mark.ax,
-    '--ay': mark.ay,
-    '--fill': fill,
+    '--pad': mark.pad,
   }
 
   return createPortal(
@@ -329,8 +358,26 @@ export default function LoadingScreen({ onLeave, onDone }) {
       aria-valuenow={pct}
     >
       <div className="loader__black" />
-      <div className="loader__stage">
-        <div className="loader__mark">{mark && <LogoMark mark={mark} />}</div>
+      <div className="loader__zoom">
+        {mark && (
+          <>
+            <span className="loader__hole" />
+            <span className="loader__frame loader__frame--top" />
+            <span className="loader__frame loader__frame--bottom" />
+            <span className="loader__frame loader__frame--left" />
+            <span className="loader__frame loader__frame--right" />
+          </>
+        )}
+      </div>
+      {/* the logo zooms with the cut-out but only until it has faded (a smaller zoom is
+          cheaper to draw); it sits in its own box, lined up with the cut-out */}
+      <div className="loader__zoom loader__zoom--logo">
+        {mark && (
+          <>
+            <span className="loader__glow" />
+            <LogoMark mark={mark} fill={fill} />
+          </>
+        )}
       </div>
       <div className="loader__fx" aria-hidden="true">
         <span className="loader__rays" />
@@ -340,7 +387,7 @@ export default function LoadingScreen({ onLeave, onDone }) {
         <span className="loader__grain" />
       </div>
       <p className="loader__pct" aria-hidden="true">
-        <span className="loader__spin" style={{ '--p': shown }} />
+        <span className="loader__spin" />
         <span className="loader__word">Loading</span>
         <b>{String(pct).padStart(3, '0')}</b>
       </p>

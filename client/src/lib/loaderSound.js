@@ -19,6 +19,24 @@ import { envelope, getAudioContext, hall, hit, noise } from './introSound'
 
 const LEVEL = 0.7
 
+/* The noise and hall buffers take a moment to build; they're made ahead (prepareLoaderSound,
+   while the logo loads) so the first frame of the transition never waits for them. */
+let made = null
+function buffers(c) {
+  if (made && made.c === c) return made
+  made = { c, hall: hall(c, 3.6, 2.2), pull: noise(c, 0.4), crack: noise(c, 0.5), whoosh: noise(c, 0.8) }
+  return made
+}
+
+/** Builds the sound's buffers ahead of time (when the browser is idle). */
+export function prepareLoaderSound() {
+  const c = getAudioContext()
+  if (!c) return
+  const run = () => buffers(c)
+  if (window.requestIdleCallback) window.requestIdleCallback(run, { timeout: 1500 })
+  else setTimeout(run, 200)
+}
+
 /** Call from a click / tap / key press while the loading screen is up: lets the sound play. */
 export function primeLoaderSound() {
   const c = getAudioContext()
@@ -68,6 +86,7 @@ function eightOhEight(c, out, t, { from, to, level, length }) {
 
 /** Builds the sound on any audio context (also an offline one, to render it to a file). */
 export function renderLoaderSound(c) {
+  const b = buffers(c)
   const t = c.currentTime + 0.02
   const hitAt = t + 0.3
   const land = t + 1.15
@@ -83,7 +102,7 @@ export function renderLoaderSound(c) {
   comp.release.value = 0.25
   master.connect(comp).connect(c.destination)
   const reverb = c.createConvolver()
-  reverb.buffer = hall(c, 3.6, 2.2)
+  reverb.buffer = b.hall
   const dark = c.createBiquadFilter()
   dark.type = 'lowpass'
   dark.frequency.value = 2600
@@ -96,7 +115,7 @@ export function renderLoaderSound(c) {
 
   // 1 · the pull: a reversed swell into the hit, and a thud as the bars close
   const pull = c.createBufferSource()
-  pull.buffer = noise(c, 0.4)
+  pull.buffer = b.pull
   const pullTone = c.createBiquadFilter()
   pullTone.type = 'lowpass'
   pullTone.Q.value = 1.2
@@ -144,7 +163,7 @@ export function renderLoaderSound(c) {
 
   // the crack on top of the hit
   const crack = c.createBufferSource()
-  crack.buffer = noise(c, 0.5)
+  crack.buffer = b.crack
   const crackTone = c.createBiquadFilter()
   crackTone.type = 'bandpass'
   crackTone.frequency.value = 1800
@@ -157,7 +176,7 @@ export function renderLoaderSound(c) {
   // 3 · the whoosh: heavy, left to right with the light
   const sweepAt = t + 0.25
   const whoosh = c.createBufferSource()
-  whoosh.buffer = noise(c, 0.8)
+  whoosh.buffer = b.whoosh
   const wTone = c.createBiquadFilter()
   wTone.type = 'lowpass'
   wTone.Q.value = 2
