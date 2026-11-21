@@ -12,9 +12,13 @@ import './loading-screen.css'
  *   1. the community logo (Panel → Site settings) appears as a fine gold outline;
  *   2. a light runs round that outline and the logo glows, filling in gold as the homepage's
  *      videos, images and sounds download (a small percentage underneath);
- *   3. when it's ready, the screen opens through the logo: the black is cut away in the
- *      logo's shape, which grows past the edges of the screen, so the welcome screen is seen
- *      first through the logo and then all at once.
+ *   3. when it's ready, a short cut-scene style transition: film bars close in, the logo
+ *      jolts with a colour split, a band of warm light sweeps across and light streaks burst
+ *      out, while the screen opens through the logo: the black is cut away in the logo's
+ *      shape, which grows past the edges of the screen, so the welcome screen is seen first
+ *      through the logo and then all at once. The bars open again as it lands.
+ *
+ * The count sits in the lower right with a turning ring, the way games show loading.
  *
  * It ends as soon as everything is ready (but not before the logo has been drawn and filled,
  * MARK_MS, and never later than MAX_MS, after which anything unfinished streams as usual).
@@ -23,7 +27,7 @@ import './loading-screen.css'
 const MARK_MS = 1900 // the count takes at least this long from the logo appearing, so each beat is seen
 const HOLD_MS = 550 // a moment on the finished logo before going through it (the welcome screen wakes underneath)
 const MAX_MS = 12000
-const EXIT_MS = 1250
+const EXIT_MS = 1500
 
 /** A stand-in logo when none is uploaded: the site's initials in gold, as an SVG picture. */
 function initialsLogo() {
@@ -210,6 +214,9 @@ function LogoMark({ mark }) {
         <i />
       </span>
       <img className="lm__layer lm__fill" src={mark.crop} alt="" draggable="false" />
+      {/* the colour split for the jolt before the exit: tinted copies, shown only then */}
+      <span className="lm__layer lm__split lm__split--a" style={through(mark.crop)} />
+      <span className="lm__layer lm__split lm__split--b" style={through(mark.crop)} />
     </div>
   )
 }
@@ -312,13 +319,19 @@ export default function LoadingScreen({ onLeave, onDone }) {
       <div className="loader__black" />
       <div className="loader__stage">
         <div className="loader__mark">{mark && <LogoMark mark={mark} />}</div>
-        <p className="loader__pct" aria-hidden="true">
-          <span className="loader__line">
-            <span style={{ transform: `scaleX(${shown})` }} />
-          </span>
-          <b>{String(pct).padStart(3, '0')}</b>
-        </p>
       </div>
+      <div className="loader__fx" aria-hidden="true">
+        <span className="loader__rays" />
+        <span className="loader__sweep" />
+        <span className="loader__bar loader__bar--top" />
+        <span className="loader__bar loader__bar--bottom" />
+        <span className="loader__grain" />
+      </div>
+      <p className="loader__pct" aria-hidden="true">
+        <span className="loader__spin" style={{ '--p': shown }} />
+        <span className="loader__word">Loading</span>
+        <b>{String(pct).padStart(3, '0')}</b>
+      </p>
     </div>,
     document.body,
   )
