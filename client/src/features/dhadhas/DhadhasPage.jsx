@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import ApplyLink from '../../components/ui/ApplyLink'
+import ParallaxScope from '../../components/ui/ParallaxScope'
+import ParallaxWord from '../../components/ui/ParallaxWord'
 import { Skeleton, SkeletonGroup } from '../../components/ui/Skeleton'
 import usePageTitle from '../../hooks/usePageTitle'
 import { usePublic } from '../../lib/publicData'
@@ -48,9 +50,9 @@ function profile(d, place) {
 }
 
 /**
- * Dhadhas — every Dhadha in the city: a club of up to ten members, drawn as a family tree on
- * a dark board. Opening any face pops up the club: its total coins, record, previous fights
- * (every member's, newest first) and its members by rank.
+ * Dhadhas — every Dhadha in the city: a club of up to ten members, each as a film poster.
+ * Opening a poster pops up the club: its total coins, record, previous fights (every
+ * member's, newest first) and its members by rank.
  *
  * An open Dhadha has its own address (/dhadhas/<dhadha>), so it can be shared.
  */
@@ -71,32 +73,35 @@ export default function DhadhasPage() {
 
   return (
     <>
-      <section className="dk theme-black" aria-labelledby="dhadhas-title">
-        <div className="dk-intro container">
-          <h1 id="dhadhas-title" className="dk-title">
+      <ParallaxScope as="section" className="page-head page-head--word theme-dark" aria-labelledby="dhadhas-title">
+        <ParallaxWord text="Dhadhas" motion="x:6%:-10%" className="page-head__word" />
+        <div className="container">
+          <h1 id="dhadhas-title" className="page-head__title">
             Dhadhas
           </h1>
-          <p className="dk-sub">
-            Every club in the city and the ten who stand with it. Choose a face to see the club’s fights and total coins.
-          </p>
+          <p className="lede">Every Dhadha in the city — a club of up to ten. Open one to see its fights, members and total coins.</p>
         </div>
+      </ParallaxScope>
 
-        {entry.status === 'loading' && <BoardSkeleton />}
-        {(entry.status === 'error' || entry.status === 'off' || entry.status === 'missing') && (
-          <p className="dk-note container" role="status">
-            The Dhadhas can’t be loaded right now. Try again in a moment.
-          </p>
-        )}
-        {entry.status === 'ok' &&
-          (all.length === 0 ? (
-            <div className="dk-empty container">
-              <p className="dk-empty__title">The Dhadhas are on their way</p>
-              <p className="dk-note">Who they are and who rides with them will be announced on our Discord.</p>
-              <ApplyLink className="btn btn--primary">Get updates on Discord</ApplyLink>
-            </div>
-          ) : (
-            <FamilyBoard all={all} onOpen={show} />
-          ))}
+      <section className="dp theme-black section" aria-label="All Dhadhas">
+        <div className="container">
+          {entry.status === 'loading' && <BoardSkeleton />}
+          {(entry.status === 'error' || entry.status === 'off' || entry.status === 'missing') && (
+            <p className="dx-note" role="status">
+              The Dhadhas can’t be loaded right now. Try again in a moment.
+            </p>
+          )}
+          {entry.status === 'ok' &&
+            (all.length === 0 ? (
+              <div className="dp-empty">
+                <p className="dp-empty__title">The Dhadhas are on their way</p>
+                <p className="dx-note">Who they are and who rides with them will be announced on our Discord.</p>
+                <ApplyLink className="btn btn--primary">Get updates on Discord</ApplyLink>
+              </div>
+            ) : (
+              <Posters all={all} onOpen={show} />
+            ))}
+        </div>
       </section>
 
       <Popup dhadha={open} onClose={() => show(null)} />
@@ -104,168 +109,128 @@ export default function DhadhasPage() {
   )
 }
 
-/* ------------------------------------------------------------------ the family board */
+/* ------------------------------------------------------------------ the posters */
 
-/**
- * The board: one family per Dhadha, side by side, and as many as there are — it pans sideways
- * (drag with the mouse, swipe, scroll sideways, or the arrows). Each family is the Dhadha at the
- * top with the club's numbers, and below him a spine with his members branching off it, best
- * ranked first; slots not filled yet stand as unknown faces. Pointing at a family lights it and
- * fades the others; pointing at a member lights their branch. Any face opens the club.
- */
-function FamilyBoard({ all, onOpen }) {
+const SORTS = [
+  { id: 'coins', label: 'Most coins', by: (a, b) => b.coins - a.coins || a.place - b.place },
+  { id: 'wins', label: 'Most wins', by: (a, b) => b.record.win - a.record.win || b.coins - a.coins },
+  { id: 'name', label: 'A–Z', by: (a, b) => a.name.localeCompare(b.name) },
+]
+
+/** Every Dhadha as a poster; search and sort once there are enough to need them. */
+function Posters({ all, onOpen }) {
+  const [sort, setSort] = useState('coins')
   const [query, setQuery] = useState('')
-  const boardRef = useRef(null)
-  const drag = useRef(null)
-  const dragged = useRef(false)
   const list = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return q ? all.filter((d) => d.name.toLowerCase().includes(q) || d.members.some((m) => m.name.toLowerCase().includes(q))) : all
-  }, [all, query])
+    const found = q ? all.filter((d) => d.name.toLowerCase().includes(q) || d.members.some((m) => m.name.toLowerCase().includes(q))) : all
+    return [...found].sort(SORTS.find((s) => s.id === sort).by)
+  }, [all, sort, query])
   const members = all.reduce((n, d) => n + d.members.length, 0)
-
-  const step = (dir) => {
-    const board = boardRef.current
-    const col = board?.querySelector('.dk-family')
-    if (board && col) board.scrollBy({ left: dir * (col.offsetWidth + 1), behavior: 'smooth' })
-  }
-
-  // a mouse drags the board sideways; touch scrolls it natively
-  const onPointerDown = (e) => {
-    if (e.pointerType !== 'mouse' || e.button !== 0) return
-    drag.current = { x: e.clientX, left: boardRef.current.scrollLeft, moved: false }
-  }
-  const onPointerMove = (e) => {
-    const d = drag.current
-    if (!d) return
-    const dx = e.clientX - d.x
-    if (!d.moved && Math.abs(dx) > 5) {
-      d.moved = true
-      boardRef.current.classList.add('is-dragging')
-    }
-    if (d.moved) boardRef.current.scrollLeft = d.left - dx
-  }
-  const endDrag = () => {
-    const d = drag.current
-    if (!d) return
-    drag.current = null
-    boardRef.current?.classList.remove('is-dragging')
-    // the click that ends a drag shouldn't open anything
-    if (d.moved) {
-      dragged.current = true
-      setTimeout(() => (dragged.current = false), 0)
-    }
-  }
-  const open = (d) => {
-    if (!dragged.current) onOpen(d)
-  }
+  const many = all.length > 3
 
   return (
     <>
-      <div className="dk-bar container">
-        <p className="dk-count">
-          {two(all.length)} {all.length === 1 ? 'family' : 'families'} · {members} {members === 1 ? 'member' : 'members'}
+      <div className="dp-bar">
+        <p className="dp-count">
+          {two(all.length)} {all.length === 1 ? 'Dhadha' : 'Dhadhas'} · {members} {members === 1 ? 'member' : 'members'}
         </p>
-        <div className="dk-tools">
-          {all.length > 3 && (
-            <label className="dk-search">
+        {many && (
+          <div className="dp-tools">
+            <label className="dp-search">
               <span className="visually-hidden">Find a Dhadha or a member</span>
-              <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Find a name" />
+              <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Find a Dhadha or member" />
             </label>
-          )}
-          {list.length > 1 && (
-            <span className="dk-arrows">
-              <button type="button" onClick={() => step(-1)} aria-label="Previous families">
-                ‹
-              </button>
-              <button type="button" onClick={() => step(1)} aria-label="Next families">
-                ›
-              </button>
-            </span>
-          )}
-        </div>
+            <div className="dp-sort" role="group" aria-label="Sort">
+              {SORTS.map((s) => (
+                <button key={s.id} type="button" aria-pressed={sort === s.id} onClick={() => setSort(s.id)}>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {list.length === 0 ? (
-        <p className="dk-note container" role="status">
+        <p className="dx-note" role="status">
           No Dhadha or member matches “{query}”.
         </p>
       ) : (
-        <div
-          ref={boardRef}
-          className="dk-board"
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={endDrag}
-          onPointerLeave={endDrag}
-        >
-          <ol className="dk-families" role="list">
-            {list.map((d) => (
-              <Family key={d.id} dhadha={d} onOpen={() => open(d)} />
-            ))}
-          </ol>
-        </div>
+        <ol className="dp-grid" role="list">
+          {list.map((d, i) => (
+            <Poster key={d.id} dhadha={d} index={i} onOpen={() => onOpen(d)} />
+          ))}
+        </ol>
       )}
     </>
   )
 }
 
-function Family({ dhadha: d, onOpen }) {
-  const empty = Math.max(0, CREW_MAX - d.members.length)
+/**
+ * One Dhadha as a film poster: his picture full height, a dark fade, his name big at the
+ * foot, then the club's numbers — total coins, members out of ten as dots, a row of his
+ * members' faces, and the record. The whole poster opens the club.
+ */
+function Poster({ dhadha: d, index, onOpen }) {
+  const faces = d.members.slice(0, 5)
   return (
-    <li className="dk-family">
-      <header className="dk-head">
-        <span className="dk-no">{two(d.place + 1)}</span>
-        <h2 className="dk-name">
-          <button type="button" onClick={onOpen} aria-haspopup="dialog">
-            {d.name}
-          </button>
-        </h2>
-        <p className="dk-role">{d.title || 'Dhadha'}</p>
-      </header>
-
-      <button type="button" className="dk-leader" onClick={onOpen} aria-haspopup="dialog" aria-label={`Open ${d.name}`}>
-        <span className="dk-face dk-face--leader" aria-hidden="true">
-          {d.photo ? <img src={d.photo} alt="" loading="lazy" decoding="async" draggable="false" /> : <b>{initial(d.name)}</b>}
+    <li className="dp-cell" style={{ '--i': index }}>
+      <button type="button" className="dp-poster" onClick={onOpen} aria-haspopup="dialog">
+        <span className="dp-poster__art" aria-hidden="true">
+          {d.photo ? (
+            <img src={d.photo} alt="" loading="lazy" decoding="async" />
+          ) : (
+            <span className="dp-poster__mono">{initial(d.name)}</span>
+          )}
         </span>
-        <span className="dk-totals">
-          <span>
-            <b>{number.format(d.coins)}</b> coins
+        <span className="dp-poster__shade" aria-hidden="true" />
+        <span className="dp-poster__frame" aria-hidden="true" />
+        <span className="dp-poster__no" aria-hidden="true">
+          {two(d.place + 1)}
+        </span>
+        <span className="dp-poster__open" aria-hidden="true">
+          View club
+        </span>
+
+        <span className="dp-poster__body">
+          <span className="dp-poster__title">{d.title || 'Dhadha'}</span>
+          <span className="dp-poster__name">{d.name}</span>
+          <span className="dp-poster__rule" aria-hidden="true" />
+          <span className="dp-poster__stats">
+            <span className="dp-stat">
+              <b>{number.format(d.coins)}</b>
+              <small>Total coins</small>
+            </span>
+            <span className="dp-stat">
+              <b>
+                {d.members.length}
+                <i>/{CREW_MAX}</i>
+              </b>
+              <small>Members</small>
+            </span>
+            <span className="dp-stat">
+              <b>{d.fights.length ? `${d.record.win}–${d.record.loss}` : '—'}</b>
+              <small>{d.fights.length ? 'Won–lost' : 'Fights'}</small>
+            </span>
           </span>
-          <span>
-            <b>
-              {d.members.length}/{CREW_MAX}
-            </b>{' '}
-            members
+          <span className="dp-poster__crew">
+            <span className="dp-faces" aria-hidden="true">
+              {faces.map((m, i) => (
+                <span key={`${m.name}-${i}`} className="dp-face">
+                  {m.photo ? <img src={m.photo} alt="" loading="lazy" decoding="async" /> : initial(m.name)}
+                </span>
+              ))}
+              {d.members.length > faces.length && <span className="dp-face dp-face--more">+{d.members.length - faces.length}</span>}
+            </span>
+            <span className="dp-dots" aria-hidden="true">
+              {Array.from({ length: CREW_MAX }, (_, i) => (
+                <i key={i} className={i < d.members.length ? 'is-on' : ''} />
+              ))}
+            </span>
           </span>
-          <span>{d.fights.length ? recordText(d.record) : 'No fights yet'}</span>
         </span>
       </button>
-
-      <ol className="dk-tree" role="list" aria-label={`${d.name}’s members`}>
-        {d.members.map((m, i) => (
-          <li key={`${m.name}-${i}`} className="dk-node">
-            <button type="button" className="dk-person" onClick={onOpen} aria-haspopup="dialog">
-              <span className="dk-face" aria-hidden="true">
-                {m.photo ? <img src={m.photo} alt="" loading="lazy" decoding="async" draggable="false" /> : <b>{initial(m.name)}</b>}
-              </span>
-              <span className="dk-pname">{m.name}</span>
-              <span className="dk-pmeta">
-                {m.rank ? `No. ${two(m.rank)}` : 'Unranked'} · {number.format(m.coins || 0)}
-                <span className="visually-hidden"> coins</span>
-              </span>
-            </button>
-          </li>
-        ))}
-        {Array.from({ length: empty }, (_, i) => (
-          <li key={`empty-${i}`} className="dk-node dk-node--unknown" aria-hidden="true">
-            <span className="dk-person">
-              <span className="dk-face">?</span>
-              <span className="dk-pname">Unknown</span>
-            </span>
-          </li>
-        ))}
-      </ol>
     </li>
   )
 }
@@ -449,9 +414,9 @@ function Popup({ dhadha: d, onClose }) {
 
 function BoardSkeleton() {
   return (
-    <SkeletonGroup label="Loading the Dhadhas" className="dk-skel container">
+    <SkeletonGroup label="Loading the Dhadhas" className="dp-grid">
       {Array.from({ length: 3 }, (_, i) => (
-        <Skeleton key={i} w="100%" h="34rem" radius={0} style={{ display: 'block' }} />
+        <Skeleton key={i} w="100%" h="30rem" radius={0} style={{ display: 'block' }} />
       ))}
     </SkeletonGroup>
   )
