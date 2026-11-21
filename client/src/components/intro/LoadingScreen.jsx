@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import { site } from '../../config/site'
 import { playLoaderSound, prepareLoaderSound, primeLoaderSound } from '../../lib/loaderSound'
 import { preloadHomeAssets, releasePreload, usePreloadProgress } from '../../lib/preload'
+import { loadPublic } from '../../lib/publicData'
 import { useSiteSettings } from '../../lib/siteSettings'
 import './loading-screen.css'
 
@@ -18,6 +19,11 @@ import './loading-screen.css'
  *      out, while the screen opens through the logo: the black is cut away in the logo's
  *      shape, which grows past the edges of the screen, so the welcome screen is seen first
  *      through the logo and then all at once. The bars open again as it lands.
+ *
+ * Behind the logo, the community's own pictures (Gallery, then the posters and pictures picked
+ * in Panel → Media) play as loading-screen art: full-screen, slowly drifting and dissolving one
+ * into the next, darkened so the logo stays the star. They're small and load on their own;
+ * the loading never waits for them, and the list is kept for the next visit.
  *
  * The count sits in the lower right with a turning ring, the way games show loading.
  * The transition has its own sound (lib/loaderSound.js), when the browser allows sound.
@@ -214,6 +220,102 @@ function useLogo() {
   return mark
 }
 
+/* ------------------------------------------------------------ loading-screen art */
+
+const ART_KEY = 'shyastha:loading-art'
+const ART_MAX = 8
+const SLIDE_MS = 1800 // each picture's turn (loading is short: two or three get a turn)
+
+const shuffle = (list) => {
+  const out = [...list]
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
+}
+/** Asks Cloudinary for a picture sized for a screen rather than the largest copy. */
+const screenSized = (url) => url.replace(/\/upload\/([^/]*?)w_\d+/, '/upload/$1w_1600')
+
+function readArt() {
+  try {
+    const list = JSON.parse(localStorage.getItem(ART_KEY) ?? '[]')
+    return Array.isArray(list) ? list.filter((u) => typeof u === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+/** The pictures to show: last visit's list straight away, then today's from the site. */
+function useLoadingArt() {
+  const [list, setList] = useState(() => shuffle(readArt()))
+  useEffect(() => {
+    let live = true
+    Promise.all([loadPublic('/gallery'), loadPublic('/site')]).then(([gallery, siteData]) => {
+      const urls = []
+      if (gallery.status === 'ok') (gallery.data?.photos ?? []).forEach((p) => urls.push(p.full || p.src))
+      const media = siteData.status === 'ok' ? (siteData.data?.media ?? {}) : {}
+      Object.entries(media).forEach(([key, url]) => {
+        if (typeof url === 'string' && url && /Image$|^poster|^joinImage$/.test(key)) urls.push(url)
+      })
+      const fresh = [...new Set(urls.filter(Boolean).map(screenSized))].slice(0, ART_MAX)
+      try {
+        localStorage.setItem(ART_KEY, JSON.stringify(fresh))
+      } catch {
+        /* private mode: no list for next time */
+      }
+      // a list already playing is left alone; otherwise start with today's
+      if (live) setList((current) => (current.length ? current : shuffle(fresh)))
+    })
+    return () => {
+      live = false
+    }
+  }, [])
+  return list
+}
+
+/**
+ * The pictures, one after another: each fades in over the last and drifts slowly (a different
+ * way each time), like the art on a game's loading screen. A picture joins only once it has
+ * downloaded and decoded, so nothing pops in half-drawn.
+ */
+function LoadingArt({ urls }) {
+  const [ready, setReady] = useState([])
+  const [turn, setTurn] = useState(0)
+
+  useEffect(() => {
+    let live = true
+    urls.forEach((url) => {
+      const img = new Image()
+      img.decoding = 'async'
+      img.src = url
+      const add = () => live && setReady((r) => (r.includes(url) ? r : [...r, url]))
+      ;(img.decode ? img.decode() : new Promise((ok, no) => ((img.onload = ok), (img.onerror = no)))).then(add, () => {})
+    })
+    return () => {
+      live = false
+    }
+  }, [urls])
+
+  const count = ready.length
+  useEffect(() => {
+    if (count < 2) return undefined
+    const timer = setInterval(() => setTurn((t) => t + 1), SLIDE_MS)
+    return () => clearInterval(timer)
+  }, [count])
+
+  if (!count) return null
+  // the picture on show and the one before it (still there underneath while the new one fades in)
+  const shown = turn > 0 ? [turn - 1, turn] : [0]
+  return (
+    <div className="la" aria-hidden="true">
+      {shown.map((n) => (
+        <span key={n} className={`la__slide la__slide--${n % 4}`} style={{ backgroundImage: `url("${ready[n % count]}")` }} />
+      ))}
+    </div>
+  )
+}
+
 /**
  * The logo in four layers, all prepared pictures, so playing it costs almost nothing:
  * the fine gold outline; a light that runs round it (a turning beam, seen only through the
@@ -255,6 +357,7 @@ function LogoMark({ mark, fill }) {
 export default function LoadingScreen({ onLeave, onDone }) {
   const { progress, done } = usePreloadProgress()
   const mark = useLogo()
+  const art = useLoadingArt()
   const [shown, setShown] = useState(0) // the number on screen, easing towards `progress`
   const [leaving, setLeaving] = useState(false)
   const target = useRef(progress)
@@ -369,6 +472,7 @@ export default function LoadingScreen({ onLeave, onDone }) {
           </>
         )}
       </div>
+      <LoadingArt urls={art} />
       {/* the logo zooms with the cut-out but only until it has faded (a smaller zoom is
           cheaper to draw); it sits in its own box, lined up with the cut-out */}
       <div className="loader__zoom loader__zoom--logo">
