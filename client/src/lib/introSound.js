@@ -137,7 +137,7 @@ export function playIntroSound() {
 /* ------------------------------------------------------------------ synthesis */
 
 /** A stereo hall reverb: decaying noise. */
-function hall(c, seconds, decay) {
+export function hall(c, seconds, decay) {
   const length = Math.floor(c.sampleRate * seconds)
   const buffer = c.createBuffer(2, length, c.sampleRate)
   for (let ch = 0; ch < 2; ch += 1) {
@@ -147,7 +147,7 @@ function hall(c, seconds, decay) {
   return buffer
 }
 
-function noise(c, seconds) {
+export function noise(c, seconds) {
   const buffer = c.createBuffer(1, Math.floor(c.sampleRate * seconds), c.sampleRate)
   const data = buffer.getChannelData(0)
   for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1
@@ -155,14 +155,14 @@ function noise(c, seconds) {
 }
 
 /** Gain envelope helper: silence → peak at `attack` → silence at `end` (seconds from t). */
-function envelope(param, t, peak, attack, end) {
+export function envelope(param, t, peak, attack, end) {
   param.setValueAtTime(0.0001, t)
   param.exponentialRampToValueAtTime(peak, t + attack)
   param.exponentialRampToValueAtTime(0.0001, t + end)
 }
 
 /** One low hit: a falling sine plus a muffled noise thump. */
-function hit(c, out, t, { from, to, level, length }) {
+export function hit(c, out, t, { from, to, level, length }) {
   const sub = c.createOscillator()
   sub.type = 'sine'
   sub.frequency.setValueAtTime(from, t)
@@ -280,7 +280,7 @@ function chain(c, { level = 0.62, wetLevel = 0.5, hallSeconds = 4.5 } = {}) {
 }
 
 /** A gold metallic ring: inharmonic bell partials that die away at different speeds. */
-function goldRing(c, out, t, base) {
+export function goldRing(c, out, t, base) {
   const partials = [
     [1, 0.5, 2.6],
     [2.01, 0.28, 1.9],

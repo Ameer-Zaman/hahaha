@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import { site } from '../../config/site'
+import { playLoaderSound, primeLoaderSound } from '../../lib/loaderSound'
 import { preloadHomeAssets, releasePreload, usePreloadProgress } from '../../lib/preload'
 import { useSiteSettings } from '../../lib/siteSettings'
 import './loading-screen.css'
@@ -19,6 +20,7 @@ import './loading-screen.css'
  *      through the logo and then all at once. The bars open again as it lands.
  *
  * The count sits in the lower right with a turning ring, the way games show loading.
+ * The transition has its own sound (lib/loaderSound.js), when the browser allows sound.
  *
  * It ends as soon as everything is ready (but not before the logo has been drawn and filled,
  * MARK_MS, and never later than MAX_MS, after which anything unfinished streams as usual).
@@ -262,9 +264,18 @@ export default function LoadingScreen({ onLeave, onDone }) {
     }
     raf = requestAnimationFrame(tick)
     const giveUp = setTimeout(() => setLeaving(true), MAX_MS)
+    // a click, tap or key press while it loads lets the transition's sound play
+    const prime = () => primeLoaderSound()
+    const opts = { capture: true, passive: true }
+    window.addEventListener('pointerdown', prime, opts)
+    window.addEventListener('keydown', prime, opts)
+    window.addEventListener('touchend', prime, opts)
     return () => {
       cancelAnimationFrame(raf)
       clearTimeout(giveUp)
+      window.removeEventListener('pointerdown', prime, opts)
+      window.removeEventListener('keydown', prime, opts)
+      window.removeEventListener('touchend', prime, opts)
     }
   }, [])
 
@@ -288,6 +299,7 @@ export default function LoadingScreen({ onLeave, onDone }) {
     if (!leaving) return undefined
     releasePreload() // anything still downloading streams normally from here
     wake() // (when giving up at MAX_MS)
+    playLoaderSound()
     const timer = setTimeout(() => onDoneRef.current?.(), EXIT_MS)
     return () => clearTimeout(timer)
   }, [leaving])
