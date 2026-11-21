@@ -2,8 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import ApplyLink from '../../components/ui/ApplyLink'
-import ParallaxScope from '../../components/ui/ParallaxScope'
-import ParallaxWord from '../../components/ui/ParallaxWord'
 import { Skeleton, SkeletonGroup } from '../../components/ui/Skeleton'
 import usePageTitle from '../../hooks/usePageTitle'
 import { usePublic } from '../../lib/publicData'
@@ -50,9 +48,10 @@ function profile(d, place) {
 }
 
 /**
- * Dhadhas — every Dhadha in the city: a club of up to ten members, each as a film poster.
- * Opening a poster pops up the club: its total coins, record, previous fights (every
- * member's, newest first) and its members by rank.
+ * Dhadhas — an investigation board. Every Dhadha in the city is a case: his photo pinned up,
+ * a typed note with the club's numbers, his members' photos tied to him with gold thread.
+ * Opening a case pops up his file: total coins, record, previous fights (every member's,
+ * newest first) and his members by rank.
  *
  * An open Dhadha has its own address (/dhadhas/<dhadha>), so it can be shared.
  */
@@ -73,17 +72,25 @@ export default function DhadhasPage() {
 
   return (
     <>
-      <ParallaxScope as="section" className="page-head page-head--word theme-dark" aria-labelledby="dhadhas-title">
-        <ParallaxWord text="Dhadhas" motion="x:6%:-10%" className="page-head__word" />
-        <div className="container">
-          <h1 id="dhadhas-title" className="page-head__title">
+      <section className="db theme-black" aria-labelledby="dhadhas-title">
+        <Flashlight />
+        <header className="db-head container">
+          <p className="db-head__kicker">
+            <span>Case files</span>
+            {entry.status === 'ok' && all.length > 0 && (
+              <span>
+                {two(all.length)} open {all.length === 1 ? 'case' : 'cases'}
+              </span>
+            )}
+          </p>
+          <h1 id="dhadhas-title" className="db-head__title">
             Dhadhas
           </h1>
-          <p className="lede">Every Dhadha in the city — a club of up to ten. Open one to see its fights, members and total coins.</p>
-        </div>
-      </ParallaxScope>
+          <p className="db-head__sub">
+            Every club in the city, pinned to the board with the people who run with it. Open a file for its fights and total coins.
+          </p>
+        </header>
 
-      <section className="dp theme-black section" aria-label="All Dhadhas">
         <div className="container">
           {entry.status === 'loading' && <BoardSkeleton />}
           {(entry.status === 'error' || entry.status === 'off' || entry.status === 'missing') && (
@@ -93,13 +100,13 @@ export default function DhadhasPage() {
           )}
           {entry.status === 'ok' &&
             (all.length === 0 ? (
-              <div className="dp-empty">
-                <p className="dp-empty__title">The Dhadhas are on their way</p>
-                <p className="dx-note">Who they are and who rides with them will be announced on our Discord.</p>
+              <div className="db-empty">
+                <p className="db-empty__title">The board is empty — for now</p>
+                <p className="dx-note">Who the Dhadhas are and who rides with them will be announced on our Discord.</p>
                 <ApplyLink className="btn btn--primary">Get updates on Discord</ApplyLink>
               </div>
             ) : (
-              <Posters all={all} onOpen={show} />
+              <Board all={all} onOpen={show} />
             ))}
         </div>
       </section>
@@ -109,7 +116,29 @@ export default function DhadhasPage() {
   )
 }
 
-/* ------------------------------------------------------------------ the posters */
+/* ------------------------------------------------------------------ the board */
+
+/** A small, steady number from a name, so each photo hangs at its own angle on every visit. */
+function seed(text, salt = 0) {
+  let h = 2166136261 ^ salt
+  for (const ch of text) h = Math.imul(h ^ ch.charCodeAt(0), 16777619)
+  return ((h >>> 0) % 1000) / 1000
+}
+const tilt = (text, salt, max) => ((seed(text, salt) - 0.5) * 2 * max).toFixed(2)
+
+/**
+ * Where each member's photo is pinned (as % of the case): up to two rows of five, each row
+ * centred under the Dhadha and a little off the line, the way photos end up on a real board.
+ */
+function slotsFor(count) {
+  const out = []
+  const rows = count > 5 ? [Math.ceil(count / 2), Math.floor(count / 2)] : [count]
+  rows.forEach((k, row) => {
+    for (let j = 0; j < k; j++) out.push({ x: 50 + (j - (k - 1) / 2) * 20 + (row ? 3 : -1), y: row ? 79 : 61 })
+  })
+  return out
+}
+const BOSS_PIN = { x: 30, y: 6 } // the pin at the top of the Dhadha's photo
 
 const SORTS = [
   { id: 'coins', label: 'Most coins', by: (a, b) => b.coins - a.coins || a.place - b.place },
@@ -117,8 +146,8 @@ const SORTS = [
   { id: 'name', label: 'A–Z', by: (a, b) => a.name.localeCompare(b.name) },
 ]
 
-/** Every Dhadha as a poster; search and sort once there are enough to need them. */
-function Posters({ all, onOpen }) {
+/** The board: one case per Dhadha. Search and sort once there are enough cases to need them. */
+function Board({ all, onOpen }) {
   const [sort, setSort] = useState('coins')
   const [query, setQuery] = useState('')
   const list = useMemo(() => {
@@ -126,40 +155,33 @@ function Posters({ all, onOpen }) {
     const found = q ? all.filter((d) => d.name.toLowerCase().includes(q) || d.members.some((m) => m.name.toLowerCase().includes(q))) : all
     return [...found].sort(SORTS.find((s) => s.id === sort).by)
   }, [all, sort, query])
-  const members = all.reduce((n, d) => n + d.members.length, 0)
-  const many = all.length > 3
+  const top = useMemo(() => (all.length > 1 ? all.reduce((a, b) => (b.coins > a.coins ? b : a)) : null), [all])
 
   return (
     <>
-      <div className="dp-bar">
-        <p className="dp-count">
-          {two(all.length)} {all.length === 1 ? 'Dhadha' : 'Dhadhas'} · {members} {members === 1 ? 'member' : 'members'}
-        </p>
-        {many && (
-          <div className="dp-tools">
-            <label className="dp-search">
-              <span className="visually-hidden">Find a Dhadha or a member</span>
-              <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Find a Dhadha or member" />
-            </label>
-            <div className="dp-sort" role="group" aria-label="Sort">
-              {SORTS.map((s) => (
-                <button key={s.id} type="button" aria-pressed={sort === s.id} onClick={() => setSort(s.id)}>
-                  {s.label}
-                </button>
-              ))}
-            </div>
+      {all.length > 3 && (
+        <div className="db-tools">
+          <label className="db-search">
+            <span className="visually-hidden">Find a Dhadha or a member</span>
+            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search the files…" />
+          </label>
+          <div className="db-sort" role="group" aria-label="Sort">
+            {SORTS.map((s) => (
+              <button key={s.id} type="button" aria-pressed={sort === s.id} onClick={() => setSort(s.id)}>
+                {s.label}
+              </button>
+            ))}
           </div>
-        )}
-      </div>
-
+        </div>
+      )}
       {list.length === 0 ? (
         <p className="dx-note" role="status">
-          No Dhadha or member matches “{query}”.
+          No file matches “{query}”.
         </p>
       ) : (
-        <ol className="dp-grid" role="list">
-          {list.map((d, i) => (
-            <Poster key={d.id} dhadha={d} index={i} onOpen={() => onOpen(d)} />
+        <ol className="db-cases" role="list">
+          {list.map((d) => (
+            <Case key={d.id} dhadha={d} topEarner={top?.id === d.id && top.coins > 0} onOpen={() => onOpen(d)} />
           ))}
         </ol>
       )}
@@ -168,71 +190,143 @@ function Posters({ all, onOpen }) {
 }
 
 /**
- * One Dhadha as a film poster: his picture full height, a dark fade, his name big at the
- * foot, then the club's numbers — total coins, members out of ten as dots, a row of his
- * members' faces, and the record. The whole poster opens the club.
+ * One case on the board: the Dhadha's photo pinned at the top left, a typed note beside it
+ * with the club's numbers and a stamp, and his members' photos pinned below, each tied to his
+ * pin with a gold thread. Anything in the case opens his file.
  */
-function Poster({ dhadha: d, index, onOpen }) {
-  const faces = d.members.slice(0, 5)
+function Case({ dhadha: d, topEarner, onOpen }) {
+  const shown = d.members.slice(0, CREW_MAX)
+  const slots = slotsFor(shown.length)
+  // the case is as tall as its rows of members need; positions are scaled to match
+  const rows = shown.length > 5 ? 2 : shown.length ? 1 : 0
+  const tall = [3.7, 4.85, 6][rows]
+  const fy = (y) => (y * 6) / tall
+  const stamp = topEarner
+    ? 'Top earner'
+    : d.members.length === 0
+      ? 'No known members'
+      : d.fights.length === 0
+        ? 'No fights on record'
+        : null
   return (
-    <li className="dp-cell" style={{ '--i': index }}>
-      <button type="button" className="dp-poster" onClick={onOpen} aria-haspopup="dialog">
-        <span className="dp-poster__art" aria-hidden="true">
-          {d.photo ? (
-            <img src={d.photo} alt="" loading="lazy" decoding="async" />
-          ) : (
-            <span className="dp-poster__mono">{initial(d.name)}</span>
-          )}
-        </span>
-        <span className="dp-poster__shade" aria-hidden="true" />
-        <span className="dp-poster__frame" aria-hidden="true" />
-        <span className="dp-poster__no" aria-hidden="true">
-          {two(d.place + 1)}
-        </span>
-        <span className="dp-poster__open" aria-hidden="true">
-          View club
-        </span>
+    <li className="db-case">
+      <article className="db-case__inner" style={{ aspectRatio: `5 / ${tall}` }} aria-labelledby={`case-${d.id}`}>
+        {/* the threads, from his pin to each member's */}
+        <svg className="db-threads" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          {shown.map((m, i) => {
+            const s = slots[i]
+            const sag = 4 + seed(m.name, i) * 5
+            const [bx, by, sx, sy] = [BOSS_PIN.x, fy(BOSS_PIN.y), s.x, fy(s.y)]
+            const mx = (bx + sx) / 2
+            const my = (by + sy) / 2 + sag
+            return <path key={i} className={`db-thread db-thread--${i}`} d={`M${bx} ${by} Q${mx} ${my} ${sx} ${sy}`} />
+          })}
+        </svg>
 
-        <span className="dp-poster__body">
-          <span className="dp-poster__title">{d.title || 'Dhadha'}</span>
-          <span className="dp-poster__name">{d.name}</span>
-          <span className="dp-poster__rule" aria-hidden="true" />
-          <span className="dp-poster__stats">
-            <span className="dp-stat">
-              <b>{number.format(d.coins)}</b>
-              <small>Total coins</small>
-            </span>
-            <span className="dp-stat">
-              <b>
-                {d.members.length}
-                <i>/{CREW_MAX}</i>
-              </b>
-              <small>Members</small>
-            </span>
-            <span className="dp-stat">
-              <b>{d.fights.length ? `${d.record.win}–${d.record.loss}` : '—'}</b>
-              <small>{d.fights.length ? 'Won–lost' : 'Fights'}</small>
-            </span>
+        <button
+          type="button"
+          className="db-boss"
+          style={{ '--tilt': `${tilt(d.name, 1, 3.5)}deg` }}
+          onClick={onOpen}
+          aria-haspopup="dialog"
+          aria-label={`Open the file on ${d.name}`}
+        >
+          <span className="db-pin" aria-hidden="true" />
+          <span className="db-photo" aria-hidden="true">
+            {d.photo ? <img src={d.photo} alt="" loading="lazy" decoding="async" /> : <b>{initial(d.name)}</b>}
           </span>
-          <span className="dp-poster__crew">
-            <span className="dp-faces" aria-hidden="true">
-              {faces.map((m, i) => (
-                <span key={`${m.name}-${i}`} className="dp-face">
-                  {m.photo ? <img src={m.photo} alt="" loading="lazy" decoding="async" /> : initial(m.name)}
-                </span>
-              ))}
-              {d.members.length > faces.length && <span className="dp-face dp-face--more">+{d.members.length - faces.length}</span>}
-            </span>
-            <span className="dp-dots" aria-hidden="true">
-              {Array.from({ length: CREW_MAX }, (_, i) => (
-                <i key={i} className={i < d.members.length ? 'is-on' : ''} />
-              ))}
-            </span>
+          <span className="db-caption" aria-hidden="true">
+            {d.name}
           </span>
-        </span>
-      </button>
+        </button>
+
+        <div className="db-note" style={{ '--tilt': `${tilt(d.name, 2, 2.5)}deg` }}>
+          <span className="db-tape" aria-hidden="true" />
+          <p className="db-note__case">Case {two(d.place + 1)}</p>
+          <h2 id={`case-${d.id}`} className="db-note__name">
+            <button type="button" onClick={onOpen} aria-haspopup="dialog">
+              {d.name}
+            </button>
+          </h2>
+          <p className="db-note__role">{d.title || 'Dhadha'}</p>
+          <dl className="db-note__facts">
+            <div>
+              <dt>Total coins</dt>
+              <dd>{number.format(d.coins)}</dd>
+            </div>
+            <div>
+              <dt>Members</dt>
+              <dd>
+                {d.members.length}/{CREW_MAX}
+              </dd>
+            </div>
+            <div>
+              <dt>Record</dt>
+              <dd>{d.fights.length ? recordText(d.record) : '—'}</dd>
+            </div>
+          </dl>
+          {stamp && (
+            <p className="db-stamp" style={{ '--tilt': `${-8 + seed(d.name, 3) * 6}deg` }}>
+              {stamp}
+            </p>
+          )}
+        </div>
+
+        {shown.length > 0 && (
+          <ul className="db-crew" aria-label={`${d.name}’s members`}>
+            {shown.map((m, i) => (
+              <li
+                key={`${m.name}-${i}`}
+                className="db-mate"
+                style={{ left: `${slots[i].x}%`, top: `${fy(slots[i].y)}%`, '--tilt': `${tilt(m.name, i + 4, 7)}deg`, '--i': i }}
+              >
+                <button type="button" onClick={onOpen} aria-haspopup="dialog" data-thread={i}>
+                  <span className="db-pin db-pin--small" aria-hidden="true" />
+                  <span className="db-photo" aria-hidden="true">
+                    {m.photo ? <img src={m.photo} alt="" loading="lazy" decoding="async" /> : <b>{initial(m.name)}</b>}
+                  </span>
+                  <span className="db-caption">{m.name}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </article>
     </li>
   )
+}
+
+/**
+ * The board is dark; a soft light follows the pointer, as if someone were going over it with
+ * a torch. Only with a mouse and when motion is welcome; otherwise the board is evenly lit.
+ */
+function Flashlight() {
+  const ref = useRef(null)
+  useEffect(() => {
+    const el = ref.current
+    const board = el?.parentElement
+    if (!el || !board) return undefined
+    if (!window.matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)').matches) return undefined
+    let raf = 0
+    const onMove = (e) => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => {
+        const r = board.getBoundingClientRect()
+        el.style.setProperty('--mx', `${e.clientX - r.left}px`)
+        el.style.setProperty('--my', `${e.clientY - r.top}px`)
+        el.classList.add('is-on')
+      })
+    }
+    const onLeave = () => el.classList.remove('is-on')
+    board.addEventListener('pointermove', onMove)
+    board.addEventListener('pointerleave', onLeave)
+    return () => {
+      cancelAnimationFrame(raf)
+      board.removeEventListener('pointermove', onMove)
+      board.removeEventListener('pointerleave', onLeave)
+    }
+  }, [])
+  return <div ref={ref} className="db-light" aria-hidden="true" />
 }
 
 /* ------------------------------------------------------------------ the pop-up */
@@ -414,9 +508,9 @@ function Popup({ dhadha: d, onClose }) {
 
 function BoardSkeleton() {
   return (
-    <SkeletonGroup label="Loading the Dhadhas" className="dp-grid">
-      {Array.from({ length: 3 }, (_, i) => (
-        <Skeleton key={i} w="100%" h="30rem" radius={0} style={{ display: 'block' }} />
+    <SkeletonGroup label="Loading the Dhadhas" className="db-cases">
+      {Array.from({ length: 2 }, (_, i) => (
+        <Skeleton key={i} w="100%" h="34rem" radius={0} style={{ display: 'block' }} />
       ))}
     </SkeletonGroup>
   )
