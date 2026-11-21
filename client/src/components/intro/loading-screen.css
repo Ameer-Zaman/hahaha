@@ -1,140 +1,183 @@
 /* =========================================================
-   The loading screen: the name set big in the lower left, the stage of the load, a progress
-   bar and the percentage. It leaves with three slanted panels — pale gold, gold, black — that
-   sweep in and cover the screen, then sweep off one after another to show the welcome screen.
+   The loading screen: the community logo in the middle of a black screen. It appears as a fine
+   gold outline, a light runs round that outline, and the logo rises into view as the homepage
+   loads. To leave, the black is cut away in the logo's shape and the cut grows past the edges
+   of the screen, so the welcome screen is seen through the logo, then all at once.
+
+   One number drives the exit: --s, the zoom (1 → 90). The hole in the black (a CSS mask of the
+   logo picture) and the drawn logo both scale by it about the same point (--fx/--fy, a spot
+   inside a solid part of the logo), so they stay lined up.
    ========================================================= */
+@property --s {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 1;
+}
+
 .loader {
+  /* the logo's size: wide logos limited by the screen's width, tall ones by its height */
+  --ratio: 2.5;
+  --lw: min(84vw, 42rem, calc(34vh * var(--ratio)));
+  --lh: calc(var(--lw) / var(--ratio));
   position: fixed;
   inset: 0;
   z-index: 210; /* above the welcome screen, which waits underneath */
   overflow: hidden;
-  background: var(--c-ink, #06070a);
+  container-type: size; /* cqw/cqh below = this screen-sized box, on phones too */
   color: var(--c-gold-light, #f6e3b0);
-  /* the black panel covers everything at 460–480ms: only then does the screen behind open up */
-  transition:
-    background-color 0s linear 470ms,
-    visibility 0s linear 1000ms;
-}
-.loader.is-leaving {
-  background-color: transparent;
-  visibility: hidden;
 }
 
-/* ---- text, lower left ---- */
-.loader__inner {
+.loader__black {
   position: absolute;
-  left: max(1.25rem, 6vw);
-  right: max(1.25rem, 6vw);
-  bottom: max(2rem, 9vh);
-  max-width: 34rem;
+  inset: 0;
+  background: var(--c-ink, #06070a);
 }
-.loader.is-leaving .loader__inner {
+
+/* a soft light behind the logo that breathes while it loads */
+.loader__black::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--lw) * 1.4);
+  height: calc(var(--lh) * 2.6);
+  translate: -50% -50%;
+  background: radial-gradient(closest-side, rgb(var(--rgb-gold, 227 181 90) / 0.16), transparent);
   opacity: 0;
-  transition: opacity 0s linear 470ms;
+  animation: loader-breathe 2.4s ease-in-out 600ms infinite;
 }
-
-.loader__kicker {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin: 0 0 0.9rem;
-  font-family: var(--font-mono, 'Space Mono', monospace);
-  font-size: 0.7rem;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: var(--c-gold, #e3b55a);
-  animation: loader-fade 700ms ease 250ms both;
-}
-.loader__kicker::before {
-  content: '';
-  width: 2.5rem;
-  height: 1px;
-  background: linear-gradient(90deg, currentColor, transparent);
-}
-.loader__kicker::after {
-  content: '';
-  order: -1;
-  width: 5px;
-  height: 5px;
-  margin-right: -0.75rem;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 8px currentColor;
-}
-
-.loader__name {
-  display: grid;
-  margin: 0 0 1.4rem;
-  font-family: var(--font-display, 'Anton', sans-serif);
-  font-size: clamp(3rem, 12vw, 6.75rem);
-  line-height: 0.92;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-.loader__word {
-  display: block;
-  width: fit-content;
-  padding-right: 0.08em;
-  background: var(--gold-gradient, linear-gradient(100deg, #fff2c9, #e3b55a 46%, #b5852f 72%, #efcb7a));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  clip-path: inset(0 -10% 0 0);
-  animation: loader-word 900ms cubic-bezier(0.22, 1, 0.36, 1) 350ms both;
-}
-.loader__word--2 {
-  animation-delay: 470ms;
-}
-@keyframes loader-word {
-  from {
-    clip-path: inset(100% -10% 0 0);
-    transform: translateY(0.4em);
+@keyframes loader-breathe {
+  50% {
+    opacity: 1;
   }
 }
 
-.loader__meta {
+.loader__stage {
+  position: absolute;
+  inset: 0;
+}
+
+.loader__mark {
+  position: absolute;
+  left: calc(50% - var(--lw) / 2);
+  top: calc(50% - var(--lh) / 2);
+  width: var(--lw);
+  height: var(--lh);
+  transform-origin: calc(var(--fx, 0.5) * 100%) calc(var(--fy, 0.5) * 100%);
+}
+.lm {
+  position: absolute;
+  inset: 0;
+}
+/* each layer is the prepared picture: the logo with a little room (--pad) round it */
+.lm__layer {
+  position: absolute;
+  inset: calc(var(--pad, 0) * var(--lw) * -1);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+img.lm__layer {
+  width: calc(100% + var(--pad, 0) * var(--lw) * 2);
+  height: calc(100% + var(--pad, 0) * var(--lw) * 2);
+  max-width: none;
+  user-select: none;
+}
+
+/* beat 1: the outline comes up, from a soft blur to a fine line */
+.lm__outline {
+  background: linear-gradient(115deg, #fff2c9, #e3b55a 40%, #b5852f 70%, #efcb7a);
+  opacity: 0.85;
+  animation: loader-outline 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.lm--plain .lm__outline {
+  opacity: 0.12; /* no outline could be traced: a faint silhouette instead */
+}
+@keyframes loader-outline {
+  from {
+    opacity: 0;
+  }
+}
+.loader__mark {
+  animation: loader-focus 1100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes loader-focus {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+}
+
+/* beat 2: a light runs round the outline — a beam turning behind it, seen only through it */
+.lm__light {
+  overflow: hidden;
+  animation: loader-fade 700ms ease 450ms both;
+}
+.lm__light i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 150%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  background: conic-gradient(from 0deg, transparent 0 70%, rgb(255 236 190 / 0.35) 80%, #fff8e6 88%, transparent 92%);
+  animation: loader-spin 2.4s linear infinite;
+  will-change: transform;
+}
+.lm__light--glow i {
+  background: conic-gradient(from 0deg, transparent 0 74%, rgb(var(--rgb-gold, 227 181 90) / 0.9) 88%, transparent 94%);
+}
+@keyframes loader-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+.lm--plain .lm__light {
+  opacity: 0.35;
+}
+
+/* the logo rises into view with the load, under a soft edge */
+.lm__fill {
+  --edge: calc(var(--fill, 0) * 116% - 16%);
+  -webkit-mask-image: linear-gradient(to top, #000 var(--edge), transparent calc(var(--edge) + 16%));
+  mask-image: linear-gradient(to top, #000 var(--edge), transparent calc(var(--edge) + 16%));
+  filter: drop-shadow(0 0 1.2rem rgb(var(--rgb-gold, 227 181 90) / 0.3));
+}
+
+/* the count, small, under the logo */
+.loader__pct {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + var(--lh) / 2 + clamp(1.5rem, 5vh, 3rem));
+  translate: -50% 0;
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 0.6rem;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 0;
   font-family: var(--font-mono, 'Space Mono', monospace);
   font-size: 0.72rem;
   letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgb(var(--rgb-gold, 227 181 90) / 0.7);
-  animation: loader-fade 700ms ease 650ms both;
+  color: rgb(var(--rgb-gold, 227 181 90) / 0.75);
+  animation: loader-fade 700ms ease 600ms both;
 }
-.loader__stage {
-  animation: loader-stage 450ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-@keyframes loader-stage {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-}
-.loader__pct {
-  font-size: 1rem;
-  letter-spacing: 0.06em;
+.loader__pct b {
+  font-weight: 400;
   font-variant-numeric: tabular-nums;
-  color: var(--c-gold-light, #f6e3b0);
 }
-
-.loader__bar {
+.loader__line {
   position: relative;
-  height: 2px;
+  width: clamp(6rem, 22vw, 11rem);
+  height: 1px;
   overflow: hidden;
-  border-radius: 2px;
-  background: rgb(var(--rgb-gold, 227 181 90) / 0.16);
-  animation: loader-fade 700ms ease 650ms both;
+  background: rgb(var(--rgb-gold, 227 181 90) / 0.18);
 }
-.loader__bar > span {
+.loader__line > span {
   position: absolute;
   inset: 0;
   transform-origin: left center;
-  background: var(--gold-gradient, #e3b55a);
-  box-shadow: 0 0 12px rgb(var(--rgb-gold, 227 181 90) / 0.6);
-  will-change: transform;
+  background: var(--c-gold, #e3b55a);
+  box-shadow: 0 0 10px rgb(var(--rgb-gold, 227 181 90) / 0.7);
 }
 
 @keyframes loader-fade {
@@ -143,95 +186,138 @@
   }
 }
 
-/* ---- the exit ----
-   One 1s timeline. In: pale gold, gold, then black sweep in from the left until the black one
-   covers the screen. Out: black sweeps off first, then gold, then pale gold, each uncovering
-   the next, and the last uncovers the welcome screen. */
-.loader__wipe {
-  position: absolute;
-  inset: 0;
+/* ---- beat 3: through the logo ----
+   0–200ms   the count goes; the logo flares
+   200–1250  the zoom: the hole in the black grows from the logo's size to far past the screen,
+             the gold logo fades out of it first (so the welcome screen shows through), then the
+             outline; the black fades at the very end in case the mask could not be drawn */
+.loader.is-leaving {
+  animation: loader-zoom 1050ms linear 200ms both;
   pointer-events: none;
 }
-.loader__wipe i {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 200vw; /* wide enough to cover the screen even slanted, on a tall phone too */
-  transform: translateX(-210vw) skewX(-16deg);
-}
-.loader__wipe i:nth-child(1) {
-  background: var(--c-gold-light, #f6e3b0);
-}
-.loader__wipe i:nth-child(2) {
-  background: var(--c-gold, #e3b55a);
-}
-.loader__wipe i:nth-child(3) {
-  background: var(--c-ink, #06070a);
-}
-.loader.is-leaving .loader__wipe i:nth-child(1) {
-  animation: loader-wipe-pale 1000ms cubic-bezier(0.7, 0, 0.3, 1) both;
-}
-.loader.is-leaving .loader__wipe i:nth-child(2) {
-  animation: loader-wipe-gold 1000ms cubic-bezier(0.7, 0, 0.3, 1) both;
-}
-.loader.is-leaving .loader__wipe i:nth-child(3) {
-  animation: loader-wipe-black 1000ms cubic-bezier(0.7, 0, 0.3, 1) both;
-}
-@keyframes loader-wipe-pale {
-  34%,
-  60% {
-    transform: translateX(-50vw) skewX(-16deg);
+@keyframes loader-zoom {
+  /* about 90^t: a zoom that feels steady to the eye, not slow-then-sudden */
+  0% {
+    --s: 1;
+    animation-timing-function: cubic-bezier(0.5, 0, 1, 1);
   }
-  92%,
+  25% {
+    --s: 3.1;
+  }
+  50% {
+    --s: 9.5;
+  }
+  75% {
+    --s: 29;
+  }
   100% {
-    transform: translateX(110vw) skewX(-16deg);
-  }
-}
-@keyframes loader-wipe-gold {
-  4% {
-    transform: translateX(-210vw) skewX(-16deg);
-  }
-  40%,
-  54% {
-    transform: translateX(-50vw) skewX(-16deg);
-  }
-  84%,
-  100% {
-    transform: translateX(110vw) skewX(-16deg);
-  }
-}
-@keyframes loader-wipe-black {
-  8% {
-    transform: translateX(-210vw) skewX(-16deg);
-  }
-  46%,
-  48% {
-    transform: translateX(-50vw) skewX(-16deg);
-  }
-  76%,
-  100% {
-    transform: translateX(110vw) skewX(-16deg);
+    --s: 90;
   }
 }
 
+.loader.is-leaving.has-mark .loader__black {
+  -webkit-mask:
+    var(--mark) no-repeat,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    var(--mark) no-repeat,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask-size:
+    calc(var(--lw) * var(--iw) * var(--s)) auto,
+    100% 100%;
+  mask-size:
+    calc(var(--lw) * var(--iw) * var(--s)) auto,
+    100% 100%;
+  /* the picture's corner, placed so the zoom point stays where it is on screen */
+  -webkit-mask-position:
+    calc(50cqw + (var(--fx) - 0.5) * var(--lw) - var(--ax) * var(--lw) * var(--s))
+      calc(50cqh + (var(--fy) - 0.5) * var(--lh) - var(--ay) * var(--lh) * var(--s)),
+    0 0;
+  mask-position:
+    calc(50cqw + (var(--fx) - 0.5) * var(--lw) - var(--ax) * var(--lw) * var(--s))
+      calc(50cqh + (var(--fy) - 0.5) * var(--lh) - var(--ay) * var(--lh) * var(--s)),
+    0 0;
+}
+.loader.is-leaving .loader__black {
+  animation: loader-out 1250ms linear both;
+}
+@keyframes loader-out {
+  78% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.loader.is-leaving .loader__black::after {
+  animation: none;
+  opacity: 0;
+}
+
+.loader.is-leaving .loader__mark {
+  transform: scale(var(--s));
+  will-change: transform;
+  animation: loader-mark-out 1250ms linear both;
+}
+@keyframes loader-mark-out {
+  20% {
+    opacity: 1;
+  }
+  60%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.loader.is-leaving .lm__fill {
+  opacity: 0;
+  transition: opacity 320ms ease-in 200ms;
+}
+.loader.is-leaving .lm__light i {
+  animation-play-state: paused;
+}
+.loader.is-leaving .loader__pct {
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .loader__kicker,
-  .loader__word,
-  .loader__meta,
-  .loader__stage,
-  .loader__bar {
+  .loader__black::after,
+  .lm__outline,
+  .loader__mark,
+  .loader__pct {
     animation: none;
   }
-  .loader.is-leaving .loader__wipe i:nth-child(n) {
+  .lm__light {
+    display: none;
+  }
+  .lm__outline {
+    opacity: 0.6;
+  }
+  /* no zoom: the screen fades */
+  .loader.is-leaving,
+  .loader.is-leaving .loader__black,
+  .loader.is-leaving .loader__mark {
     animation: none;
+  }
+  .loader.is-leaving.has-mark .loader__black {
+    -webkit-mask: none;
+    mask: none;
+  }
+  .loader.is-leaving .loader__mark {
+    transform: none;
   }
   .loader {
-    transition:
-      opacity 400ms ease,
-      visibility 0s linear 400ms;
+    transition: opacity 500ms ease;
   }
   .loader.is-leaving {
     opacity: 0;
   }
+}
+
+/* the page's own thin loading line has nothing to add while this screen is up */
+body:has(.loader) .top-progress {
+  display: none;
 }
