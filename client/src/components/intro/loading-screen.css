@@ -1,15 +1,8 @@
 /* =========================================================
-   The loading screen: the community logo in the middle of a black screen. It appears as a fine
-   gold outline, a light runs round that outline, and the logo rises into view as the homepage
-   loads, with an in-game style "Loading" ring in the lower right. To leave, a short cut-scene
-   transition: film bars close in, the logo jolts with a colour split, warm light sweeps across
-   and streaks burst out while the black is cut away in the logo's shape and the cut grows past
-   the edges of the screen, so the welcome screen is seen through the logo, then all at once.
-
-   Smoothness: everything that moves while it plays is a transform or an opacity, so the
-   browser's compositor runs it on the graphics card without repainting. The zoom is one
-   scale on .loader__zoom, which holds the logo, a black box with the logo's shape cut out of
-   it, and four plain black panels round that box that cover the rest of the screen.
+   The loading screen: the community logo glowing in the middle of a black screen. It appears
+   as a fine gold outline, a light runs round that outline, and the logo rises into view as the
+   homepage loads. When it's ready the logo flares softly and the screen fades to the welcome
+   screen. Everything that moves is a transform or an opacity, so it stays smooth.
    ========================================================= */
 .loader {
   /* the logo's size: wide logos limited by the screen's width, tall ones by its height */
@@ -21,100 +14,15 @@
   inset: 0;
   z-index: 210; /* above the welcome screen, which waits underneath */
   overflow: hidden;
-  color: var(--c-gold-light, #f6e3b0);
-}
-
-.loader__black {
-  position: absolute;
-  inset: 0;
   background: var(--c-ink, #06070a);
 }
 
-/* ---- loading-screen art: the community's pictures, drifting and dissolving behind the logo ---- */
-.la {
+.loader__mark {
   position: absolute;
-  inset: 0;
-  overflow: hidden;
-  animation: loader-fade 900ms ease both;
-}
-.la__slide {
-  position: absolute;
-  inset: -4%;
-  background: center / cover no-repeat;
-  will-change: transform, opacity;
-  animation:
-    la-in 900ms ease both,
-    la-drift-0 4000ms linear both;
-}
-.la__slide--1 {
-  animation:
-    la-in 900ms ease both,
-    la-drift-1 4000ms linear both;
-}
-.la__slide--2 {
-  animation:
-    la-in 900ms ease both,
-    la-drift-2 4000ms linear both;
-}
-.la__slide--3 {
-  animation:
-    la-in 900ms ease both,
-    la-drift-3 4000ms linear both;
-}
-@keyframes la-in {
-  from {
-    opacity: 0;
-  }
-}
-/* four slow camera moves: push in, pull out, pan left, pan right */
-@keyframes la-drift-0 {
-  from {
-    transform: scale(1.02) translate(1.5%, 1%);
-  }
-  to {
-    transform: scale(1.14) translate(-1.5%, -1%);
-  }
-}
-@keyframes la-drift-1 {
-  from {
-    transform: scale(1.16) translate(-1%, 1.5%);
-  }
-  to {
-    transform: scale(1.04) translate(1%, -0.5%);
-  }
-}
-@keyframes la-drift-2 {
-  from {
-    transform: scale(1.1) translate(3%, 0);
-  }
-  to {
-    transform: scale(1.1) translate(-3%, 0);
-  }
-}
-@keyframes la-drift-3 {
-  from {
-    transform: scale(1.1) translate(-3%, 0.5%);
-  }
-  to {
-    transform: scale(1.1) translate(3%, -0.5%);
-  }
-}
-/* darkened so the logo stays the star: deep at the edges and bottom, a dark pool behind the
-   logo, and a faint warm sunset cast over the picture */
-.la::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 38% 30% at 50% 50%, rgb(6 7 10 / 0.7), transparent 100%),
-    radial-gradient(ellipse 80% 75% at 50% 45%, transparent 35%, rgb(6 7 10 / 0.85) 100%),
-    linear-gradient(to top, rgb(6 7 10 / 0.9), transparent 45%), linear-gradient(120deg, rgb(255 140 70 / 0.1), rgb(160 60 140 / 0.08)),
-    rgb(6 7 10 / 0.42);
-}
-/* at the exit the art cuts to black with the jolt, and the zoom plays on black */
-.loader.is-leaving .la {
-  opacity: 0;
-  transition: opacity 160ms ease-in;
+  left: calc(50% - var(--lw) / 2);
+  top: calc(50% - var(--lh) / 2);
+  width: var(--lw);
+  height: var(--lh);
 }
 
 /* a soft light behind the logo that breathes while it loads */
@@ -132,62 +40,6 @@
   50% {
     opacity: 1;
   }
-}
-
-/* the logo's box, in the middle of the screen; the zoom scales it about the zoom point */
-.loader__zoom {
-  position: absolute;
-  left: calc(50% - var(--lw) / 2);
-  top: calc(50% - var(--lh) / 2);
-  width: var(--lw);
-  height: var(--lh);
-  transform-origin: calc(var(--fx, 0.5) * 100%) calc(var(--fy, 0.5) * 100%);
-}
-
-/* the black with the logo cut out: a box round the logo, and four panels round the box. They
-   are there from the start (black on black, with the plain black showing through the cut-out),
-   so they're ready to draw before the exit; at the exit the plain black goes. */
-.loader__hole,
-.loader__frame {
-  position: absolute;
-  background: var(--c-ink, #06070a);
-  will-change: transform; /* each its own layer: plain panels cost nothing to scale */
-}
-.loader__hole {
-  inset: calc(var(--padw) * -1);
-  -webkit-mask:
-    var(--mark) center / 100% 100% no-repeat,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    var(--mark) center / 100% 100% no-repeat,
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
-}
-/* the panels overlap the box by a pixel so no hairline shows between them */
-.loader__frame--top,
-.loader__frame--bottom {
-  left: -110vmax;
-  right: -110vmax;
-  height: 110vmax;
-}
-.loader__frame--top {
-  bottom: calc(100% + var(--padw) - 1px);
-}
-.loader__frame--bottom {
-  top: calc(100% + var(--padw) - 1px);
-}
-.loader__frame--left,
-.loader__frame--right {
-  top: calc(var(--padw) * -1 - 1px);
-  bottom: calc(var(--padw) * -1 - 1px);
-  width: 110vmax;
-}
-.loader__frame--left {
-  right: calc(100% + var(--padw) - 1px);
-}
-.loader__frame--right {
-  left: calc(100% + var(--padw) - 1px);
 }
 
 .lm {
@@ -211,22 +63,17 @@
   mask-repeat: no-repeat;
 }
 
-/* beat 1: the outline comes up */
+/* the outline comes up first */
 .lm__outline {
   background: linear-gradient(115deg, #fff2c9, #e3b55a 40%, #b5852f 70%, #efcb7a);
   opacity: 0.85;
-  animation: loader-outline 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: loader-fade 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .lm--plain .lm__outline {
   opacity: 0.12; /* no outline could be traced: a faint silhouette instead */
 }
-@keyframes loader-outline {
-  from {
-    opacity: 0;
-  }
-}
 
-/* beat 2: a light runs round the outline — a beam turning behind it, seen only through it */
+/* then a light runs round it — a beam turning behind it, seen only through it */
 .lm__light {
   overflow: hidden;
   animation: loader-fade 700ms ease 450ms both;
@@ -274,475 +121,51 @@
   filter: drop-shadow(0 0 1.2rem rgb(var(--rgb-gold, 227 181 90) / 0.3));
 }
 
-/* the count: lower right, a turning ring beside the word, the way games show loading */
-.loader__pct {
-  position: absolute;
-  right: max(1.25rem, 3.5vw);
-  bottom: max(1.25rem, 4vh);
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  margin: 0;
-  font-family: var(--font-mono, 'Space Mono', monospace);
-  font-size: 0.7rem;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: rgb(var(--rgb-gold, 227 181 90) / 0.8);
-  animation: loader-fade 700ms ease 600ms both;
-}
-.loader__pct b {
-  min-width: 3ch;
-  font-weight: 400;
-  font-variant-numeric: tabular-nums;
-  color: var(--c-gold-light, #f6e3b0);
-}
-.loader__word {
-  color: rgb(var(--rgb-ivory, 246 241 232) / 0.75);
-}
-/* the ring: a faint track with a bright tip turning round it */
-.loader__spin {
-  position: relative;
-  width: 1.35rem;
-  height: 1.35rem;
-  border-radius: 50%;
-  border: 2px solid rgb(var(--rgb-gold, 227 181 90) / 0.22);
-}
-.loader__spin::after {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  border-top-color: var(--c-gold-light, #f6e3b0);
-  border-right-color: var(--c-gold, #e3b55a);
-  animation: loader-spin 0.8s linear infinite;
-}
-
 @keyframes loader-fade {
   from {
     opacity: 0;
   }
 }
 
-/* ---- beat 3: the cut-scene transition (EXIT_MS = 1500) ----
-   0–300ms     film bars close in, the count goes, the logo jolts with a colour split
-   250–750     a band of warm light sweeps across; streaks burst out from the zoom point
-   300–1350    the zoom: the cut-out grows from the logo's size to far past the screen (a
-               steady-feeling ×140, set out in steps); the gold logo fades out of it first, so the
-               welcome screen shows through, then the outline
-   1050–1500   the bars open again; the black fades at the very end in case the cut-out could
-               not be drawn */
+/* ---- leaving: the logo flares and grows a touch, and the screen fades to the welcome ---- */
 .loader.is-leaving {
   pointer-events: none;
+  animation: loader-out 800ms ease-in both;
 }
-.loader.is-leaving.has-mark .loader__black {
-  visibility: hidden;
+@keyframes loader-out {
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
-.loader.is-leaving .loader__hole,
-.loader.is-leaving .loader__frame {
-  animation: loader-out 1500ms linear both;
+.loader.is-leaving .loader__mark {
+  animation: loader-flare 800ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes loader-flare {
+  to {
+    transform: scale(1.08);
+  }
 }
 .loader.is-leaving .loader__glow {
   animation: none;
-  opacity: 0;
-}
-.loader.is-leaving .loader__black {
-  animation: loader-out 1500ms linear both;
-}
-@keyframes loader-out {
-  82% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-.loader.is-leaving .loader__zoom {
-  will-change: transform;
-  animation: loader-zoom 1350ms linear both;
-}
-@keyframes loader-zoom {
-  /* the jolt */
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-  3.3% {
-    transform: translate(-5px, 2px) scale(1);
-  }
-  6.6% {
-    transform: translate(4px, -3px) scale(1);
-  }
-  10% {
-    transform: translate(-3px, -2px) scale(1);
-  }
-  13.3% {
-    transform: translate(3px, 3px) scale(1);
-  }
-  16.6% {
-    transform: translate(-1px, 1px) scale(1);
-  }
-  /* the zoom, about 140^t */
-  22.2% {
-    transform: translate(0, 0) scale(1);
-    animation-timing-function: cubic-bezier(0.5, 0, 1, 1);
-  }
-  31.9% {
-    transform: translate(0, 0) scale(1.86);
-  }
-  41.7% {
-    transform: translate(0, 0) scale(3.44);
-  }
-  51.4% {
-    transform: translate(0, 0) scale(6.4);
-  }
-  61.1% {
-    transform: translate(0, 0) scale(11.8);
-  }
-  70.8% {
-    transform: translate(0, 0) scale(22);
-  }
-  80.6% {
-    transform: translate(0, 0) scale(40.7);
-  }
-  90.3% {
-    transform: translate(0, 0) scale(75.6);
-  }
-  100% {
-    transform: translate(0, 0) scale(140);
-  }
-}
-
-.loader.is-leaving .loader__zoom--logo {
-  animation-name: loader-zoom-logo;
-}
-/* the same as loader-zoom up to where the logo has faded out (×11.8), then it stays */
-@keyframes loader-zoom-logo {
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-  3.3% {
-    transform: translate(-5px, 2px) scale(1);
-  }
-  6.6% {
-    transform: translate(4px, -3px) scale(1);
-  }
-  10% {
-    transform: translate(-3px, -2px) scale(1);
-  }
-  13.3% {
-    transform: translate(3px, 3px) scale(1);
-  }
-  16.6% {
-    transform: translate(-1px, 1px) scale(1);
-  }
-  22.2% {
-    transform: translate(0, 0) scale(1);
-    animation-timing-function: cubic-bezier(0.5, 0, 1, 1);
-  }
-  31.9% {
-    transform: translate(0, 0) scale(1.86);
-  }
-  41.7% {
-    transform: translate(0, 0) scale(3.44);
-  }
-  51.4% {
-    transform: translate(0, 0) scale(6.4);
-  }
-  61.1%,
-  100% {
-    transform: translate(0, 0) scale(11.8);
-  }
-}
-.loader.is-leaving .lm {
-  animation: loader-mark-out 1500ms linear both;
-}
-@keyframes loader-mark-out {
-  30% {
-    opacity: 1;
-  }
-  54%,
-  100% {
-    opacity: 0;
-  }
-}
-.loader.is-leaving .lm__rise {
-  opacity: 0;
-  transition: opacity 320ms ease-in 300ms;
-}
-/* the flat picture: its logo fades out first, leaving the outline (a quick dip, then down) */
-.loader.is-leaving .lm__flat {
-  animation: loader-flat-out 1500ms linear both;
-}
-@keyframes loader-flat-out {
-  20% {
-    opacity: 1;
-  }
-  40% {
-    opacity: 0.45;
-  }
-  54%,
-  100% {
-    opacity: 0;
-  }
-}
-.loader.is-leaving .lm__light i {
-  animation-play-state: paused;
-}
-.loader.is-leaving .loader__pct {
-  opacity: 0;
-  transition: opacity 200ms ease;
-}
-
-/* the colour split: a warm and a cool copy of the logo, knocked sideways for the jolt */
-img.lm__layer {
-  width: calc(100% + var(--padw) * 2);
-  height: calc(100% + var(--padw) * 2);
-  max-width: none;
-  user-select: none;
-}
-/* drawn ahead (not quite invisible) so the exit never waits to draw them */
-.lm__flat,
-.lm__split {
-  opacity: 0.001;
-}
-/* at the exit the layered logo goes and its flat picture takes over */
-.loader.is-leaving .lm--flat > :not(.lm__flat, .lm__split) {
-  display: none;
-}
-.loader.is-leaving .lm__split--a {
-  animation: loader-split-a 340ms steps(1, end) both;
-}
-.loader.is-leaving .lm__split--b {
-  animation: loader-split-b 340ms steps(1, end) both;
-}
-@keyframes loader-split-a {
-  0% {
-    opacity: 0.6;
-    transform: translateX(-7px);
-  }
-  25% {
-    transform: translate(-12px, 1px);
-  }
-  50% {
-    transform: translate(-4px, -1px);
-  }
-  75% {
-    opacity: 0.45;
-    transform: translateX(-9px);
-  }
-  100% {
-    opacity: 0;
-    transform: none;
-  }
-}
-@keyframes loader-split-b {
-  0% {
-    opacity: 0.6;
-    transform: translateX(7px);
-  }
-  25% {
-    transform: translate(10px, -1px);
-  }
-  50% {
-    transform: translate(5px, 1px);
-  }
-  75% {
-    opacity: 0.45;
-    transform: translateX(9px);
-  }
-  100% {
-    opacity: 0;
-    transform: none;
-  }
-}
-
-/* ---- the transition's effects, over everything ---- */
-.loader__fx {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-.loader__fx > span {
-  position: absolute;
-}
-
-/* film bars, top and bottom, like a game's cut-scene */
-.loader__bar {
-  left: 0;
-  right: 0;
-  height: 11vh;
-  background: #000;
-  transform: scaleY(0);
-  will-change: transform;
-}
-.loader__bar--top {
-  top: 0;
-  transform-origin: top;
-}
-.loader__bar--bottom {
-  bottom: 0;
-  transform-origin: bottom;
-}
-.loader.is-leaving .loader__bar {
-  animation: loader-bars 1500ms cubic-bezier(0.7, 0, 0.3, 1) both;
-}
-@keyframes loader-bars {
-  0% {
-    transform: scaleY(0);
-  }
-  18%,
-  70% {
-    transform: scaleY(1);
-  }
-  100% {
-    transform: scaleY(0);
-  }
-}
-
-/* streaks of light bursting out from the point the zoom heads into */
-.loader__rays {
-  left: calc(50% + (var(--fx, 0.5) - 0.5) * var(--lw));
-  top: calc(50% + (var(--fy, 0.5) - 0.5) * var(--lh));
-  width: 130vmax;
-  height: 130vmax;
-  margin: -65vmax 0 0 -65vmax;
-  background: repeating-conic-gradient(
-    from 4deg,
-    rgb(255 240 205 / 0.45) 0 0.35deg,
-    transparent 0.35deg 5.2deg,
-    rgb(var(--rgb-gold, 227 181 90) / 0.3) 5.2deg 5.6deg,
-    transparent 5.6deg 11deg
-  );
-  -webkit-mask: radial-gradient(closest-side, transparent 6%, #000 22%, rgb(0 0 0 / 0.5) 60%, transparent 100%);
-  mask: radial-gradient(closest-side, transparent 6%, #000 22%, rgb(0 0 0 / 0.5) 60%, transparent 100%);
-  opacity: 0.001; /* not 0: drawn ahead, while it loads, so the burst doesn't stall */
-  transform: scale(0.5);
-  will-change: transform, opacity;
-}
-.loader.is-leaving .loader__rays {
-  animation: loader-rays 1500ms cubic-bezier(0.3, 0, 0.6, 1) both;
-}
-@keyframes loader-rays {
-  0%,
-  18% {
-    opacity: 0.001;
-    transform: scale(0.5) rotate(0deg);
-  }
-  30% {
-    opacity: 1;
-  }
-  70%,
-  100% {
-    opacity: 0;
-    transform: scale(2.6) rotate(8deg);
-  }
-}
-
-/* a band of warm light (gold into sunset rose) sweeping across on a slant */
-.loader__sweep {
-  top: -20%;
-  bottom: -20%;
-  left: 0;
-  width: 70vw;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgb(255 120 90 / 0.14) 25%,
-    rgb(var(--rgb-gold, 227 181 90) / 0.4) 45%,
-    rgb(255 246 220 / 0.7) 52%,
-    rgb(var(--rgb-gold, 227 181 90) / 0.36) 60%,
-    rgb(255 90 150 / 0.12) 78%,
-    transparent
-  );
-  transform: translateX(-90vw) skewX(-18deg);
-  opacity: 0;
-  visibility: hidden;
-}
-.loader.is-leaving .loader__sweep {
-  visibility: visible;
-  will-change: transform;
-  animation: loader-sweep 1500ms cubic-bezier(0.6, 0, 0.3, 1) both;
-}
-@keyframes loader-sweep {
-  0%,
-  16% {
-    opacity: 1;
-    transform: translateX(-90vw) skewX(-18deg);
-  }
-  50% {
-    opacity: 1;
-    transform: translateX(130vw) skewX(-18deg);
-  }
-  51%,
-  100% {
-    opacity: 0;
-    transform: translateX(130vw) skewX(-18deg);
-  }
-}
-
-/* fine film grain while it loads (gone for the exit) */
-.loader__grain {
-  inset: -10%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: 0.045;
-  will-change: transform;
-  animation: loader-grain 0.6s steps(3) infinite;
-}
-@keyframes loader-grain {
-  0% {
-    transform: translate(0, 0);
-  }
-  33% {
-    transform: translate(-4%, 3%);
-  }
-  66% {
-    transform: translate(3%, -4%);
-  }
-  100% {
-    transform: translate(-2%, 2%);
-  }
-}
-.loader.is-leaving .loader__grain {
-  display: none;
+  opacity: 1;
+  transition: opacity 300ms ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .loader__glow,
-  .la__slide,
   .lm,
   .lm__outline,
-  .loader__pct,
-  .loader__spin::after,
-  .loader__grain {
+  .loader.is-leaving .loader__mark {
     animation: none;
   }
-  .lm__light,
-  .loader__fx {
+  .lm__light {
     display: none;
   }
   .lm__outline {
     opacity: 0.6;
-  }
-  /* no zoom: the screen fades */
-  .loader.is-leaving .loader__zoom,
-  .loader.is-leaving .lm,
-  .loader.is-leaving .loader__black,
-  .loader.is-leaving .lm__split--a,
-  .loader.is-leaving .lm__split--b {
-    animation: none;
-  }
-  .loader.is-leaving.has-mark .loader__black {
-    visibility: visible;
-  }
-  .loader.is-leaving .loader__hole,
-  .loader.is-leaving .loader__frame {
-    animation: none;
-  }
-  .loader {
-    transition: opacity 500ms ease;
-  }
-  .loader.is-leaving {
-    opacity: 0;
   }
 }
 
