@@ -1,20 +1,13 @@
 /* =========================================================
-   Story — the city, read in order
-   A contents strip, then chapters: writing in one column under an outlined numeral,
-   pictures stacked beside it, a line from the city between each.
+   Story — told like a film.
+   A black opening; each chapter a scene that holds the screen while its lines come up as
+   subtitles; a title card between chapters; a closing card. A reel on the right shows where
+   you are. Without motion, everything reads top to bottom with no holding.
    ========================================================= */
 .story {
-  padding-block: clamp(2.5rem, 1.5rem + 4vw, 5rem) clamp(4rem, 3rem + 5vw, 8rem);
-}
-.story__inner {
-  display: grid;
-}
-
-/* a gold hairline opens every part after the first */
-.story__part + .story__part {
-  margin-top: clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
-  padding-top: clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
-  border-top: 1px solid rgb(var(--rgb-gold) / 0.14);
+  --sf-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  background: #030304;
 }
 
 /* ---------- scene media (shared with LoopMedia) ---------- */
@@ -61,227 +54,572 @@
   background: radial-gradient(90% 80% at 60% 35%, rgb(80 110 230 / 0.4), transparent 72%);
 }
 
-/* ---------- a chapter ---------- */
-.sc {
+/* ---------------------------------------------------------------- the opening */
+.so-open {
+  position: relative;
+  height: 100svh;
+}
+.story--motion .so-open {
+  height: 170svh; /* holds while the tagline lights up */
+}
+.so-open__sticky {
+  position: sticky;
+  top: 0;
   display: grid;
-  /* deliberately uneven: the pictures get the wider half */
-  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+  place-content: center;
+  justify-items: center;
+  gap: clamp(1rem, 0.6rem + 1.5vw, 1.75rem);
+  height: 100svh;
+  padding: var(--top-chrome) var(--gutter) 0;
+  text-align: center;
+  background: radial-gradient(50% 40% at 50% 55%, rgb(var(--rgb-gold) / 0.08), transparent 70%), #030304;
+  overflow: hidden;
+}
+/* a film grain over the black */
+.so-open__sticky::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.so-open__kicker {
+  display: flex;
   align-items: center;
-  gap: clamp(2rem, 1rem + 4vw, 5.5rem);
+  gap: 1rem;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--c-gold);
+  animation: so-fade 1.2s ease 0.2s both;
 }
-/* every other chapter puts its pictures on the left */
-.sc--flip .sc__media {
-  order: -1;
+.so-open__kicker::before,
+.so-open__kicker::after {
+  content: '';
+  width: 2.5rem;
+  height: 1px;
+  background: rgb(var(--rgb-gold) / 0.5);
 }
-
-/* the oversized outlined numeral over each chapter's opening */
-.sc__num {
-  /* clear of the kicker: gold text over gold strokes would not be readable */
-  margin: 0 0 var(--sp-3);
+.so-open__title {
+  margin: 0 -0.5em 0 0;
   font-family: var(--font-display);
-  font-size: clamp(3.5rem, 1.5rem + 6.5vw, 7rem);
-  line-height: 0.95;
+  font-weight: 400;
+  font-size: clamp(4.5rem, 2rem + 14vw, 14rem);
+  line-height: 0.85;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
   color: transparent;
-  -webkit-text-stroke: 1px rgb(var(--rgb-gold) / 0.45);
-  user-select: none;
+  animation: so-title 1.6s var(--sf-ease) 0.1s both;
 }
-@supports not (-webkit-text-stroke: 1px red) {
-  .sc__num {
-    color: rgb(var(--rgb-gold) / 0.2);
+@keyframes so-title {
+  from {
+    opacity: 0;
+    letter-spacing: 1.1em;
+    filter: blur(8px);
   }
 }
-
-.sc__kicker {
-  position: relative;
-  margin: 0 0 var(--sp-3);
+@keyframes so-fade {
+  from {
+    opacity: 0;
+  }
+}
+.so-open__line {
+  max-width: 34rem;
+  margin: 0;
+  font-size: clamp(1.15rem, 1rem + 0.8vw, 1.6rem);
+  line-height: 1.45;
+  color: #efe9dc;
+}
+.so-open__index {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 2rem;
+  margin-top: var(--sp-4);
+  animation: so-fade 1.2s ease 0.8s both;
+}
+.so-open__index a {
   font-family: var(--font-mono);
   font-size: var(--fs-2xs);
   letter-spacing: 0.22em;
   text-transform: uppercase;
+  color: var(--fg-muted);
+  text-decoration: none;
+}
+.so-open__index a span {
   color: var(--c-gold);
 }
-.sc__title {
-  margin: 0 0 var(--sp-5);
-  font-size: var(--fs-xl);
-  line-height: var(--lh-display);
-  letter-spacing: -0.01em;
-  text-transform: uppercase;
-  /* so the contents links do not land under the fixed header */
-  scroll-margin-top: calc(var(--top-chrome) + 2rem);
+.so-open__index a:hover,
+.so-open__index a:focus-visible {
+  color: var(--fg);
 }
-.sc__lead {
-  margin: 0 0 var(--sp-4);
-  max-width: 32ch;
-  font-size: var(--fs-md);
-  line-height: 1.35;
-  letter-spacing: -0.005em;
+.so-open__cue {
+  position: absolute;
+  left: 50%;
+  bottom: 1.75rem;
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  animation: so-fade 1s ease 1.4s both;
+}
+.so-open__cue i {
+  width: 1px;
+  height: 2.5rem;
+  background: linear-gradient(var(--c-gold), transparent);
+  transform-origin: top;
+  animation: so-cue 2s ease-in-out infinite;
+}
+@keyframes so-cue {
+  0% {
+    transform: scaleY(0);
+  }
+  50% {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+  51% {
+    transform-origin: bottom;
+  }
+  100% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+}
+
+/* words that light up as they're read */
+.lit__w {
+  display: inline;
+}
+
+/* ---------------------------------------------------------------- a chapter: a scene */
+.sf {
+  position: relative;
+  height: 100svh;
+}
+/* with motion the scene holds the screen for about a screen per line */
+.sf--motion {
+  height: calc((var(--steps) + 1) * 100svh);
+}
+.sf__sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+}
+.sf:not(.sf--motion) .sf__sticky {
+  position: relative;
+  height: auto;
+  min-height: 100svh;
+}
+.sf__media {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  will-change: transform;
+}
+.sf__shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(rgb(3 3 4 / 0.55), transparent 30%, transparent 45%, rgb(3 3 4 / 0.92) 88%),
+    radial-gradient(120% 90% at 50% 40%, transparent 50%, rgb(3 3 4 / 0.7));
+}
+/* the black bars of a film, closing in */
+.sf__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  height: 8svh;
+  background: #030304;
+}
+.sf__bar--top {
+  top: 0;
+  transform-origin: top;
+}
+.sf__bar--bottom {
+  bottom: 0;
+  transform-origin: bottom;
+}
+.sf:not(.sf--motion) .sf__bar {
+  display: none;
+}
+
+/* the number, huge and outlined, behind the title */
+.sf__num {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  translate: -50% -60%;
+  font-family: var(--font-display);
+  font-size: clamp(14rem, 8rem + 30vw, 34rem);
+  line-height: 0.8;
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(255 255 255 / 0.18);
+  pointer-events: none;
+  user-select: none;
+}
+.sf__head {
+  position: absolute;
+  z-index: 2;
+  top: calc(var(--top-chrome) + 9svh);
+  left: var(--gutter);
+  right: var(--gutter);
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  text-align: center;
+}
+.sf__kicker {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--c-gold);
+}
+.sf__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.8rem, 1.6rem + 5vw, 6.5rem);
+  line-height: 0.9;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #f6f1e6;
+  text-shadow: 0 6px 40px rgb(0 0 0 / 0.6);
+}
+
+/* the chapter's two smaller pictures, as stills drifting past */
+.sf__stills {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.sf__still {
+  position: absolute;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.8);
+}
+.sf__still .loop {
+  position: absolute;
+}
+.sf__still--0 {
+  left: 5vw;
+  top: 44%;
+  width: clamp(9rem, 6rem + 9vw, 16rem);
+  aspect-ratio: 1;
+  rotate: -4deg;
+}
+.sf__still--1 {
+  right: 9vw; /* clear of the chapter reel on the right */
+  top: 30%;
+  width: clamp(11rem, 7rem + 12vw, 21rem);
+  aspect-ratio: 16 / 10;
+  rotate: 3deg;
+}
+
+/* subtitles */
+.sf__subs {
+  position: absolute;
+  z-index: 4;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: calc(8svh + clamp(1.5rem, 1rem + 2vw, 3rem));
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+.sf__sub {
+  grid-area: 1 / 1;
+  max-width: 44rem;
+  margin: 0;
+  font-size: clamp(1.1rem, 0.95rem + 0.8vw, 1.55rem);
+  line-height: 1.5;
+  color: #f3eee2;
+  text-shadow: 0 2px 14px rgb(0 0 0 / 0.85);
+  opacity: 0;
+  transform: translateY(14px);
+  filter: blur(6px);
+  transition:
+    opacity 0.55s ease,
+    transform 0.7s var(--sf-ease),
+    filter 0.55s ease;
+}
+.sf__sub--lead {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 1.2rem + 1.8vw, 2.6rem);
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   color: var(--c-gold-light);
 }
-.sc__body {
-  margin: 0 0 var(--sp-4);
-  max-width: 44ch; /* 65-75 characters, counting the wider glyphs */
-  line-height: 1.7;
-  color: var(--fg-muted);
+.sf__sub.is-on {
+  opacity: 1;
+  transform: none;
+  filter: none;
 }
-.sc__body:last-of-type {
-  margin-bottom: 0;
+.sf__count {
+  display: flex;
+  gap: 6px;
+  margin: 1.2rem 0 0;
 }
-.sc__link {
-  position: relative;
+.sf__count i {
+  width: 1.5rem;
+  height: 2px;
+  background: rgb(255 255 255 / 0.2);
+  transition: background 0.4s ease;
+}
+.sf__count i.is-on {
+  background: var(--c-gold);
+}
+.sf__link {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: var(--sp-5);
-  padding-bottom: 0.2rem;
-  border-bottom: 1px solid rgb(var(--rgb-gold) / 0.4);
-  color: var(--c-gold-light);
+  margin-top: 1rem;
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
+  color: var(--c-gold-light);
   text-decoration: none;
-  transition: border-color var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
 }
-.sc__link::after {
-  content: '';
-  position: absolute;
-  inset: -10px -4px;
+.sf__link.is-on {
+  opacity: 1;
+  pointer-events: auto;
 }
-.sc__link:hover {
-  border-bottom-color: var(--c-gold);
-  color: var(--c-gold);
+.sf__link:hover,
+.sf__link:focus-visible {
+  color: #fff;
 }
-.sc__link:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 4px;
+.sf__link:focus-visible {
+  opacity: 1;
 }
 
-/* ---------- a chapter's pictures ---------- */
-.sc__media {
-  display: grid;
-  gap: clamp(0.75rem, 0.5rem + 1vw, 1.25rem);
-}
-.sc__figure,
-.sc__thumb {
+/* without motion: the writing sits under the picture, all of it shown */
+.sf:not(.sf--motion) .sf__subs {
   position: relative;
-  margin: 0;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  /* a hairline that reads as a frame rather than a box */
-  box-shadow: inset 0 0 0 1px rgb(var(--rgb-ivory) / 0.09);
+  inset: auto;
+  gap: 1rem;
+  padding: 60svh 0 4rem;
 }
-.sc__figure {
-  aspect-ratio: 16 / 10;
+.sf:not(.sf--motion) .sf__sub {
+  grid-area: auto;
 }
-/* the two smaller places, the second dropped so the pair is not a tidy grid */
-.sc__pair {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: clamp(0.75rem, 0.5rem + 1vw, 1.25rem);
-  align-items: start;
-}
-.sc__thumb {
-  aspect-ratio: 16 / 11;
-  border-radius: var(--radius-md);
-}
-.sc__thumb:last-child {
-  margin-top: clamp(0.75rem, 0.25rem + 1.5vw, 1.75rem);
+.sf:not(.sf--motion) .sf__stills {
+  display: none;
 }
 
-/* ---------- a quote between chapters ---------- */
+/* ---------------------------------------------------------------- a quote: a title card */
 .sq {
   display: grid;
+  place-content: center;
   justify-items: center;
-  gap: var(--sp-5);
-  margin: clamp(2.5rem, 1.5rem + 3vw, 4.5rem) 0 0;
-  padding-top: clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
-  border-top: 1px solid rgb(var(--rgb-ivory) / 0.08);
+  gap: 1.5rem;
+  min-height: 90svh;
+  margin: 0;
+  padding: 6rem var(--gutter);
   text-align: center;
+  background: #030304;
 }
 .sq__words {
+  max-width: 18ch;
   margin: 0;
-  max-width: 26ch;
   font-family: var(--font-display);
-  font-size: var(--fs-lg);
-  line-height: 1.08;
-  letter-spacing: -0.01em;
+  font-size: clamp(2.4rem, 1.4rem + 5vw, 6rem);
+  line-height: 1;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
-  color: var(--fg);
-}
-.sq__words::before {
-  content: '\201C';
-}
-.sq__words::after {
-  content: '\201D';
+  color: #f6f1e6;
 }
 .sq__line {
-  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
-  letter-spacing: 0.14em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--c-gold);
 }
+.sq__line::before {
+  content: '';
+  width: 2.5rem;
+  height: 1px;
+  background: currentColor;
+}
 
-/* ---------- the end ---------- */
-.so {
+/* ---------------------------------------------------------------- the end */
+.se {
   display: grid;
   justify-items: center;
   gap: var(--sp-4);
-  padding: clamp(2.5rem, 1.5rem + 4vw, 5rem) var(--sp-5);
-  border: 1px solid rgb(var(--rgb-gold) / 0.16);
-  border-radius: var(--radius-lg);
-  background:
-    radial-gradient(120% 140% at 50% 0%, rgb(var(--rgb-gold) / 0.07), transparent 62%),
-    var(--c-ink);
+  padding: clamp(6rem, 4rem + 8vw, 11rem) var(--gutter);
   text-align: center;
+  border-top: 1px solid rgb(var(--rgb-gold) / 0.14);
+  background: radial-gradient(60% 50% at 50% 60%, rgb(var(--rgb-gold) / 0.08), transparent 70%), #030304;
 }
-.so__title {
+.se__the-end {
   margin: 0;
-  font-size: var(--fs-xl);
-  line-height: var(--lh-display);
-  letter-spacing: -0.01em;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.4em;
   text-transform: uppercase;
-}
-.so__body {
-  margin: 0;
-  max-width: 46ch;
-  line-height: 1.7;
   color: var(--fg-muted);
 }
-.so__actions {
+.se__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.6rem, 1.6rem + 4.5vw, 5.5rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.se__body {
+  max-width: 30rem;
+  margin: 0;
+  color: var(--fg-muted);
+}
+.se__actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: var(--sp-4);
-  margin-top: var(--sp-4);
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
 }
 
-/* ---------- phones: one column, pictures first ---------- */
+/* ---------------------------------------------------------------- the reel */
+.sr {
+  position: fixed;
+  z-index: 20;
+  top: 50%;
+  right: clamp(0.75rem, 0.5rem + 1vw, 1.75rem);
+  display: grid;
+  gap: 1.1rem;
+  translate: 0 -50%;
+}
+.sr a {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  color: rgb(255 255 255 / 0.4);
+  text-decoration: none;
+}
+.sr__no {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+}
+.sr__no::after {
+  content: '';
+  display: inline-block;
+  width: 1.25rem;
+  height: 1px;
+  margin-left: 0.6rem;
+  vertical-align: middle;
+  background: currentColor;
+  transition: width 0.4s var(--sf-ease);
+}
+.sr__name {
+  order: -1;
+  font-size: 0.6875rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateX(6px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+.sr a.is-on {
+  color: var(--c-gold);
+}
+.sr a.is-on .sr__no::after {
+  width: 2.5rem;
+}
+.sr a.is-on .sr__name,
+.sr a:hover .sr__name,
+.sr a:focus-visible .sr__name {
+  opacity: 1;
+  transform: none;
+}
+.sr a:hover,
+.sr a:focus-visible {
+  color: var(--fg);
+}
 @media (max-width: 60rem) {
-  .sc {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--sp-6);
+  .sr {
+    display: none;
   }
-  .sc__media,
-  .sc--flip .sc__media {
-    order: -1;
+}
+
+/* ---------------------------------------------------------------- phones */
+@media (max-width: 40rem) {
+  .so-open__title {
+    margin-right: -0.28em;
+    font-size: clamp(3.4rem, 1rem + 17vw, 5rem);
+    letter-spacing: 0.28em;
   }
-  .sc__figure {
-    aspect-ratio: 16 / 10;
+  .sf__still--0 {
+    left: 4vw;
+    top: 52%;
+    width: 7.5rem;
   }
-  .sc__thumb {
-    aspect-ratio: 4 / 3;
+  .sf__still--1 {
+    right: 4vw;
+    top: 36%;
+    width: 9.5rem;
   }
-  .sc__lead,
-  .sc__body {
-    max-width: none;
+  .sf__bar {
+    height: 5svh;
+  }
+  .sf__subs {
+    bottom: calc(5svh + 1.5rem);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .scrub__video,
-  .sc__link {
+  .so-open__kicker,
+  .so-open__title,
+  .so-open__index,
+  .so-open__cue,
+  .so-open__cue i {
+    animation: none;
+  }
+  .sf__sub,
+  .sf__count i,
+  .sf__link,
+  .sr__name,
+  .sr__no::after {
     transition: none;
   }
 }
