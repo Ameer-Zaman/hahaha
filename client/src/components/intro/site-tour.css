@@ -1,0 +1,218 @@
+/* =========================================================
+   The first-visit tour (SiteTour.jsx): the screen dims, a gold-ringed spotlight glides from
+   one part of the site to the next, and a small card explains each part.
+   ========================================================= */
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 190; /* over the header and the chat button, under the loading screen and cut-scenes */
+}
+/* stops clicks reaching the page while the tour runs */
+.tour__catch {
+  position: absolute;
+  inset: 0;
+}
+/* the spotlight: a gold-ringed window, with everything around it dimmed by a huge shadow */
+.tour__spot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 2px var(--c-gold-light, #f6e3b0),
+    0 0 24px 4px rgb(var(--rgb-gold, 227 181 90) / 0.45),
+    0 0 0 200vmax rgb(4 4 6 / 0.74);
+  transition:
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    border-radius 0.55s;
+  animation: tour-fade 0.4s ease both;
+  pointer-events: none;
+}
+.tour.is-centred .tour__spot {
+  box-shadow: 0 0 0 200vmax rgb(4 4 6 / 0.74);
+}
+.tour.has-spot .tour__spot::after {
+  /* a soft pulse round the ring */
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  box-shadow: 0 0 0 2px rgb(var(--rgb-gold, 227 181 90) / 0.6);
+  animation: tour-pulse 1.8s ease-out infinite;
+}
+@keyframes tour-pulse {
+  to {
+    transform: scale(1.18);
+    opacity: 0;
+  }
+}
+@keyframes tour-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* the card */
+.tour__card {
+  position: absolute;
+  padding: 1.15rem 1.25rem 1.1rem;
+  border: 1px solid rgb(var(--rgb-gold, 227 181 90) / 0.4);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #16131a, #0b0a0d);
+  color: #f4efe6;
+  box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.9);
+  transition:
+    left 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    top 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: tour-card-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes tour-card-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.6rem, 0) scale(0.98);
+  }
+}
+/* the little pointer towards the part shown */
+.tour__card[data-arrow]::before {
+  content: '';
+  position: absolute;
+  left: clamp(18px, var(--arrow-x), calc(100% - 18px));
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  background: #16131a;
+  border: 1px solid rgb(var(--rgb-gold, 227 181 90) / 0.4);
+  transform: rotate(45deg);
+}
+.tour__card[data-arrow='top']::before {
+  top: -8px;
+  border-right: 0;
+  border-bottom: 0;
+}
+.tour__card[data-arrow='bottom']::before {
+  bottom: -8px;
+  background: #0b0a0d;
+  border-left: 0;
+  border-top: 0;
+}
+
+.tour__count {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs, 0.72rem);
+  letter-spacing: 0.2em;
+  color: var(--c-gold, #e3b55a);
+}
+.tour__title {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.6rem;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--c-gold-light, #f6e3b0);
+}
+.tour__text {
+  margin: 0.55rem 0 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: rgb(244 239 230 / 0.82);
+}
+.tour__dots {
+  display: flex;
+  gap: 0.3rem;
+  margin-top: 0.9rem;
+}
+.tour__dots i {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: rgb(244 239 230 / 0.2);
+  transition:
+    width 0.3s,
+    background 0.3s;
+}
+.tour__dots i.is-done {
+  background: rgb(var(--rgb-gold, 227 181 90) / 0.5);
+}
+.tour__dots i.is-on {
+  width: 1.2rem;
+  background: var(--c-gold, #e3b55a);
+}
+.tour__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.tour__skip {
+  margin-right: auto;
+  padding: 0.4rem 0;
+  border: 0;
+  background: none;
+  color: rgb(244 239 230 / 0.6);
+  font: inherit;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.tour__skip:hover {
+  color: #f4efe6;
+}
+.tour__btn {
+  min-height: 44px;
+  padding: 0 1.15rem;
+  border: 1px solid var(--c-gold, #e3b55a);
+  border-radius: 999px;
+  background: var(--c-gold, #e3b55a);
+  color: #0b0b0e;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.tour__btn:hover {
+  background: var(--c-gold-light, #f6e3b0);
+}
+.tour__btn--ghost {
+  background: none;
+  color: #f4efe6;
+  border-color: rgb(244 239 230 / 0.3);
+}
+.tour__btn--ghost:hover {
+  background: rgb(244 239 230 / 0.08);
+}
+.tour__btn:focus-visible,
+.tour__skip:focus-visible {
+  outline: 2px solid var(--focus, #f6e3b0);
+  outline-offset: 3px;
+}
+
+/* the footer's button to take the tour again */
+.site-footer__tour {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour__spot,
+  .tour__card {
+    transition: none;
+  }
+  .tour.has-spot .tour__spot::after {
+    animation: none;
+  }
+}

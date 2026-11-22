@@ -12,6 +12,7 @@ import ChatWidget from '../chat/ChatWidget'
 import LiveNotice from '../live/LiveNotice'
 import { setIntroActive, shouldShowIntro } from '../../lib/intro'
 import WelcomeGate from '../intro/WelcomeGate'
+import SiteTour from '../intro/SiteTour'
 import LoadingScreen from '../intro/LoadingScreen'
 import MaintenanceScreen, { MaintenancePreviewNotice } from '../site/MaintenanceScreen'
 import { useLogoFavicon, useSiteSettings, useStaffPreview } from '../../lib/siteSettings'
@@ -119,6 +120,7 @@ export default function Layout() {
       <FluidCursor />
       <LiveNotice />
       <ChatWidget />
+      <SiteTour ready={!showGate && !showLoader} />
       {showGate && <WelcomeGate paused={showLoader && !loaderLeaving} onDone={() => setShowGate(false)} />}
       {showLoader && <LoadingScreen onLeave={() => setLoaderLeaving(true)} onDone={() => setShowLoader(false)} />}
     </>

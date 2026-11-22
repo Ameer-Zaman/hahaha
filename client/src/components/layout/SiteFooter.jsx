@@ -5,6 +5,7 @@ import { useCommunityLinks, useSiteSettings } from '../../lib/siteSettings'
 import { BrandIcon } from '../ui/BrandIcons'
 import { SOCIAL_PLATFORMS } from '../ui/socialPlatforms'
 import BrandMark from '../ui/BrandMark'
+import { startSiteTour } from '../../lib/siteTour'
 import './footer.css'
 
 const YEAR = new Date().getFullYear()
@@ -50,6 +51,9 @@ export default function SiteFooter() {
         <p>
           © {YEAR} {site.name}
         </p>
+        <button type="button" className="site-footer__tour" onClick={startSiteTour}>
+          Site tour
+        </button>
       </div>
     </footer>
   )
