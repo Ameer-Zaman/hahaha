@@ -31,7 +31,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
  * Free hosting puts the API to sleep when nobody uses it; the first request then takes up to
  * a minute while it starts. Retry while the server is waking, telling the UI it's waiting.
  */
-export async function withWake(fn, { onWaking, tries = 10, delay = 5000 } = {}) {
+export async function withWake(fn, { onWaking, tries = 18, delay = 5000 } = {}) {
   for (let attempt = 1; ; attempt += 1) {
     try {
       return await fn()

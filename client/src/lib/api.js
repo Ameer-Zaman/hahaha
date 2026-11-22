@@ -39,10 +39,13 @@ export async function api(path, { method = 'GET', body, signal, timeout = 0, for
       if (signal?.aborted) throw err
       throw new ApiError(0, 'The server could not be reached.')
     }
-    // No API behind /api: the host answered with a web page (e.g. the site's index.html).
     if (!(res.headers.get('content-type') ?? '').includes('application/json')) {
-      if ([502, 503, 504].includes(res.status)) throw new ApiError(res.status, 'The server is starting up.')
-      throw new ApiError(404, 'The API server is not connected to this website yet.', 'not_connected')
+      // No API behind /api at all: the website's own page came back (its index.html, 200 or 404).
+      const ownPage = (res.status === 200 || res.status === 404) && !res.headers.has('x-render-routing')
+      if (ownPage) throw new ApiError(404, 'The API server is not connected to this website yet.', 'not_connected')
+      // Anything else is the API's host or the forwarder answering for it — asleep, restarting or
+      // mid-deploy — so it's worth waiting and trying again rather than giving up.
+      throw new ApiError(503, 'The server is starting up.')
     }
     const data = await res.json().catch(() => null)
     if (!res.ok) throw new ApiError(res.status, data?.message ?? `Request failed (${res.status}).`)

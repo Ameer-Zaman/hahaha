@@ -72,8 +72,7 @@ async function toEntry(res) {
   const headers = [...res.headers].filter(([k]) => !['set-cookie', 'content-encoding', 'content-length', 'transfer-encoding'].includes(k))
   const cc = res.headers.get('cache-control') || ''
   const maxAge = Number(/max-age=(\d+)/.exec(cc)?.[1] ?? 0)
-  const cacheable =
-    [200, 301, 302, 404].includes(res.status) && /\bpublic\b/.test(cc) && maxAge > 0 && !res.headers.has('set-cookie')
+  const cacheable = [200, 301, 302, 404].includes(res.status) && /\bpublic\b/.test(cc) && maxAge > 0 && !res.headers.has('set-cookie')
   return { status: res.status, headers, body, maxAge: res.status === 404 ? Math.min(maxAge, 10) : maxAge, fetchedAt: Date.now(), cacheable }
 }
 
@@ -95,7 +94,14 @@ async function readCache(key, { allowExpired = false } = {}) {
     const meta = JSON.parse(hit.headers.get('x-edge-meta') || '{}')
     const headers = [...hit.headers].filter(([k]) => !['x-edge-meta', 'cache-control', 'content-length'].includes(k))
     headers.push(['cache-control', meta.cc || 'public, max-age=0'])
-    const entry = { status: meta.status ?? hit.status, headers, body: await hit.arrayBuffer(), maxAge: meta.maxAge ?? 0, fetchedAt: meta.fetchedAt ?? 0, cacheable: true }
+    const entry = {
+      status: meta.status ?? hit.status,
+      headers,
+      body: await hit.arrayBuffer(),
+      maxAge: meta.maxAge ?? 0,
+      fetchedAt: meta.fetchedAt ?? 0,
+      cacheable: true,
+    }
     remember(key, entry)
     return entry
   } catch {
@@ -127,7 +133,18 @@ function remember(key, entry) {
 
 /* ---------- forwarding ---------- */
 
-const DROP = new Set(['host', 'x-forwarded-for', 'x-forwarded-host', 'x-forwarded-proto', 'x-real-ip', 'cf-connecting-ip', 'cf-ipcountry', 'cf-ray', 'cf-visitor', 'cdn-loop'])
+const DROP = new Set([
+  'host',
+  'x-forwarded-for',
+  'x-forwarded-host',
+  'x-forwarded-proto',
+  'x-real-ip',
+  'cf-connecting-ip',
+  'cf-ipcountry',
+  'cf-ray',
+  'cf-visitor',
+  'cdn-loop',
+])
 
 async function forward(request, target, url) {
   const headers = new Headers()
@@ -140,7 +157,18 @@ async function forward(request, target, url) {
   headers.set('x-forwarded-host', url.host)
   const init = { method: request.method, headers, redirect: 'manual' }
   if (!['GET', 'HEAD'].includes(request.method)) init.body = request.body
-  return fetch(target, init)
+  let res
+  try {
+    res = await fetch(target, init)
+  } catch {
+    return json(503, { message: 'The server is starting up.' }) // asleep or restarting: the website retries
+  }
+  // The API itself always answers errors in JSON; an error page in HTML comes from its host
+  // (Render) while the server sleeps, restarts or deploys. Say so in JSON, so it's retried.
+  if (res.status >= 400 && (res.headers.get('content-type') || '').includes('text/html')) {
+    return json(503, { message: 'The server is starting up.' })
+  }
+  return res
 }
 
 function json(status, data) {
