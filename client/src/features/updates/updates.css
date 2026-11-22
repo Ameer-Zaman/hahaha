@@ -83,6 +83,9 @@
   font-weight: 400;
   letter-spacing: 0;
 }
+.up-group {
+  --tone: var(--up-changed);
+}
 .up-chip--new,
 .up-group--new {
   --tone: var(--up-new);
@@ -103,7 +106,6 @@
   gap: 1rem;
 }
 .up-group {
-  --tone: var(--up-changed);
   padding: 1rem 1.1rem 1.1rem;
   border: 1px solid rgb(var(--rgb-ivory) / 0.07);
   border-top: 2px solid var(--tone);
