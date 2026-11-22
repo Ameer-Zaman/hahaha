@@ -4,6 +4,7 @@ import { areaGate, requireArea } from '../../middleware/access.js'
 import { authenticate, requireRole } from '../../middleware/auth.js'
 import { PANEL_AREAS } from '../../models/User.js'
 import { twoFactorRequired } from '../../services/twoFactor.js'
+import { snapshot } from '../../services/presence.js'
 import { Club } from '../../models/Club.js'
 import { Event } from '../../models/Event.js'
 import { Gang } from '../../models/Gang.js'
@@ -94,6 +95,9 @@ router.get('/overview', staffRoles, async (req, res) => {
     recent: recent.map(({ _id, actor, ...e }) => ({ id: String(_id), ...e })),
   })
 })
+
+// How many people have the public website open right now (anonymous counts, see services/presence.js)
+router.get('/visitors', staffRoles, (req, res) => res.json(snapshot()))
 
 // Each part of the panel also needs the area a Super Admin opened for the account
 // (Panel → Accounts → Pages). Super Admins pass every area check.

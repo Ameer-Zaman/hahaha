@@ -15,6 +15,7 @@ import LoadingScreen from '../intro/LoadingScreen'
 import MaintenanceScreen, { MaintenancePreviewNotice } from '../site/MaintenanceScreen'
 import { useLogoFavicon, useSiteSettings, useStaffPreview } from '../../lib/siteSettings'
 import { preloadHomeAssets, preloadHomeInBackground } from '../../lib/preload'
+import { usePresence } from '../../lib/presence'
 
 /** Pages whose first screen is light (none: the site is black and gold throughout). */
 const LIGHT_TOP = []
@@ -29,6 +30,7 @@ const pageKey = (path) => (OVERLAY_ROUTES.some((re) => re.test(path)) ? `/${path
 export default function Layout() {
   const { pathname, hash, key } = useLocation()
   const tone = LIGHT_TOP.includes(pathname) ? 'light' : 'dark'
+  usePresence(pageKey(pathname)) // counted (anonymously) in the panel's "On the website now"
 
   // Decided once, on first load: the welcome screen only greets visitors landing on the homepage.
   const [showGate, setShowGate] = useState(() => {

@@ -14,6 +14,7 @@ import authRoutes from './routes/auth.js'
 import chatRoutes from './routes/chat.js'
 import mediaRoutes from './routes/media.js'
 import publicRoutes from './routes/public.js'
+import { checkIn } from './services/presence.js'
 
 export function createApp() {
   const app = express()
@@ -49,6 +50,25 @@ export function createApp() {
   )
 
   app.get('/api/health', (req, res) => res.json({ ok: true }))
+
+  /**
+   * The public website's tabs checking in, so the panel can show how many people are on the
+   * website right now (services/presence.js). Only a random code per tab and the page's path
+   * are sent and kept, in memory. A tab checks in about twice a minute, so this limit leaves
+   * room for someone with several tabs while stopping one address inflating the count.
+   */
+  app.post(
+    '/api/public/presence',
+    checkOrigin,
+    rateLimit({ windowMs: 60 * 1000, limit: 30, standardHeaders: 'draft-8', legacyHeaders: false, message: { message: 'Slow down.' } }),
+    (req, res) => {
+      const { id, path, leave } = req.body ?? {}
+      if (typeof id !== 'string' || !/^[a-z0-9]{12,40}$/i.test(id)) return res.status(400).json({ message: 'Bad code.' })
+      const page = typeof path === 'string' && path.startsWith('/') ? path.split(/[?#]/)[0].slice(0, 80) : '/'
+      checkIn(id, page.toLowerCase(), leave === true)
+      res.set('Cache-Control', 'no-store').status(204).end()
+    },
+  )
 
   app.use('/api/public', publicRoutes)
   app.use('/api/media', mediaRoutes)
