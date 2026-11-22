@@ -105,7 +105,7 @@ function formatUpdated(value) {
 
 /**
  * The TDM board, styled like a game's poster art: the top three as tall slanted posters (a
- * sunset sky, the place as a huge outlined number, the name in big type), and
+ * sunset sky, the place as a huge outlined number, the name in big letters standing on the horizon), and
  * everyone else as slanted strips with a bar for their kills against the leader's.
  */
 function TdmBoard() {
@@ -149,12 +149,15 @@ function TdmBoard() {
                 <span className="tdm-poster__ground" />
                 <span className="tdm-poster__num">{String(r.rank).padStart(2, '0')}</span>
               </div>
+              {/* the name, in big poster letters standing on the horizon */}
+              <h3 className="tdm-poster__name" style={{ '--len': Math.max(4, ...r.name.split(/\s+/).map((w) => w.length)) }}>
+                {r.name}
+              </h3>
               <div className="tdm-poster__body">
                 <span className="tdm-poster__tag">
                   {jointAt(r.rank) ? 'Joint ' : ''}
                   {PLACE[r.rank - 1] ?? `${r.rank}th`} place
                 </span>
-                <h3 className="tdm-poster__name">{r.name}</h3>
                 <dl className="tdm-poster__stats">
                   <div>
                     <dt>Kills</dt>

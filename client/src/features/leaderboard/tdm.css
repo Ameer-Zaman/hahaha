@@ -66,6 +66,7 @@
   --accent: var(--c-gold-light);
   --horizon: 62%; /* where the sky meets the ground */
   position: relative;
+  container-type: inline-size;
   aspect-ratio: 3 / 4;
   clip-path: polygon(var(--tdm-slant) 0, 100% 0, calc(100% - var(--tdm-slant)) 100%, 0 100%);
   isolation: isolate;
@@ -125,10 +126,10 @@
   top: 0.4rem;
   left: calc(var(--tdm-slant) + 0.4rem);
   font-family: var(--font-display);
-  font-size: clamp(5rem, 11vw, 9.5rem);
+  font-size: clamp(3.25rem, 22cqw, 6.5rem);
   line-height: 0.85;
   color: transparent;
-  -webkit-text-stroke: 2px rgb(255 255 255 / 0.55);
+  -webkit-text-stroke: 1.5px rgb(255 255 255 / 0.5);
   animation: tdm-num-in 1s var(--tdm-ease) both;
   animation-delay: calc(var(--d) * 110ms + 150ms);
 }
@@ -160,25 +161,38 @@
   text-transform: uppercase;
 }
 .tdm-poster__name {
-  margin: 0.45rem 0 0;
+  /* sized to the poster's width (container units) and to the name's longest word, so short
+     names are huge and long ones still fit */
+  position: absolute;
+  left: clamp(0.9rem, 6cqw, 1.5rem);
+  right: calc(var(--tdm-slant) + 0.6rem);
+  bottom: calc(100% - var(--horizon) - 0.06em);
+  margin: 0;
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: clamp(1.9rem, 3.2vw, 3.1rem);
-  line-height: 0.92;
+  font-size: min(calc(150cqw / var(--len, 6)), 24cqw);
+  line-height: 0.84;
   text-transform: uppercase;
-  color: #fff;
-  text-shadow: 0 2px 18px rgb(0 0 0 / 0.6);
   overflow-wrap: anywhere;
   text-wrap: balance;
+  background: linear-gradient(180deg, #ffffff 25%, var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0.25rem 0.8rem rgb(0 0 0 / 0.55));
+  animation: tdm-name-up 1s var(--tdm-ease) both;
+  animation-delay: calc(var(--d) * 110ms + 250ms);
 }
-.tdm-poster--1 .tdm-poster__name {
-  font-size: clamp(2.2rem, 3.9vw, 3.8rem);
-  color: var(--c-gold-light);
+@keyframes tdm-name-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 25%, 0);
+  }
 }
 .tdm-poster__stats {
   display: flex;
   gap: clamp(1rem, 2vw, 1.6rem);
-  margin: 0.8rem 0 0;
+  margin: 0.9rem 0 0;
   padding-top: 0.7rem;
   border-top: 1px solid rgb(255 255 255 / 0.18);
 }
@@ -417,18 +431,13 @@
     --horizon: 55%;
     aspect-ratio: 4 / 3.5;
   }
+  .tdm-poster--slot1 .tdm-poster__name {
+    font-size: min(calc(150cqw / var(--len, 6)), 16cqw); /* a wide poster: keep clear of the number */
+  }
   .tdm-poster--slot2,
   .tdm-poster--slot3 {
     --horizon: 47%;
     aspect-ratio: 3 / 4.6;
-  }
-  .tdm-poster--slot2 .tdm-poster__num,
-  .tdm-poster--slot3 .tdm-poster__num {
-    font-size: 4.25rem;
-  }
-  .tdm-poster--slot2 .tdm-poster__name,
-  .tdm-poster--slot3 .tdm-poster__name {
-    font-size: 1.45rem;
   }
   .tdm-poster--slot2 .tdm-poster__stats,
   .tdm-poster--slot3 .tdm-poster__stats {
@@ -472,6 +481,7 @@
 @media (prefers-reduced-motion: reduce) {
   .tdm-poster,
   .tdm-poster__num,
+  .tdm-poster__name,
   .tdm-row,
   .tdm-row__meter i {
     animation: none;
