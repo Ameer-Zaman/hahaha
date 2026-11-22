@@ -216,3 +216,125 @@
     animation: none;
   }
 }
+
+/* ---- the guide: a little ghost bot that floats to each part and points at it ---- */
+.tour-ghost {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  pointer-events: none;
+  transition: transform 0.75s cubic-bezier(0.34, 1.3, 0.5, 1); /* a little overshoot, like floating */
+  will-change: transform;
+}
+.tour-ghost__float {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  animation:
+    tour-ghost-in 0.7s cubic-bezier(0.34, 1.5, 0.5, 1) both,
+    tour-ghost-bob 2.6s ease-in-out 0.7s infinite;
+}
+@keyframes tour-ghost-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 1.5rem, 0) scale(0.4);
+  }
+}
+@keyframes tour-ghost-bob {
+  50% {
+    transform: translate3d(0, -7px, 0);
+  }
+}
+.tour-ghost__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 0 10px rgb(246 199 90 / 0.35));
+  transition: transform 0.4s ease;
+}
+.tour-ghost__svg.is-flipped {
+  transform: scaleX(-1);
+}
+/* a soft shadow beneath it, breathing with the bob */
+.tour-ghost__shadow {
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: -14%;
+  height: 10%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(246 199 90 / 0.35), transparent);
+  animation: tour-ghost-shadow 2.6s ease-in-out 0.7s infinite;
+}
+@keyframes tour-ghost-shadow {
+  50% {
+    transform: scale(0.7);
+    opacity: 0.6;
+  }
+}
+/* the eyes follow what it's showing, and blink now and then */
+.tour-ghost__eyes {
+  transition: transform 0.45s ease;
+}
+.tour-ghost__blink {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tour-ghost-blink 4.2s ease-in-out infinite;
+}
+@keyframes tour-ghost-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.1);
+  }
+}
+.tour-ghost__bulb {
+  animation: tour-ghost-bulb 1.6s ease-in-out infinite;
+}
+@keyframes tour-ghost-bulb {
+  50% {
+    opacity: 0.45;
+  }
+}
+/* pointing: the arm nudges towards the part; waving on the first and last cards */
+.tour-ghost__arm {
+  transform-box: fill-box;
+  transform-origin: 0% 100%;
+  animation: tour-ghost-point 1.2s ease-in-out infinite;
+}
+@keyframes tour-ghost-point {
+  50% {
+    transform: translate(3px, -1px);
+  }
+}
+.tour-ghost__svg.is-waving .tour-ghost__arm {
+  animation: tour-ghost-wave 0.9s ease-in-out infinite;
+}
+@keyframes tour-ghost-wave {
+  0%,
+  100% {
+    transform: rotate(-12deg);
+  }
+  50% {
+    transform: rotate(22deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-ghost {
+    transition: none;
+  }
+  .tour-ghost__float,
+  .tour-ghost__shadow,
+  .tour-ghost__blink,
+  .tour-ghost__bulb,
+  .tour-ghost__arm,
+  .tour-ghost__svg.is-waving .tour-ghost__arm {
+    animation: none;
+  }
+}

@@ -6,8 +6,8 @@ import { SITE_TOUR_EVENT as START } from '../../lib/siteTour'
 import './site-tour.css'
 
 /**
- * A short guided tour for first-time visitors: a spotlight moves over the main parts of the
- * site (the two menus, the rules, the players-in-the-city counter, the community links, the
+ * A short guided tour for first-time visitors, led by a little floating ghost bot: a spotlight
+ * moves over the main parts of the site (the two menus, the rules, the players-in-the-city counter, the community links, the
  * bell, the music and the chat) with a card explaining each. Next / Back / Skip, or the arrow
  * keys and Esc. Steps whose part isn't on screen (a phone's collapsed menu, a counter that's
  * switched off) are left out; on phones the menu button gets a step of its own.
@@ -212,6 +212,29 @@ export default function SiteTour({ ready }) {
       arrow = { side: 'bottom', x: cx - left }
     }
   }
+  // the ghost: beside the part shown, on the roomier side, pointing at it and looking at it;
+  // with nothing to show, waving from just above the card
+  const G = vw < 600 ? 56 : 80
+  let ghost
+  if (box) {
+    const cx = box.x + box.w / 2
+    const cy = box.y + box.h / 2
+    const onLeft = cx > vw / 2 // the part is on the right: float on its left, pointing right
+    const gx = onLeft ? box.x - G - 6 : box.x + box.w + 6
+    const gy = Math.max(6, Math.min(vh - G * 1.1 - 6, cy - G * 0.6))
+    const ex = cx - (gx + G / 2)
+    const ey = cy - (gy + G * 0.45)
+    const d = Math.hypot(ex, ey) || 1
+    ghost = {
+      x: Math.max(4, Math.min(vw - G - 4, gx)),
+      y: gy,
+      flip: !onLeft,
+      look: { x: (ex / d) * 3.5 * (onLeft ? 1 : -1), y: (ey / d) * 2.5 },
+      waving: false,
+    }
+  } else {
+    ghost = { x: pos.left + cardW / 2 - G / 2, y: Math.max(4, pos.top - G * 1.1 + 8), flip: false, look: { x: 0, y: 2 }, waving: true }
+  }
   const text = typeof step.text === 'function' ? step.text() : step.text
   const isLast = at === steps.length - 1
 
@@ -228,6 +251,7 @@ export default function SiteTour({ ready }) {
         }
       />
       <div className="tour__catch" aria-hidden="true" />
+      <GhostBot {...ghost} size={G} />
 
       <section
         ref={card}
@@ -277,5 +301,53 @@ export default function SiteTour({ ready }) {
       </section>
     </div>,
     document.body,
+  )
+}
+
+/**
+ * The tour's guide: a little ghost bot (our own character: an ivory ghost with a dark visor,
+ * glowing gold eyes and an antenna). It floats beside whatever is being shown, points at it
+ * and looks at it; on the first and last cards it waves from above the card.
+ */
+function GhostBot({ x, y, flip, look, waving, size }) {
+  return (
+    <div className="tour-ghost" aria-hidden="true" style={{ transform: `translate3d(${x}px, ${y}px, 0)`, width: size, height: size * 1.1 }}>
+      <div className="tour-ghost__float">
+        <svg viewBox="0 0 100 110" className={`tour-ghost__svg ${flip ? 'is-flipped' : ''} ${waving ? 'is-waving' : ''}`}>
+          <defs>
+            <linearGradient id="tour-ghost-body" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#fffaf0" />
+              <stop offset="0.7" stopColor="#efe8f6" stopOpacity="0.95" />
+              <stop offset="1" stopColor="#d9cfe8" stopOpacity="0.7" />
+            </linearGradient>
+          </defs>
+          {/* antenna, with a glowing tip */}
+          <line x1="50" y1="14" x2="50" y2="5" stroke="#d9cfe8" strokeWidth="3" strokeLinecap="round" />
+          <circle className="tour-ghost__bulb" cx="50" cy="5" r="4.5" fill="#f6c75a" />
+          {/* the pointing (or waving) arm, behind the body */}
+          <path className="tour-ghost__arm" d="M80 62 Q94 58 97 47" fill="none" stroke="#f3eef8" strokeWidth="8" strokeLinecap="round" />
+          {/* body, with a wavy hem */}
+          <path
+            d="M50 12 C27 12 15 30 15 52 L15 92 Q22 104 30 94 Q38 84 46 96 Q54 106 62 94 Q70 84 78 96 Q84 103 85 92 L85 52 C85 30 73 12 50 12 Z"
+            fill="url(#tour-ghost-body)"
+          />
+          {/* visor and eyes */}
+          <rect x="24" y="35" width="52" height="23" rx="11.5" fill="#16131b" />
+          <g className="tour-ghost__eyes" style={{ transform: `translate(${look.x}px, ${look.y}px)` }}>
+            <g className="tour-ghost__blink">
+              <ellipse cx="40" cy="46.5" rx="5" ry="6" fill="#f6c75a" />
+              <ellipse cx="60" cy="46.5" rx="5" ry="6" fill="#f6c75a" />
+              <circle cx="41.8" cy="44.2" r="1.6" fill="#fff6dc" />
+              <circle cx="61.8" cy="44.2" r="1.6" fill="#fff6dc" />
+            </g>
+          </g>
+          {/* cheeks and a small smile */}
+          <ellipse cx="30" cy="65" rx="5" ry="3" fill="#f6c75a" opacity="0.3" />
+          <ellipse cx="70" cy="65" rx="5" ry="3" fill="#f6c75a" opacity="0.3" />
+          <path d="M45 66 Q50 71 55 66" fill="none" stroke="#16131b" strokeWidth="2.4" strokeLinecap="round" />
+        </svg>
+        <span className="tour-ghost__shadow" />
+      </div>
+    </div>
   )
 }
