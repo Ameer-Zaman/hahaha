@@ -1,12 +1,11 @@
 /* =========================================================
-   The TDM board, in the style of game poster art. The top three are tall slanted posters, each
-   with its own sky (a sunset for first, dusk for second, embers for third) over the horizon,
-   and the place as a huge outlined number, with the name in big condensed type.
-   Everyone else is a slanted strip with a kills bar measured against the leader. All the art is
-   drawn with CSS; everything that moves is a transform or an opacity.
+   The TDM board. First place is a wide gold champion banner (a crown, the name in huge gold
+   letters, a giant outlined "01", light lines and a slow sheen); second and third are silver
+   and bronze cards. Everyone else is a slanted strip with a kills bar measured against the
+   leader. All drawn with CSS; everything that moves is a transform or an opacity.
    ========================================================= */
 .tdm {
-  --tdm-slant: 1.6rem; /* how far the posters and strips lean */
+  --tdm-slant: 1.6rem; /* how far the banners, cards and strips lean */
   --tdm-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -37,178 +36,236 @@
   color: var(--fg-muted);
 }
 
-/* ---------------------------------------------------------------- posters */
-.tdm-posters {
+/* ---------------------------------------------------------------- top three */
+.tdm-top {
   display: grid;
-  grid-template-columns: 1fr 1.15fr 1fr;
-  grid-template-areas: 'second first third';
-  align-items: end;
-  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(0.6rem, 1.2vw, 1rem);
   margin: 0 0 var(--sp-7);
   padding: 0;
   list-style: none;
 }
-.tdm-poster--slot1 {
-  grid-area: first;
-}
-.tdm-poster--slot2 {
-  grid-area: second;
-}
-.tdm-poster--slot3 {
-  grid-area: third;
-}
 
-.tdm-poster {
-  /* each place has its own sky: top, middle, horizon */
-  --sky-1: #2a1640;
-  --sky-2: #a2365e;
-  --sky-3: #f09045;
-  --accent: var(--c-gold-light);
-  --horizon: 62%; /* where the sky meets the ground */
+/* first place: the champion banner */
+.tdm-champ {
+  grid-column: 1 / -1;
   position: relative;
-  container-type: inline-size;
-  aspect-ratio: 3 / 4;
-  clip-path: polygon(var(--tdm-slant) 0, 100% 0, calc(100% - var(--tdm-slant)) 100%, 0 100%);
   isolation: isolate;
-  animation: tdm-poster-in 0.9s var(--tdm-ease) both;
-  animation-delay: calc(var(--d) * 110ms);
+  min-height: clamp(15rem, 24vw, 19rem);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  clip-path: polygon(var(--tdm-slant) 0, 100% 0, calc(100% - var(--tdm-slant)) 100%, 0 100%);
+  animation: tdm-champ-in 0.9s var(--tdm-ease) both;
 }
-.tdm-poster--1 {
-  aspect-ratio: 3 / 4.25;
-}
-.tdm-poster--2 {
-  --sky-1: #0d1530;
-  --sky-2: #3e3f78;
-  --sky-3: #a9a6c9;
-  --accent: #e4e6f2;
-}
-.tdm-poster--3 {
-  --sky-1: #1c0b08;
-  --sky-2: #7a2a16;
-  --sky-3: #d9783a;
-  --accent: #f2b682;
-}
-@keyframes tdm-poster-in {
+@keyframes tdm-champ-in {
   from {
     opacity: 0;
-    transform: translate3d(0, 3rem, 0);
+    transform: translate3d(-2.5rem, 0, 0);
   }
 }
-
-/* the art: sky, the ground with its horizon lines, and the place number */
-.tdm-poster__art {
+.tdm-champ__bg {
   position: absolute;
   inset: 0;
   z-index: -1;
-  overflow: hidden;
-  background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) calc(var(--horizon) * 0.6), var(--sky-3) var(--horizon));
-}
-.tdm-poster__ground {
-  position: absolute;
-  inset: var(--horizon) 0 0;
   background:
-    repeating-linear-gradient(180deg, transparent 0 0.9rem, rgb(255 255 255 / 0.05) 0.9rem calc(0.9rem + 1px)),
-    linear-gradient(180deg, #120b14, #050507 70%);
-  box-shadow: 0 -1px 0 rgb(255 255 255 / 0.35);
+    radial-gradient(70% 120% at 18% 50%, rgb(var(--rgb-gold) / 0.28), transparent 65%),
+    linear-gradient(100deg, #1d160b, #0c0b0d 55%, #08080a);
+  box-shadow:
+    inset 0 -3px 0 var(--c-gold),
+    inset 0 1px 0 rgb(var(--rgb-gold) / 0.35);
 }
-.tdm-poster__ground::before {
-  /* the glow along the horizon */
-  content: '';
+/* fine diagonal light lines, fading out to the right */
+.tdm-champ__rays {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: -2.5rem;
-  height: 2.5rem;
-  background: linear-gradient(0deg, rgb(255 210 140 / 0.35), transparent);
+  inset: 0;
+  background: repeating-linear-gradient(115deg, rgb(var(--rgb-gold) / 0.09) 0 2px, transparent 2px 26px);
+  -webkit-mask: linear-gradient(90deg, #000, transparent 70%);
+  mask: linear-gradient(90deg, #000, transparent 70%);
 }
-.tdm-poster__num {
+/* the place, huge and outlined, on the right */
+.tdm-champ__num {
   position: absolute;
-  top: 0.4rem;
-  left: calc(var(--tdm-slant) + 0.4rem);
+  right: calc(var(--tdm-slant) + 0.5rem);
+  top: 50%;
+  transform: translateY(-50%);
   font-family: var(--font-display);
-  font-size: clamp(3.25rem, 22cqw, 6.5rem);
-  line-height: 0.85;
+  font-size: clamp(9rem, 22vw, 19rem);
+  line-height: 0.8;
   color: transparent;
-  -webkit-text-stroke: 1.5px rgb(255 255 255 / 0.5);
-  animation: tdm-num-in 1s var(--tdm-ease) both;
-  animation-delay: calc(var(--d) * 110ms + 150ms);
+  -webkit-text-stroke: 2px rgb(var(--rgb-gold) / 0.28);
 }
-@keyframes tdm-num-in {
-  from {
-    opacity: 0;
-    transform: translate3d(-2rem, 0, 0);
+/* a slow band of light passing across now and then */
+.tdm-champ__sheen {
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 30%;
+  background: linear-gradient(100deg, transparent, rgb(255 236 190 / 0.12), transparent);
+  transform: translate3d(-120%, 0, 0) skewX(-18deg);
+  animation: tdm-sheen 6s ease-in-out 1.2s infinite;
+}
+@keyframes tdm-sheen {
+  35%,
+  100% {
+    transform: translate3d(420%, 0, 0) skewX(-18deg);
   }
 }
-
-/* the words, over the ground */
-.tdm-poster__body {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 0 calc(var(--tdm-slant) + 0.9rem) clamp(1rem, 2.2vw, 1.6rem) clamp(1rem, 2vw, 1.5rem);
+.tdm-champ__body {
+  position: relative;
+  padding: clamp(1.5rem, 3.5vw, 2.75rem) clamp(1.5rem, 4vw, 3.5rem) clamp(1.5rem, 3.5vw, 2.75rem)
+    calc(var(--tdm-slant) + clamp(1rem, 3vw, 2.5rem));
+  max-width: 100%;
 }
-.tdm-poster__tag {
-  display: inline-block;
-  padding: 0.3rem 0.9rem 0.25rem;
-  background: var(--accent);
-  clip-path: polygon(0.45rem 0, 100% 0, calc(100% - 0.45rem) 100%, 0 100%);
+.tdm-champ__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.4rem 1.1rem 0.35rem 0.9rem;
+  background: linear-gradient(100deg, #ffe7a8, var(--c-gold) 50%, #c08a35);
+  clip-path: polygon(0.5rem 0, 100% 0, calc(100% - 0.5rem) 100%, 0 100%);
   color: #0b0b0e;
   font-family: var(--font-mono);
   font-size: var(--fs-2xs);
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
 }
-.tdm-poster__name {
-  /* sized to the poster's width (container units) and to the name's longest word, so short
-     names are huge and long ones still fit */
-  position: absolute;
-  left: clamp(0.9rem, 6cqw, 1.5rem);
-  right: calc(var(--tdm-slant) + 0.6rem);
-  bottom: calc(100% - var(--horizon) - 0.06em);
-  margin: 0;
+.tdm-crown {
+  flex: none;
+}
+.tdm-champ__place {
+  padding-left: 0.6rem;
+  border-left: 1px solid rgb(11 11 14 / 0.35);
+}
+.tdm-champ__name {
+  margin: 0.8rem 0 0;
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: min(calc(150cqw / var(--len, 6)), 24cqw);
-  line-height: 0.84;
+  font-size: clamp(3rem, 1.5rem + 5.5vw, 7rem);
+  line-height: 0.88;
   text-transform: uppercase;
   overflow-wrap: anywhere;
-  text-wrap: balance;
-  background: linear-gradient(180deg, #ffffff 25%, var(--accent));
+  background: linear-gradient(180deg, #fff6dc 10%, var(--c-gold-light) 45%, var(--c-gold));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 0.25rem 0.8rem rgb(0 0 0 / 0.55));
-  animation: tdm-name-up 1s var(--tdm-ease) both;
-  animation-delay: calc(var(--d) * 110ms + 250ms);
 }
-@keyframes tdm-name-up {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 25%, 0);
-  }
-}
-.tdm-poster__stats {
+.tdm-champ__stats {
   display: flex;
-  gap: clamp(1rem, 2vw, 1.6rem);
-  margin: 0.9rem 0 0;
-  padding-top: 0.7rem;
-  border-top: 1px solid rgb(255 255 255 / 0.18);
+  flex-wrap: wrap;
+  gap: 0.75rem clamp(1.5rem, 4vw, 3rem);
+  margin: 1.2rem 0 0;
 }
-.tdm-poster__stats dt {
+.tdm-champ__stats dt,
+.tdm-medal__stats dt {
   font-family: var(--font-mono);
   font-size: var(--fs-2xs);
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgb(255 255 255 / 0.6);
+  color: var(--fg-muted);
 }
-.tdm-poster__stats dd {
+.tdm-champ__stats dd {
+  margin: 0.2rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 1.4rem + 1.6vw, 3rem);
+  line-height: 1;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+/* second and third: silver and bronze cards */
+.tdm-medal {
+  --metal-1: #f4f5fa;
+  --metal-2: #a3a8bd;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: clamp(1.25rem, 2.5vw, 1.75rem) calc(var(--tdm-slant) + 1.25rem) clamp(1.25rem, 2.5vw, 1.75rem) calc(var(--tdm-slant) + 1rem);
+  clip-path: polygon(var(--tdm-slant) 0, 100% 0, calc(100% - var(--tdm-slant)) 100%, 0 100%);
+  background:
+    radial-gradient(80% 140% at 10% 0%, color-mix(in srgb, var(--metal-2) 22%, transparent), transparent 70%),
+    linear-gradient(100deg, #15151a, #0b0b0d);
+  box-shadow: inset 0 -3px 0 var(--metal-2);
+  animation: tdm-medal-in 0.8s var(--tdm-ease) both;
+  animation-delay: calc(var(--d) * 120ms + 150ms);
+}
+.tdm-medal--bronze {
+  --metal-1: #f6cfa6;
+  --metal-2: #b06a35;
+}
+.tdm-medal--gold {
+  --metal-1: #fff1c2;
+  --metal-2: var(--c-gold);
+}
+@keyframes tdm-medal-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 1.5rem, 0);
+  }
+}
+.tdm-medal__num {
+  position: absolute;
+  z-index: -1;
+  right: calc(var(--tdm-slant) + 0.25rem);
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-display);
+  font-size: clamp(6rem, 11vw, 9rem);
+  line-height: 0.8;
+  color: transparent;
+  -webkit-text-stroke: 1.5px color-mix(in srgb, var(--metal-2) 40%, transparent);
+}
+.tdm-medal__tag {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--metal-1);
+}
+.tdm-medal__disc {
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--metal-1), var(--metal-2) 70%);
+  box-shadow:
+    inset 0 -2px 3px rgb(0 0 0 / 0.3),
+    0 0 14px color-mix(in srgb, var(--metal-2) 45%, transparent);
+  color: #141217;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  letter-spacing: 0;
+}
+.tdm-medal__name {
+  margin: 0.7rem 0 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.9rem, 1.2rem + 2vw, 3rem);
+  line-height: 0.92;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  color: var(--metal-1);
+}
+.tdm-medal__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.75rem;
+  margin: 0.9rem 0 0;
+}
+.tdm-medal__stats dd {
   margin: 0.15rem 0 0;
   font-family: var(--font-display);
-  font-size: clamp(1.4rem, 2.2vw, 2rem);
+  font-size: 1.7rem;
   line-height: 1;
-  color: var(--accent);
+  color: #fff;
   font-variant-numeric: tabular-nums;
 }
 
@@ -420,37 +477,16 @@
   .tdm {
     --tdm-slant: 1rem;
   }
-  .tdm-posters {
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas:
-      'first first'
-      'second third';
-    gap: 0.6rem;
+  .tdm-top {
+    grid-template-columns: 1fr;
   }
-  .tdm-poster--slot1 {
-    --horizon: 55%;
-    aspect-ratio: 4 / 3.5;
+  .tdm-champ {
+    min-height: 0;
   }
-  .tdm-poster--slot1 .tdm-poster__name {
-    font-size: min(calc(150cqw / var(--len, 6)), 16cqw); /* a wide poster: keep clear of the number */
-  }
-  .tdm-poster--slot2,
-  .tdm-poster--slot3 {
-    --horizon: 47%;
-    aspect-ratio: 3 / 4.6;
-  }
-  .tdm-poster--slot2 .tdm-poster__stats,
-  .tdm-poster--slot3 .tdm-poster__stats {
-    gap: 0.75rem;
-  }
-  .tdm-poster--slot2 .tdm-poster__stats dd,
-  .tdm-poster--slot3 .tdm-poster__stats dd {
-    font-size: 1.2rem;
-  }
-  .tdm-poster--slot2 .tdm-poster__body,
-  .tdm-poster--slot3 .tdm-poster__body {
-    padding-left: 0.85rem;
-    padding-right: calc(var(--tdm-slant) + 0.5rem);
+  .tdm-champ__num {
+    font-size: 8rem;
+    top: 1rem;
+    transform: none;
   }
   .tdm-tools {
     flex-direction: column;
@@ -479,9 +515,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tdm-poster,
-  .tdm-poster__num,
-  .tdm-poster__name,
+  .tdm-champ,
+  .tdm-champ__sheen,
+  .tdm-medal,
   .tdm-row,
   .tdm-row__meter i {
     animation: none;

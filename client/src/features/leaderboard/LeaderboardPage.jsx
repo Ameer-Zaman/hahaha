@@ -104,8 +104,7 @@ function formatUpdated(value) {
 }
 
 /**
- * The TDM board, styled like a game's poster art: the top three as tall slanted posters (a
- * sunset sky, the place as a huge outlined number, the name in big letters standing on the horizon), and
+ * The TDM board: the top three as a gold champion banner and silver and bronze cards, and
  * everyone else as slanted strips with a bar for their kills against the leader's.
  */
 function TdmBoard() {
@@ -141,44 +140,7 @@ function TdmBoard() {
         </p>
       )}
 
-      {!q && (
-        <ol className="tdm-posters" aria-label="Top three">
-          {ranked.slice(0, 3).map((r, i) => (
-            <li key={r.name} className={`tdm-poster tdm-poster--${Math.min(r.rank, 3)} tdm-poster--slot${i + 1}`} style={{ '--d': i }}>
-              <div className="tdm-poster__art" aria-hidden="true">
-                <span className="tdm-poster__ground" />
-                <span className="tdm-poster__num">{String(r.rank).padStart(2, '0')}</span>
-              </div>
-              {/* the name, in big poster letters standing on the horizon */}
-              <h3 className="tdm-poster__name" style={{ '--len': Math.max(4, ...r.name.split(/\s+/).map((w) => w.length)) }}>
-                {r.name}
-              </h3>
-              <div className="tdm-poster__body">
-                <span className="tdm-poster__tag">
-                  {jointAt(r.rank) ? 'Joint ' : ''}
-                  {PLACE[r.rank - 1] ?? `${r.rank}th`} place
-                </span>
-                <dl className="tdm-poster__stats">
-                  <div>
-                    <dt>Kills</dt>
-                    <dd>{r.kills}</dd>
-                  </div>
-                  <div>
-                    <dt>K/D</dt>
-                    <dd>{formatKd(r.kills, r.deaths)}</dd>
-                  </div>
-                  {showWins && (
-                    <div>
-                      <dt>Wins</dt>
-                      <dd>{r.wins}</dd>
-                    </div>
-                  )}
-                </dl>
-              </div>
-            </li>
-          ))}
-        </ol>
-      )}
+      {!q && <TopThree rows={ranked.slice(0, 3)} showWins={showWins} jointAt={jointAt} />}
 
       <div className="tdm-tools">
         <div className="tdm-sort" role="group" aria-label="Sort the players">
@@ -235,6 +197,82 @@ function TdmBoard() {
       )}
       <p className="lb-note">Ranked by most kills, then the best K/D, then most wins.</p>
     </div>
+  )
+}
+
+const METAL = ['gold', 'silver', 'bronze']
+
+function TopStats({ stats, className }) {
+  return (
+    <dl className={className}>
+      {stats.map((s) => (
+        <div key={s.label}>
+          <dt>{s.label}</dt>
+          <dd>{s.value}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+const CROWN = (
+  <svg viewBox="0 0 24 16" width="22" height="15" aria-hidden="true" className="tdm-crown">
+    <path d="M2 14h20l1.5-11-6.5 5L12 1 7 8 .5 3z" fill="currentColor" />
+  </svg>
+)
+
+/**
+ * The top three: first place as a wide gold champion banner (a crown, the name in huge letters,
+ * the numbers big), second and third as silver and bronze cards underneath. Players who share
+ * a place say "Joint", and share its metal.
+ */
+function TopThree({ rows, showWins, jointAt }) {
+  if (rows.length === 0) return null
+  const [first, ...rest] = rows
+  const stats = (r) => [
+    { label: 'Kills', value: r.kills },
+    { label: 'K/D', value: formatKd(r.kills, r.deaths) },
+    ...(showWins ? [{ label: 'Wins', value: r.wins }] : []),
+  ]
+  const place = (r) => `${jointAt(r.rank) ? 'Joint ' : ''}${PLACE[r.rank - 1] ?? `${r.rank}th`}`
+  const two = (n) => String(n).padStart(2, '0')
+
+  return (
+    <ol className="tdm-top" aria-label="Top three">
+      <li className="tdm-champ">
+        <div className="tdm-champ__bg" aria-hidden="true">
+          <span className="tdm-champ__rays" />
+          <span className="tdm-champ__num">{two(first.rank)}</span>
+          <span className="tdm-champ__sheen" />
+        </div>
+        <div className="tdm-champ__body">
+          <p className="tdm-champ__tag">
+            {CROWN}
+            <span>Champion</span>
+            <span className="tdm-champ__place">{place(first)}</span>
+          </p>
+          <h3 className="tdm-champ__name">{first.name}</h3>
+          <TopStats stats={stats(first)} className="tdm-champ__stats" />
+        </div>
+      </li>
+      {rest.map((r, i) => {
+        const metal = METAL[Math.min(r.rank, 3) - 1]
+        return (
+          <li key={r.name} className={`tdm-medal tdm-medal--${metal}`} style={{ '--d': i + 1 }}>
+            <span className="tdm-medal__num" aria-hidden="true">
+              {two(r.rank)}
+            </span>
+            <p className="tdm-medal__tag">
+              <span className="tdm-medal__disc" aria-hidden="true">
+                {r.rank}
+              </span>
+              {place(r)} · {metal}
+            </p>
+            <h3 className="tdm-medal__name">{r.name}</h3>
+            <TopStats stats={stats(r)} className="tdm-medal__stats" />
+          </li>
+        )
+      })}
+    </ol>
   )
 }
 
