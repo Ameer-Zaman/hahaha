@@ -181,3 +181,106 @@
 body:has(.fx-cut) .top-progress {
   display: none;
 }
+
+/* =========================================================
+   Community: "burst". Circles of gold, bronze and black burst out from where the visitor
+   clicked and cover the screen; the page's name gathers in the middle, letters arriving from
+   its centre outwards; then the circles rise away like bubbles, black first, and the page is
+   underneath. The circles are drawn small and scaled (a transform), so it stays smooth.
+   ========================================================= */
+.fx-cut__disc {
+  position: absolute;
+  border-radius: 50%;
+  transform: translate3d(0, 0, 0) scale(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.fx-cut__disc--gold {
+  background: radial-gradient(circle at 50% 50%, #fff2c9, #e3b55a 45%, #b5852f);
+}
+.fx-cut__disc--bronze {
+  background: radial-gradient(circle at 50% 50%, #3a2a10, #5a4218);
+}
+.fx-cut__disc--ink {
+  background: radial-gradient(circle at 50% 50%, #12110d, var(--c-ink, #06070a) 60%);
+  box-shadow: inset 0 0 0 3px #e3b55a; /* a thin gold rim */
+}
+
+.fx-cut--burst.is-cover .fx-cut__disc {
+  animation: fx-burst-in 440ms cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+.fx-cut--burst.is-cover .fx-cut__disc--bronze {
+  animation-delay: 80ms;
+}
+.fx-cut--burst.is-cover .fx-cut__disc--ink {
+  animation-delay: 160ms;
+}
+@keyframes fx-burst-in {
+  to {
+    transform: translate3d(0, 0, 0) scale(var(--k));
+  }
+}
+
+.fx-cut--burst.is-reveal .fx-cut__disc {
+  transform: translate3d(0, 0, 0) scale(var(--k));
+  animation: fx-burst-out 540ms cubic-bezier(0.6, 0, 0.3, 1) both;
+}
+.fx-cut--burst.is-reveal .fx-cut__disc--bronze {
+  animation-delay: 80ms;
+}
+.fx-cut--burst.is-reveal .fx-cut__disc--gold {
+  animation-delay: 160ms;
+}
+@keyframes fx-burst-out {
+  to {
+    transform: translate3d(0, var(--rise), 0) scale(var(--k));
+  }
+}
+
+/* the name, centred, its letters gathering from the middle outwards */
+.fx-cut--burst .fx-cut__title {
+  justify-items: center;
+  text-align: center;
+}
+.fx-cut--burst .fx-cut__rule {
+  width: min(80vw, 22rem);
+  background: linear-gradient(90deg, transparent, #e3b55a, transparent);
+  transform-origin: center;
+}
+.fx-cut--burst .fx-cut__name > span {
+  overflow: visible;
+}
+.fx-cut--burst .fx-cut__name > span > span {
+  opacity: 0;
+  transform: translate3d(0, 0.18em, 0) scale(1.6);
+}
+.fx-cut--burst.is-cover .fx-cut__name > span > span {
+  animation: fx-burst-letter 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(500ms + var(--from-mid) * 45ms);
+}
+@keyframes fx-burst-letter {
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+.fx-cut--burst.is-cover .fx-cut__eyebrow,
+.fx-cut--burst.is-cover .fx-cut__hint {
+  animation-delay: 620ms;
+}
+.fx-cut--burst.is-cover .fx-cut__rule {
+  animation-delay: 560ms;
+}
+.fx-cut--burst.is-reveal .fx-cut__name > span > span {
+  opacity: 1;
+  transform: none;
+}
+.fx-cut--burst.is-reveal .fx-cut__title {
+  animation: fx-burst-title-out 320ms cubic-bezier(0.7, 0, 0.84, 0) both;
+}
+@keyframes fx-burst-title-out {
+  to {
+    opacity: 0;
+    transform: translate3d(0, -10vh, 0);
+  }
+}
