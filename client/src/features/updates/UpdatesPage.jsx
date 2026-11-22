@@ -41,25 +41,34 @@ const paragraphsOf = (notes) =>
     .filter(Boolean)
 
 /**
- * City updates: the city's patch notes. The newest update is the featured one (its picture
- * across the top, its changes sorted into New / Changed / Fixed / Removed); earlier updates are
- * cards that open in place. Every update has its own address (/updates/<update>) to share:
- * following one opens it and brings it into view.
+ * City updates: the city's patch notes, newest first, as a simple list of cards (date,
+ * version, title, summary). Clicking one opens its details in a pop-up: the picture, the
+ * changes under New / Changed / Fixed / Removed, and the team's note. The address follows the
+ * pop-up (/updates/<update>), so an update can be shared and the browser's Back closes it.
  */
 export default function UpdatesPage() {
   const entry = usePublic('/updates')
   const list = useMemo(() => (entry.status === 'ok' ? (entry.data?.updates ?? []) : []), [entry])
   const { slug } = useParams()
   const navigate = useNavigate()
-  const target = slug ? list.find((u) => u.id === slug) : null
-  usePageTitle(target ? `${target.title} · City updates` : 'City updates')
+  const open = slug ? list.find((u) => u.id === slug) : null
+  usePageTitle(open ? `${open.title} · City updates` : 'City updates')
+  const openedHere = useRef(false)
 
   // a link to an update that isn't there (any more): just show them all
   useEffect(() => {
-    if (slug && entry.status === 'ok' && !target) navigate('/updates', { replace: true })
-  }, [slug, entry.status, target, navigate])
+    if (slug && entry.status === 'ok' && !open) navigate('/updates', { replace: true })
+  }, [slug, entry.status, open, navigate])
 
-  const [latest, ...older] = list
+  const show = (id) => {
+    openedHere.current = true
+    navigate(`/updates/${id}`, { preventScrollReset: true })
+  }
+  const close = () => {
+    if (openedHere.current) navigate(-1)
+    else navigate('/updates', { replace: true, preventScrollReset: true })
+    openedHere.current = false
+  }
 
   return (
     <>
@@ -88,235 +97,148 @@ export default function UpdatesPage() {
               <ApplyLink className="btn btn--primary">Join the Discord</ApplyLink>
             </div>
           )}
-          {latest && <Featured update={latest} target={latest.id === slug} />}
-          {older.length > 0 && (
-            <div className="up-older">
-              <h2 className="up-older__title">
-                Earlier updates <span>{older.length}</span>
-              </h2>
-              <ol className="up-older__list" role="list">
-                {older.map((u, i) => (
-                  <Earlier key={u.id} update={u} target={u.id === slug} index={i} />
-                ))}
-              </ol>
-            </div>
+          {list.length > 0 && (
+            <ol className="up-list" role="list">
+              {list.map((u, i) => (
+                <li key={u.id} style={{ '--d': Math.min(i, 8) }}>
+                  <button type="button" className="up-card" onClick={() => show(u.id)} aria-haspopup="dialog">
+                    <span className="up-card__meta">
+                      <time dateTime={u.date}>{formatDay(u.date)}</time>
+                      {u.version && <span className="up-version">{u.version}</span>}
+                      {i === 0 && <span className="up-latest">Latest</span>}
+                    </span>
+                    <span className="up-card__title">{u.title}</span>
+                    {u.summary && <span className="up-card__summary">{u.summary}</span>}
+                    <span className="up-card__more">
+                      View details
+                      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                        <path
+                          d="M3 8h10m-4-4 4 4-4 4"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.6"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ol>
           )}
         </div>
       </section>
+
+      <UpdateDialog update={open} onClose={close} />
     </>
   )
 }
 
-/** Brings an update into view when its link was followed. */
-function useScrollTo(target) {
+/** An update's details, in a pop-up over the list. Esc, the × or a click outside closes it. */
+function UpdateDialog({ update, onClose }) {
   const ref = useRef(null)
-  useEffect(() => {
-    if (!target || !ref.current) return
-    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const t = setTimeout(() => {
-      ref.current?.scrollIntoView({ block: 'start', behavior: smooth ? 'smooth' : 'auto' })
-      ref.current?.focus({ preventScroll: true })
-    }, 120)
-    return () => clearTimeout(t)
-  }, [target])
-  return ref
-}
+  const [shown, setShown] = useState(update) // kept while it closes
+  if (update && update !== shown) setShown(update)
+  const open = !!update
 
-/** "Copy link" for an update's own address. */
-function CopyLink({ id }) {
-  const [copied, setCopied] = useState(false)
   useEffect(() => {
-    if (!copied) return undefined
-    const t = setTimeout(() => setCopied(false), 1800)
-    return () => clearTimeout(t)
-  }, [copied])
+    const dialog = ref.current
+    if (!dialog) return undefined
+    if (open && !dialog.open) {
+      dialog.showModal()
+      dialog.focus()
+      const prev = document.documentElement.style.overflow
+      document.documentElement.style.overflow = 'hidden'
+      return () => {
+        document.documentElement.style.overflow = prev
+        if (dialog.open) dialog.close()
+      }
+    }
+    if (!open && dialog.open) dialog.close()
+    return undefined
+  }, [open])
+
+  const u = shown
+  const groups = u ? grouped(u.changes) : []
+  const notes = u ? paragraphsOf(u.notes) : []
+
   return (
-    <button
-      type="button"
-      className="up-copy"
-      onClick={async () => {
-        try {
-          await navigator.clipboard.writeText(`${window.location.origin}/updates/${id}`)
-          setCopied(true)
-        } catch {
-          /* clipboard blocked: nothing to do */
-        }
+    <dialog
+      ref={ref}
+      className="upd"
+      tabIndex={-1}
+      aria-labelledby="upd-title"
+      onCancel={(e) => {
+        e.preventDefault()
+        onClose()
+      }}
+      onClick={(e) => {
+        if (e.target === ref.current) onClose()
       }}
     >
-      <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true">
-        <path
-          d="M8.5 11.5a3 3 0 0 0 4.2 0l3-3a3 3 0 0 0-4.2-4.2l-1 1M11.5 8.5a3 3 0 0 0-4.2 0l-3 3a3 3 0 0 0 4.2 4.2l1-1"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
-      </svg>
-      <span aria-live="polite">{copied ? 'Link copied' : 'Copy link'}</span>
-    </button>
-  )
-}
+      {u && (
+        <div className="upd__panel">
+          <button type="button" className="upd__close" onClick={onClose} aria-label="Close">
+            <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true">
+              <path d="M3.5 3.5l9 9m0-9-9 9" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="square" />
+            </svg>
+          </button>
+          {u.image && (
+            <figure className="upd__media">
+              <img src={u.image} alt="" decoding="async" />
+            </figure>
+          )}
+          <div className="upd__body">
+            <p className="up-card__meta">
+              <time dateTime={u.date}>{formatDay(u.date)}</time>
+              {u.version && <span className="up-version">{u.version}</span>}
+            </p>
+            <h2 id="upd-title" className="upd__title">
+              {u.title}
+            </h2>
+            {u.summary && <p className="upd__summary">{u.summary}</p>}
 
-/** "3 new · 1 fixed" as small coloured chips. */
-function Counts({ groups }) {
-  if (groups.length === 0) return null
-  return (
-    <ul className="up-counts" role="list" aria-label="Changes in this update">
-      {groups.map((g) => (
-        <li key={g.kind} className={`up-chip up-chip--${g.kind}`}>
-          <b>{g.items.length}</b> {KINDS[g.kind].toLowerCase()}
-        </li>
-      ))}
-    </ul>
-  )
-}
-
-/** The changes, in a column per kind. */
-function Changes({ groups }) {
-  if (groups.length === 0) return null
-  return (
-    <div className="up-groups">
-      {groups.map((g) => (
-        <section key={g.kind} className={`up-group up-group--${g.kind}`} aria-label={KINDS[g.kind]}>
-          <h3 className="up-group__head">
-            <span>{KINDS[g.kind]}</span>
-            <b>{g.items.length}</b>
-          </h3>
-          <ul role="list">
-            {g.items.map((text, k) => (
-              <li key={k}>{text}</li>
+            {groups.map((g) => (
+              <section key={g.kind} className={`upd__group upd__group--${g.kind}`} aria-labelledby={`upd-${g.kind}`}>
+                <h3 id={`upd-${g.kind}`} className="upd__h">
+                  {KINDS[g.kind]} <span>{g.items.length}</span>
+                </h3>
+                <ul role="list">
+                  {g.items.map((text, k) => (
+                    <li key={k}>{text}</li>
+                  ))}
+                </ul>
+              </section>
             ))}
-          </ul>
-        </section>
-      ))}
-    </div>
-  )
-}
 
-function Notes({ notes }) {
-  const paragraphs = paragraphsOf(notes)
-  if (paragraphs.length === 0) return null
-  return (
-    <div className="up-notes">
-      <p className="up-notes__label">From the team</p>
-      {paragraphs.map((p, k) => (
-        <p key={k}>{p}</p>
-      ))}
-    </div>
-  )
-}
+            {notes.length > 0 && (
+              <section className="upd__notes" aria-labelledby="upd-notes">
+                <h3 id="upd-notes" className="upd__h">
+                  From the team
+                </h3>
+                {notes.map((p, k) => (
+                  <p key={k}>{p}</p>
+                ))}
+              </section>
+            )}
 
-/** The newest update, shown in full. */
-function Featured({ update: u, target }) {
-  const ref = useScrollTo(target)
-  const groups = grouped(u.changes)
-  return (
-    <article ref={ref} tabIndex={-1} className={`up-hero ${u.image ? 'has-image' : ''}`} aria-labelledby={`up-${u.id}`}>
-      <div className="up-hero__top">
-        {u.image && (
-          <div className="up-hero__media" aria-hidden="true">
-            <img src={u.image} alt="" decoding="async" />
+            {groups.length === 0 && notes.length === 0 && <p className="up-note">No further details for this update.</p>}
           </div>
-        )}
-        <header className="up-hero__head">
-          <p className="up-meta">
-            <span className="up-latest">Latest update</span>
-            {u.version && <span className="up-version">{u.version}</span>}
-            <time dateTime={u.date}>{formatDay(u.date)}</time>
-          </p>
-          <h2 id={`up-${u.id}`} className="up-hero__title">
-            {u.title}
-          </h2>
-          {u.summary && <p className="up-hero__summary">{u.summary}</p>}
-          <Counts groups={groups} />
-        </header>
-      </div>
-      <div className="up-hero__body">
-        <Changes groups={groups} />
-        <Notes notes={u.notes} />
-        <div className="up-foot">
-          <CopyLink id={u.id} />
         </div>
-      </div>
-    </article>
-  )
-}
-
-/** An earlier update: a card that opens in place to show everything. */
-function Earlier({ update: u, target, index }) {
-  const ref = useScrollTo(target)
-  const [open, setOpen] = useState(target)
-  const navigate = useNavigate()
-  const groups = grouped(u.changes)
-  const panel = `up-panel-${u.id}`
-
-  // following a link to it opens it
-  const [wasTarget, setWasTarget] = useState(target)
-  if (target !== wasTarget) {
-    setWasTarget(target)
-    if (target) setOpen(true)
-  }
-
-  const toggle = () => {
-    const next = !open
-    setOpen(next)
-    // the address follows, so an open update can be shared straight from the address bar
-    navigate(next ? `/updates/${u.id}` : '/updates', { replace: true, preventScrollReset: true })
-  }
-
-  return (
-    <li ref={ref} tabIndex={-1} className={`up-card ${open ? 'is-open' : ''}`} style={{ '--d': Math.min(index, 8) }}>
-      <button type="button" className="up-card__head" aria-expanded={open} aria-controls={panel} onClick={toggle}>
-        <span className={`up-card__thumb ${u.image ? '' : 'is-blank'}`} aria-hidden="true">
-          {u.image ? <img src={u.image} alt="" loading="lazy" decoding="async" /> : <span>{u.version || 'Update'}</span>}
-        </span>
-        <span className="up-card__text">
-          <span className="up-meta">
-            <time dateTime={u.date}>{formatDay(u.date)}</time>
-            {u.version && <span className="up-version">{u.version}</span>}
-          </span>
-          <span className="up-card__title" id={`up-${u.id}`}>
-            {u.title}
-          </span>
-          {u.summary && <span className="up-card__summary">{u.summary}</span>}
-          <Counts groups={groups} />
-        </span>
-        <span className="up-card__chev" aria-hidden="true">
-          <svg viewBox="0 0 20 20" width="18" height="18">
-            <path d="m5 8 5 5 5-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </span>
-      </button>
-      <div id={panel} className="up-card__panel" role="region" aria-labelledby={`up-${u.id}`} hidden={!open}>
-        {u.image && (
-          <figure className="up-card__figure">
-            <img src={u.image} alt="" loading="lazy" decoding="async" />
-          </figure>
-        )}
-        <Changes groups={groups} />
-        <Notes notes={u.notes} />
-        <div className="up-foot">
-          <CopyLink id={u.id} />
-        </div>
-      </div>
-    </li>
+      )}
+    </dialog>
   )
 }
 
 function ListSkeleton() {
   return (
-    <SkeletonGroup label="Loading the updates" className="up-skeleton">
-      <div className="up-hero up-hero--ghost">
-        <Skeleton w="100%" h="14rem" />
-        <div className="up-hero__head">
-          <Skeleton w="10rem" h="0.9rem" />
-          <Skeleton w="60%" h="2.4rem" />
-          <Skeleton w="80%" h="1rem" />
-        </div>
-      </div>
-      {[0, 1].map((i) => (
+    <SkeletonGroup label="Loading the updates" className="up-list">
+      {[0, 1, 2].map((i) => (
         <div key={i} className="up-card up-card--ghost">
-          <Skeleton w="100%" h="4.5rem" />
+          <Skeleton w="8rem" h="0.8rem" />
+          <Skeleton w="50%" h="1.8rem" />
+          <Skeleton w="75%" h="1rem" />
         </div>
       ))}
     </SkeletonGroup>
