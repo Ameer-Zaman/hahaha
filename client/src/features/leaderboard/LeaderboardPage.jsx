@@ -221,8 +221,8 @@ const CROWN = (
 )
 
 /**
- * The top three: first place as a wide gold champion banner (a crown, the name in huge letters,
- * the numbers big), second and third as silver and bronze cards underneath. Players who share
+ * The top three, kept simple: first place as a wide card with a crown, second and third as
+ * smaller cards underneath, each marked by a thin gold, silver or bronze line. Players who share
  * a place say "Joint", and share its metal.
  */
 function TopThree({ rows, showWins, jointAt }) {
@@ -234,16 +234,10 @@ function TopThree({ rows, showWins, jointAt }) {
     ...(showWins ? [{ label: 'Wins', value: r.wins }] : []),
   ]
   const place = (r) => `${jointAt(r.rank) ? 'Joint ' : ''}${PLACE[r.rank - 1] ?? `${r.rank}th`}`
-  const two = (n) => String(n).padStart(2, '0')
 
   return (
     <ol className="tdm-top" aria-label="Top three">
       <li className="tdm-champ">
-        <div className="tdm-champ__bg" aria-hidden="true">
-          <span className="tdm-champ__rays" />
-          <span className="tdm-champ__num">{two(first.rank)}</span>
-          <span className="tdm-champ__sheen" />
-        </div>
         <div className="tdm-champ__body">
           <p className="tdm-champ__tag">
             {CROWN}
@@ -258,9 +252,6 @@ function TopThree({ rows, showWins, jointAt }) {
         const metal = METAL[Math.min(r.rank, 3) - 1]
         return (
           <li key={r.name} className={`tdm-medal tdm-medal--${metal}`} style={{ '--d': i + 1 }}>
-            <span className="tdm-medal__num" aria-hidden="true">
-              {two(r.rank)}
-            </span>
             <p className="tdm-medal__tag">
               <span className="tdm-medal__disc" aria-hidden="true">
                 {r.rank}
