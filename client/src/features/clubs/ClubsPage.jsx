@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import ApplyLink from '../../components/ui/ApplyLink'
 import FactionState from '../../components/ui/FactionState'
@@ -9,6 +10,7 @@ import usePageTitle from '../../hooks/usePageTitle'
 import { gsap, MOTION_OK, ScrollTrigger, useGSAP } from '../../lib/gsap'
 import { loadPublic, usePublic } from '../../lib/publicData'
 import CardBack from './CardBack'
+import ClubDetail from './ClubDetail'
 import CardFace from './CardFace'
 import './clubs.css'
 
@@ -46,9 +48,19 @@ function fanPose(i, n, width) {
  * With reduced motion the cards are simply shown face up.
  */
 export default function ClubsPage() {
-  usePageTitle('Clubs')
   // clubs added in the admin panel; the built-in list (content/clubs.js) when there are none
   const entry = usePublic('/clubs')
+  const { slug } = useParams()
+  const navigate = useNavigate()
+  const clubsNow = entry.status === 'ok' && entry.data?.clubs?.length ? entry.data.clubs : staticClubs
+  const openClub = slug ? clubsNow.find((c) => c.id === slug) : null
+  usePageTitle(openClub ? `${openClub.name} · Clubs` : 'Clubs')
+
+  // a link to a club that isn't there (any more): just show the table
+  useEffect(() => {
+    if (slug && entry.status !== 'loading' && !openClub) navigate('/clubs', { replace: true })
+  }, [slug, entry.status, openClub, navigate])
+
   if (entry.status === 'loading')
     return (
       <div className="route-loading">
@@ -65,12 +77,33 @@ export default function ClubsPage() {
       <FactionState kind="error" faction="clubs" onRetry={() => loadPublic('/clubs', { force: true })} />
     )
   }
-  return <ClubsDeck key={clubs.map((c) => c.id).join('|')} clubs={clubs} />
+  return <ClubsDeck key={clubs.map((c) => c.id).join('|')} clubs={clubs} openId={openClub?.id ?? null} />
 }
 
-function ClubsDeck({ clubs }) {
+function ClubsDeck({ clubs, openId }) {
   const deck = dealDeck(clubs)
   const root = useRef(null)
+  const navigate = useNavigate()
+  const source = useRef(null) // the table card that was clicked, for the flight up to the screen
+  const openedHere = useRef(false) // opened from the table (not arrived on its address)
+
+  // a club has its own address (/clubs/<club>), so it can be shared; opening one keeps the table
+  // where it is underneath
+  const open = (key, el) => {
+    source.current = el
+    openedHere.current = true
+    navigate(`/clubs/${key}`, { preventScrollReset: true })
+  }
+  const real = deck.filter((d) => d.club)
+  const move = useCallback(
+    (step) => {
+      const at = real.findIndex((d) => d.key === openId)
+      if (at < 0 || real.length < 2) return
+      source.current = null
+      navigate(`/clubs/${real[(at + step + real.length) % real.length].key}`, { replace: true, preventScrollReset: true })
+    },
+    [real, openId, navigate],
+  )
   const [motion] = useState(() => window.matchMedia(MOTION_OK).matches)
 
   useGSAP(
@@ -152,7 +185,7 @@ function ClubsDeck({ clubs }) {
 
         <ul role="list" className="clubs-deck__table" aria-label="Clubs">
           {deck.map(({ key, club, suit, number }, i) => (
-            <li key={key} className="club-card" style={{ '--i': i, '--n': deck.length }}>
+            <li key={key} className={`club-card ${club ? 'is-real' : ''}`} style={{ '--i': i, '--n': deck.length }} data-club-key={key}>
               <div className="club-card__lift">
                 <div className="club-card__inner">
                   <div className="club-card__side club-card__side--back" aria-hidden="true">
@@ -163,6 +196,14 @@ function ClubsDeck({ clubs }) {
                   </div>
                 </div>
               </div>
+              {club && (
+                <button
+                  type="button"
+                  className="club-card__open"
+                  aria-label={`Open ${club.name}`}
+                  onClick={(e) => open(key, e.currentTarget.closest('.club-card'))}
+                />
+              )}
             </li>
           ))}
         </ul>
@@ -179,6 +220,19 @@ function ClubsDeck({ clubs }) {
           </p>
         )}
       </section>
+
+      <ClubDetail
+        deck={deck}
+        openKey={openId}
+        getSource={() => source.current}
+        onClose={() => {
+          // back to where the visitor was, so the browser's back button doesn't reopen it
+          if (openedHere.current) navigate(-1)
+          else navigate('/clubs', { replace: true, preventScrollReset: true })
+          openedHere.current = false
+        }}
+        onMove={move}
+      />
     </div>
   )
 }

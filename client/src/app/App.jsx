@@ -83,7 +83,7 @@ export default function App() {
           }
         />
         <Route
-          path="clubs"
+          path="clubs/:slug?"
           element={
             <Section to="/clubs">
               <ClubsPage />

@@ -51,7 +51,12 @@ export default function CardBack() {
         <rect x="7" y="7" width="236" height="336" rx="11" strokeWidth="2.6" />
         <rect x="17" y="17" width="216" height="316" rx="4" />
         <rect x="23" y="23" width="204" height="304" rx="2" opacity="0.55" />
-        {[[17, 17], [233, 17], [17, 333], [233, 333]].map(([x, y]) => (
+        {[
+          [17, 17],
+          [233, 17],
+          [17, 333],
+          [233, 333],
+        ].map(([x, y]) => (
           <circle key={`${x}${y}`} cx={x} cy={y} r="4" fill="#0b0b0e" strokeWidth="1.6" />
         ))}
 
@@ -101,7 +106,12 @@ export default function CardBack() {
         />
         <circle cx="125" cy="175" r="27" />
         <circle cx="125" cy="175" r="22" opacity="0.6" />
-        {[[125, 141], [159, 175], [125, 209], [91, 175]].map(([x, y]) => (
+        {[
+          [125, 141],
+          [159, 175],
+          [125, 209],
+          [91, 175],
+        ].map(([x, y]) => (
           <circle key={`${x}-${y}`} cx={x} cy={y} r="1.8" fill={G} stroke="none" />
         ))}
         {/* the brand diamond */}

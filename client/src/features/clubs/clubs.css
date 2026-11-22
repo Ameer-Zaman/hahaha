@@ -3,9 +3,7 @@
    ========================================================= */
 .clubs {
   --card-w: clamp(150px, 19vw, 270px);
-  background:
-    radial-gradient(ellipse 70% 55% at 50% 58%, rgb(var(--rgb-gold) / 0.08), transparent 70%),
-    #050506;
+  background: radial-gradient(ellipse 70% 55% at 50% 58%, rgb(var(--rgb-gold) / 0.08), transparent 70%), #050506;
   color: #f4efe6;
 }
 
@@ -98,8 +96,7 @@
 .club-face {
   position: relative;
   height: 100%;
-  background:
-    radial-gradient(ellipse at 50% 40%, #fffaf0, #efe6d4);
+  background: radial-gradient(ellipse at 50% 40%, #fffaf0, #efe6d4);
   color: #111;
 }
 .club-face.is-red {
@@ -110,7 +107,9 @@
   inset: 7%;
   border: 1.5px solid var(--c-gold-deep, #a87a2c);
   border-radius: 6px;
-  box-shadow: inset 0 0 0 4px #f6efe2, inset 0 0 0 5px rgb(168 122 44 / 0.45);
+  box-shadow:
+    inset 0 0 0 4px #f6efe2,
+    inset 0 0 0 5px rgb(168 122 44 / 0.45);
 }
 .club-face__corner {
   position: absolute;
@@ -302,5 +301,272 @@
   .clubs-deck {
     --cols: 3;
     --deal-gap: 1rem;
+  }
+}
+
+/* ---- a club's card brought up to the screen (ClubDetail.jsx) ---- */
+.club-card__open {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 0;
+  border: 0;
+  border-radius: clamp(10px, 1.1vw, 16px);
+  background: none;
+  cursor: pointer;
+}
+.club-card__open:focus-visible {
+  outline: 2px solid var(--c-gold-light);
+  outline-offset: 4px;
+}
+
+.club-detail {
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #f4efe6;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+}
+.club-detail::backdrop {
+  background: radial-gradient(ellipse 60% 55% at 38% 50%, rgb(var(--rgb-gold) / 0.12), transparent 70%), rgb(3 3 4 / 0.96);
+}
+.club-detail[open]::backdrop {
+  animation: club-detail-fade 0.35s ease both;
+}
+.club-detail.is-closing::backdrop {
+  animation: club-detail-fade 0.45s ease reverse both;
+}
+@keyframes club-detail-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.club-detail__stage {
+  --big-w: min(23rem, 34vw, calc(78dvh / 1.4));
+  min-height: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 30rem);
+  align-items: center;
+  justify-content: center;
+  gap: clamp(2rem, 6vw, 5.5rem);
+  padding: clamp(4rem, 8dvh, 6rem) clamp(1.25rem, 5vw, 4rem);
+}
+
+/* the big card: the same face as on the table, at screen size */
+.club-detail__card {
+  --card-w: var(--big-w);
+  width: var(--card-w);
+  aspect-ratio: 5 / 7;
+  transform-origin: 50% 50%;
+  will-change: transform;
+  perspective: 1200px;
+}
+.club-detail__face {
+  height: 100%;
+  border-radius: clamp(14px, 1.4vw, 20px);
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgb(var(--rgb-gold) / 0.4),
+    0 0 60px -10px rgb(var(--rgb-gold) / 0.35),
+    0 50px 90px -30px rgb(0 0 0 / 0.95);
+}
+
+/* the details slide out beside it, line by line */
+.club-detail__info > * {
+  animation: club-detail-line 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(320ms + var(--n, 0) * 60ms);
+}
+.club-detail__info > :nth-child(2) {
+  --n: 1;
+}
+.club-detail__info > :nth-child(3) {
+  --n: 2;
+}
+.club-detail__info > :nth-child(4) {
+  --n: 3;
+}
+.club-detail__info > :nth-child(5) {
+  --n: 4;
+}
+.club-detail__info > :nth-child(6) {
+  --n: 5;
+}
+@keyframes club-detail-line {
+  from {
+    opacity: 0;
+    transform: translate3d(2.5rem, 0, 0);
+  }
+}
+.club-detail.is-closing .club-detail__info,
+.club-detail.is-closing .club-detail__close {
+  opacity: 0;
+  transform: translate3d(1.5rem, 0, 0);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.club-detail__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 1.25rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.club-detail__eyebrow span {
+  font-size: 1.1rem;
+  letter-spacing: 0;
+  color: var(--c-gold-light);
+}
+.club-detail__eyebrow span.is-red {
+  color: #e2596b;
+}
+.club-detail__type {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--c-gold);
+}
+.club-detail__name {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.75rem, 1.5rem + 4vw, 5.5rem);
+  line-height: 0.9;
+  text-transform: uppercase;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  color: var(--c-gold-light);
+}
+.club-detail__facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 1rem 2rem;
+  margin: 1.75rem 0 0;
+  padding: 1.1rem 0;
+  border-block: 1px solid rgb(var(--rgb-gold) / 0.2);
+}
+.club-detail__facts dt {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.club-detail__facts dd {
+  margin: 0.3rem 0 0;
+  font-size: var(--fs-lg, 1.15rem);
+  overflow-wrap: anywhere;
+}
+.club-detail__about {
+  margin: 1.5rem 0 0;
+  max-width: 34rem;
+  line-height: 1.65;
+  color: rgb(244 239 230 / 0.82);
+  white-space: pre-line;
+}
+.club-detail__about.is-empty {
+  color: var(--fg-muted);
+}
+.club-detail__nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+.club-detail__step {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid rgb(var(--rgb-gold) / 0.35);
+  border-radius: 50%;
+  background: none;
+  color: var(--c-gold-light);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+.club-detail__step:hover {
+  background: rgb(var(--rgb-gold) / 0.12);
+  border-color: var(--c-gold);
+}
+.club-detail__count {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.12em;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+.club-detail__back {
+  margin-left: auto;
+}
+.club-detail__close {
+  position: fixed;
+  top: clamp(0.75rem, 3dvh, 1.5rem);
+  right: clamp(0.75rem, 3vw, 1.5rem);
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid rgb(var(--rgb-gold) / 0.35);
+  border-radius: 50%;
+  background: rgb(5 5 6 / 0.6);
+  color: #f4efe6;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  animation: club-detail-fade 0.4s ease both 0.3s;
+}
+.club-detail__close:hover {
+  border-color: var(--c-gold);
+}
+
+/* phones and portrait tablets: the card on top, the details underneath */
+@media (max-width: 760px) {
+  .club-detail__stage {
+    --big-w: min(15rem, 58vw, calc(44dvh / 1.4));
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    align-content: start;
+    gap: 1.75rem;
+    padding-top: clamp(4.5rem, 10dvh, 6rem);
+  }
+  .club-detail__info {
+    width: 100%;
+    max-width: 30rem;
+  }
+  @keyframes club-detail-line {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 1.5rem, 0);
+    }
+  }
+  .club-detail__back {
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .club-detail__info > *,
+  .club-detail__close,
+  .club-detail[open]::backdrop {
+    animation: none;
   }
 }

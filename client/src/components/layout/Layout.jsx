@@ -24,8 +24,8 @@ const LIGHT_TOP = []
 /** Full-screen pages with no footer (the Gangs reel loops endlessly instead of ending). */
 const NO_FOOTER = ['/gangs']
 /** Paths that are the same page with a pop-up open (moving between them keeps the scroll). */
-const OVERLAY_ROUTES = [/^\/events(\/[^/]+)?\/?$/, /^\/store(\/[^/]+)?\/?$/, /^\/dhadhas(\/[^/]+)?\/?$/]
-/** "/store/drift-pack" and "/store" (or "/dhadhas/<name>" and "/dhadhas") are the same page underneath the pop-up. */
+const OVERLAY_ROUTES = [/^\/events(\/[^/]+)?\/?$/, /^\/store(\/[^/]+)?\/?$/, /^\/dhadhas(\/[^/]+)?\/?$/, /^\/clubs(\/[^/]+)?\/?$/]
+/** "/store/drift-pack" and "/store" (or "/dhadhas/<name>", "/clubs/<club>" and their lists) are the same page underneath the pop-up. */
 const pageKey = (path) => (OVERLAY_ROUTES.some((re) => re.test(path)) ? `/${path.split('/')[1]}` : path)
 
 export default function Layout() {
