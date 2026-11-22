@@ -1,0 +1,183 @@
+/* =========================================================
+   The cut-scene into the Factions pages (FactionTransition.jsx): three slanted bands — gold,
+   bronze and black — sweep in from the right and cover the screen, the page's name is stamped
+   in the middle, and the bands carry on out to the left to uncover the new page. Everything
+   that moves is a transform or an opacity, so it runs smoothly on phones too.
+   ========================================================= */
+.fx-cut {
+  position: fixed;
+  inset: 0;
+  z-index: 200; /* over the header and the page, under the first-visit loading screen */
+  overflow: hidden;
+  pointer-events: all; /* nothing can be clicked mid-cut */
+  contain: strict;
+}
+
+/* each band is far wider than the screen and slanted; the slant reaches 20vh either side, so
+   the start and end points leave it fully off screen even on a tall phone */
+.fx-cut__band {
+  position: absolute;
+  top: -20vh;
+  left: -60vw;
+  width: 220vw;
+  height: 140vh;
+  transform: translate3d(230vw, 0, 0) skewX(-16deg);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.fx-cut__band--gold {
+  background: linear-gradient(100deg, #fff2c9, #e3b55a 30%, #b5852f 70%, #efcb7a);
+}
+.fx-cut__band--bronze {
+  background: linear-gradient(100deg, #5a4218, #2a1e0b 60%);
+}
+.fx-cut__band--ink {
+  background: radial-gradient(60vw 50vh at 62% 50%, rgb(var(--rgb-gold) / 0.12), transparent 70%), var(--c-ink, #06070a);
+  border-left: 0.35rem solid #e3b55a; /* a bright gold leading edge */
+}
+
+/* in: gold first, then bronze, then black on top, each landing over the last */
+.fx-cut.is-cover .fx-cut__band {
+  animation: fx-cut-in 380ms cubic-bezier(0.7, 0, 0.2, 1) both;
+}
+.fx-cut.is-cover .fx-cut__band--bronze {
+  animation-delay: 90ms;
+}
+.fx-cut.is-cover .fx-cut__band--ink {
+  animation-delay: 180ms;
+}
+@keyframes fx-cut-in {
+  to {
+    transform: translate3d(0, 0, 0) skewX(-16deg);
+  }
+}
+
+/* out: the same direction, black first, so the gold flashes past last */
+.fx-cut.is-reveal .fx-cut__band {
+  transform: translate3d(0, 0, 0) skewX(-16deg);
+  animation: fx-cut-out 480ms cubic-bezier(0.7, 0, 0.25, 1) both;
+}
+.fx-cut.is-reveal .fx-cut__band--bronze {
+  animation-delay: 90ms;
+}
+.fx-cut.is-reveal .fx-cut__band--gold {
+  animation-delay: 180ms;
+}
+@keyframes fx-cut-out {
+  to {
+    transform: translate3d(-240vw, 0, 0) skewX(-16deg);
+  }
+}
+
+/* ---- the page's name ---- */
+.fx-cut__title {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: start;
+  padding: 0 max(1.25rem, 8vw);
+  color: var(--c-gold-light, #f6e3b0);
+}
+.fx-cut__eyebrow {
+  display: flex;
+  gap: 1.25rem;
+  margin: 0 0 0.75rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs, 0.72rem);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--fg-muted, #a8a49c);
+  opacity: 0;
+}
+.fx-cut__eyebrow span + span {
+  color: #e3b55a;
+}
+.fx-cut__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(3.25rem, min(24vw, calc(170vw / var(--len, 6))), 12.5rem); /* short names big, long ones fit */
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+/* each letter rises out of a slot */
+.fx-cut__name > span {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.04em;
+}
+.fx-cut__name > span > span {
+  display: inline-block;
+  transform: translate3d(0, 105%, 0);
+}
+.fx-cut__rule {
+  display: block;
+  width: min(100%, 26rem);
+  height: 2px;
+  margin-top: 1rem;
+  background: linear-gradient(90deg, #e3b55a, transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.fx-cut__hint {
+  margin: 0.75rem 0 0;
+  font-size: var(--fs-sm, 0.95rem);
+  color: var(--fg-muted, #a8a49c);
+  opacity: 0;
+}
+
+/* stamped in once the screen is covered */
+.fx-cut.is-cover .fx-cut__name > span > span {
+  animation: fx-cut-letter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(470ms + var(--i) * 32ms);
+}
+.fx-cut.is-cover .fx-cut__eyebrow,
+.fx-cut.is-cover .fx-cut__hint {
+  animation: fx-cut-fade 400ms ease both 560ms;
+}
+.fx-cut.is-cover .fx-cut__rule {
+  animation: fx-cut-rule 620ms cubic-bezier(0.22, 1, 0.36, 1) both 520ms;
+}
+@keyframes fx-cut-letter {
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes fx-cut-fade {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes fx-cut-rule {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* and swept off with the black band */
+.fx-cut.is-reveal .fx-cut__name > span > span,
+.fx-cut.is-reveal .fx-cut__rule {
+  transform: none;
+}
+.fx-cut.is-reveal .fx-cut__eyebrow,
+.fx-cut.is-reveal .fx-cut__hint {
+  opacity: 1;
+}
+.fx-cut.is-reveal .fx-cut__title {
+  animation: fx-cut-title-out 300ms cubic-bezier(0.7, 0, 0.84, 0) both;
+}
+@keyframes fx-cut-title-out {
+  to {
+    opacity: 0;
+    transform: translate3d(-12vw, 0, 0);
+  }
+}
+
+/* the page's own thin loading line would show over the cut */
+body:has(.fx-cut) .top-progress {
+  display: none;
+}

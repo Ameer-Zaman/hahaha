@@ -4,6 +4,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import AnnouncementBar from '../site/AnnouncementBar'
 import SiteHeader from './SiteHeader'
 import SiteFooter from './SiteFooter'
+import FactionTransition from './FactionTransition'
 import ScrollProgress from './ScrollProgress'
 import TopProgress from '../ui/TopProgress'
 import FluidCursor from '../cursor/FluidCursor'
@@ -114,6 +115,7 @@ export default function Layout() {
         </div>
       </main>
       {!NO_FOOTER.includes(pathname) && <SiteFooter />}
+      <FactionTransition />
       <FluidCursor />
       <LiveNotice />
       <ChatWidget />
