@@ -1,0 +1,538 @@
+/* =========================================================
+   The TDM board, in the style of game poster art. The top three are tall slanted posters, each
+   with its own sky (a sunset for first, dusk for second, embers for third), a striped sun on
+   the horizon and the place as a huge outlined number, with the name in big condensed type.
+   Everyone else is a slanted strip with a kills bar measured against the leader. All the art is
+   drawn with CSS; everything that moves is a transform or an opacity.
+   ========================================================= */
+.tdm {
+  --tdm-slant: 1.6rem; /* how far the posters and strips lean */
+  --tdm-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* the tabs are clipped to a slant, so their focus ring is drawn inside */
+.lb-tabs .lb-tab:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 0 3px 0 var(--focus),
+    inset 0 -3px 0 var(--focus);
+}
+
+.tdm-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin: 0 0 var(--sp-5);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.tdm-meta__season {
+  color: var(--c-gold-light);
+}
+.tdm-meta__season::before {
+  content: 'Season · ';
+  color: var(--fg-muted);
+}
+
+/* ---------------------------------------------------------------- posters */
+.tdm-posters {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1fr;
+  grid-template-areas: 'second first third';
+  align-items: end;
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  margin: 0 0 var(--sp-7);
+  padding: 0;
+  list-style: none;
+}
+.tdm-poster--slot1 {
+  grid-area: first;
+}
+.tdm-poster--slot2 {
+  grid-area: second;
+}
+.tdm-poster--slot3 {
+  grid-area: third;
+}
+
+.tdm-poster {
+  /* each place has its own sky: top, middle, horizon */
+  --sky-1: #2a1640;
+  --sky-2: #a2365e;
+  --sky-3: #f09045;
+  --sun-1: #fff1c2;
+  --sun-2: #f4b64f;
+  --accent: var(--c-gold-light);
+  --horizon: 62%; /* where the sky meets the ground */
+  position: relative;
+  aspect-ratio: 3 / 4;
+  clip-path: polygon(var(--tdm-slant) 0, 100% 0, calc(100% - var(--tdm-slant)) 100%, 0 100%);
+  isolation: isolate;
+  animation: tdm-poster-in 0.9s var(--tdm-ease) both;
+  animation-delay: calc(var(--d) * 110ms);
+}
+.tdm-poster--1 {
+  aspect-ratio: 3 / 4.25;
+}
+.tdm-poster--2 {
+  --sky-1: #0d1530;
+  --sky-2: #3e3f78;
+  --sky-3: #a9a6c9;
+  --sun-1: #ffffff;
+  --sun-2: #c9cbe0;
+  --accent: #e4e6f2;
+}
+.tdm-poster--3 {
+  --sky-1: #1c0b08;
+  --sky-2: #7a2a16;
+  --sky-3: #d9783a;
+  --sun-1: #ffd9a8;
+  --sun-2: #d9894a;
+  --accent: #f2b682;
+}
+@keyframes tdm-poster-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 3rem, 0);
+  }
+}
+
+/* the art: sky, sun, the ground with its horizon lines, and the place number */
+.tdm-poster__art {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) calc(var(--horizon) * 0.6), var(--sky-3) var(--horizon));
+}
+.tdm-poster__sun {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--horizon) - 12%); /* sitting on the horizon; the ground hides its foot */
+  width: 62%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--sun-1), var(--sun-2));
+  /* stripes cut across the lower half, as on an old sunset print */
+  -webkit-mask: linear-gradient(
+    180deg,
+    #000 0 50%,
+    transparent 50% 54%,
+    #000 54% 61%,
+    transparent 61% 65%,
+    #000 65% 71%,
+    transparent 71% 76%,
+    #000 76% 81%,
+    transparent 81% 87%,
+    #000 87% 91%,
+    transparent 91%
+  );
+  mask: linear-gradient(
+    180deg,
+    #000 0 50%,
+    transparent 50% 54%,
+    #000 54% 61%,
+    transparent 61% 65%,
+    #000 65% 71%,
+    transparent 71% 76%,
+    #000 76% 81%,
+    transparent 81% 87%,
+    #000 87% 91%,
+    transparent 91%
+  );
+  transform: translate3d(-50%, -50%, 0);
+  animation: tdm-sun-rise 1.4s var(--tdm-ease) both;
+  animation-delay: calc(var(--d) * 110ms + 200ms);
+}
+@keyframes tdm-sun-rise {
+  from {
+    transform: translate3d(-50%, -18%, 0);
+  }
+}
+.tdm-poster__ground {
+  position: absolute;
+  inset: var(--horizon) 0 0;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 0.9rem, rgb(255 255 255 / 0.05) 0.9rem calc(0.9rem + 1px)),
+    linear-gradient(180deg, #120b14, #050507 70%);
+  box-shadow: 0 -1px 0 rgb(255 255 255 / 0.35);
+}
+.tdm-poster__ground::before {
+  /* the glow along the horizon */
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -2.5rem;
+  height: 2.5rem;
+  background: linear-gradient(0deg, rgb(255 210 140 / 0.35), transparent);
+}
+.tdm-poster__num {
+  position: absolute;
+  top: 0.4rem;
+  left: calc(var(--tdm-slant) + 0.4rem);
+  font-family: var(--font-display);
+  font-size: clamp(5rem, 11vw, 9.5rem);
+  line-height: 0.85;
+  color: transparent;
+  -webkit-text-stroke: 2px rgb(255 255 255 / 0.55);
+  animation: tdm-num-in 1s var(--tdm-ease) both;
+  animation-delay: calc(var(--d) * 110ms + 150ms);
+}
+@keyframes tdm-num-in {
+  from {
+    opacity: 0;
+    transform: translate3d(-2rem, 0, 0);
+  }
+}
+
+/* the words, over the ground */
+.tdm-poster__body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 calc(var(--tdm-slant) + 0.9rem) clamp(1rem, 2.2vw, 1.6rem) clamp(1rem, 2vw, 1.5rem);
+}
+.tdm-poster__tag {
+  display: inline-block;
+  padding: 0.3rem 0.9rem 0.25rem;
+  background: var(--accent);
+  clip-path: polygon(0.45rem 0, 100% 0, calc(100% - 0.45rem) 100%, 0 100%);
+  color: #0b0b0e;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.tdm-poster__name {
+  margin: 0.45rem 0 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.9rem, 3.2vw, 3.1rem);
+  line-height: 0.92;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 2px 18px rgb(0 0 0 / 0.6);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.tdm-poster--1 .tdm-poster__name {
+  font-size: clamp(2.2rem, 3.9vw, 3.8rem);
+  color: var(--c-gold-light);
+}
+.tdm-poster__stats {
+  display: flex;
+  gap: clamp(1rem, 2vw, 1.6rem);
+  margin: 0.8rem 0 0;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgb(255 255 255 / 0.18);
+}
+.tdm-poster__stats dt {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.6);
+}
+.tdm-poster__stats dd {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 2.2vw, 2rem);
+  line-height: 1;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------- tools */
+.tdm-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: var(--sp-4);
+}
+.tdm-sort {
+  display: flex;
+  gap: 0.2rem;
+}
+.tdm-sort__btn {
+  min-height: 44px;
+  padding: 0 1.15rem;
+  border: 0;
+  background: rgb(var(--rgb-ivory) / 0.06);
+  clip-path: polygon(0.6rem 0, 100% 0, calc(100% - 0.6rem) 100%, 0 100%);
+  color: rgb(var(--rgb-ivory) / 0.65);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+}
+.tdm-sort__btn:hover {
+  color: var(--fg);
+  background: rgb(var(--rgb-ivory) / 0.12);
+}
+.tdm-sort__btn.is-active {
+  background: var(--c-gold);
+  color: #0b0b0e;
+}
+.tdm-sort__btn:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 0 2px 0 var(--focus),
+    inset 0 -2px 0 var(--focus);
+}
+.tdm-search {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: min(100%, 17rem);
+  padding: 0 1.2rem;
+  background: rgb(var(--rgb-ivory) / 0.06);
+  clip-path: polygon(0.6rem 0, 100% 0, calc(100% - 0.6rem) 100%, 0 100%);
+  color: var(--fg-muted);
+}
+.tdm-search:focus-within {
+  background: rgb(var(--rgb-ivory) / 0.1);
+  box-shadow: inset 0 -2px 0 var(--c-gold);
+}
+.tdm-search input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--fg);
+  font: inherit;
+  outline: none;
+}
+
+/* ---------------------------------------------------------------- strips */
+.tdm-rows {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tdm-row {
+  --row-slant: 0.9rem;
+  position: relative;
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) minmax(0, 14rem) 5.5rem 5rem auto;
+  align-items: center;
+  gap: 1rem;
+  min-height: 4.25rem;
+  padding: 0 calc(var(--row-slant) + 1.25rem) 0 calc(var(--row-slant) + 0.5rem);
+  isolation: isolate;
+  animation: tdm-row-in 0.6s var(--tdm-ease) both;
+  animation-delay: calc(250ms + var(--d) * 45ms);
+}
+.tdm-row::before {
+  /* the strip itself, leaning */
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgb(var(--rgb-ivory) / 0.07), rgb(var(--rgb-ivory) / 0.03));
+  clip-path: polygon(var(--row-slant) 0, 100% 0, calc(100% - var(--row-slant)) 100%, 0 100%);
+  transition:
+    background-color 0.2s,
+    transform 0.3s var(--tdm-ease);
+}
+.tdm-row:hover::before {
+  background: linear-gradient(90deg, rgb(var(--rgb-gold) / 0.16), rgb(var(--rgb-ivory) / 0.04));
+  transform: translate3d(0.35rem, 0, 0);
+}
+.tdm-row.is-top-1::before {
+  background: linear-gradient(90deg, rgb(var(--rgb-gold) / 0.24), rgb(var(--rgb-gold) / 0.04) 70%);
+}
+@keyframes tdm-row-in {
+  from {
+    opacity: 0;
+    transform: translate3d(2.5rem, 0, 0);
+  }
+}
+
+.tdm-row__rank {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgb(var(--rgb-ivory) / 0.45);
+  font-variant-numeric: tabular-nums;
+}
+.tdm-row.is-top .tdm-row__rank {
+  -webkit-text-stroke: 0;
+}
+.tdm-row.is-top-1 .tdm-row__rank {
+  color: var(--c-gold-light);
+}
+.tdm-row.is-top-2 .tdm-row__rank {
+  color: #d9dbe8;
+}
+.tdm-row.is-top-3 .tdm-row__rank {
+  color: #e7a46c;
+}
+.tdm-row__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 1rem + 0.8vw, 1.7rem);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+.tdm-row__meter {
+  height: 0.4rem;
+  background: rgb(var(--rgb-ivory) / 0.08);
+  clip-path: polygon(0.2rem 0, 100% 0, calc(100% - 0.2rem) 100%, 0 100%);
+  overflow: hidden;
+}
+.tdm-row__meter i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #b5852f, var(--c-gold-light));
+  transform-origin: left;
+  animation: tdm-meter-in 1s var(--tdm-ease) both;
+  animation-delay: calc(450ms + var(--d) * 45ms);
+}
+@keyframes tdm-meter-in {
+  from {
+    transform: scaleX(0);
+  }
+}
+.tdm-row__stat {
+  display: grid;
+  justify-items: end;
+  text-align: right;
+}
+.tdm-row__stat b {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}
+.tdm-row__stat--kills b {
+  color: var(--c-gold-light);
+}
+.tdm-row__stat small {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.tdm-none {
+  padding: var(--sp-6) 0;
+  color: var(--fg-muted);
+  text-align: center;
+}
+
+/* ---------------------------------------------------------------- smaller screens */
+@media (max-width: 900px) {
+  .tdm-row {
+    grid-template-columns: 3.5rem minmax(0, 1fr) 4.75rem 4.25rem auto;
+  }
+  .tdm-row__meter {
+    display: none;
+  }
+}
+
+/* phones: first place on its own, second and third side by side; the strips tighten */
+@media (max-width: 720px) {
+  .tdm {
+    --tdm-slant: 1rem;
+  }
+  .tdm-posters {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      'first first'
+      'second third';
+    gap: 0.6rem;
+  }
+  .tdm-poster--slot1 {
+    --horizon: 55%;
+    aspect-ratio: 4 / 3.5;
+  }
+  .tdm-poster--slot2,
+  .tdm-poster--slot3 {
+    --horizon: 47%;
+    aspect-ratio: 3 / 4.6;
+  }
+  .tdm-poster--slot2 .tdm-poster__sun,
+  .tdm-poster--slot3 .tdm-poster__sun {
+    width: 58%;
+    top: calc(var(--horizon) - 9%);
+  }
+  .tdm-poster--slot1 .tdm-poster__sun {
+    width: 44%;
+  }
+  .tdm-poster--slot2 .tdm-poster__num,
+  .tdm-poster--slot3 .tdm-poster__num {
+    font-size: 4.25rem;
+  }
+  .tdm-poster--slot2 .tdm-poster__name,
+  .tdm-poster--slot3 .tdm-poster__name {
+    font-size: 1.45rem;
+  }
+  .tdm-poster--slot2 .tdm-poster__stats,
+  .tdm-poster--slot3 .tdm-poster__stats {
+    gap: 0.75rem;
+  }
+  .tdm-poster--slot2 .tdm-poster__stats dd,
+  .tdm-poster--slot3 .tdm-poster__stats dd {
+    font-size: 1.2rem;
+  }
+  .tdm-poster--slot2 .tdm-poster__body,
+  .tdm-poster--slot3 .tdm-poster__body {
+    padding-left: 0.85rem;
+    padding-right: calc(var(--tdm-slant) + 0.5rem);
+  }
+  .tdm-tools {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .tdm-sort__btn {
+    flex: 1;
+    padding: 0 0.5rem;
+  }
+  .tdm-row {
+    --row-slant: 0.6rem;
+    grid-template-columns: 2.6rem minmax(0, 1fr) auto auto;
+    gap: 0.75rem;
+    min-height: 3.75rem;
+    padding-right: calc(var(--row-slant) + 0.75rem);
+  }
+  .tdm-row__rank {
+    font-size: 1.75rem;
+  }
+  .tdm-row__stat--wins {
+    display: none;
+  }
+  .tdm-row__stat b {
+    font-size: 1.3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tdm-poster,
+  .tdm-poster__sun,
+  .tdm-poster__num,
+  .tdm-row,
+  .tdm-row__meter i {
+    animation: none;
+  }
+}
