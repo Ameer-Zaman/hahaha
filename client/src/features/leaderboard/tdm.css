@@ -1,7 +1,7 @@
 /* =========================================================
    The TDM board, in the style of game poster art. The top three are tall slanted posters, each
-   with its own sky (a sunset for first, dusk for second, embers for third), a striped sun on
-   the horizon and the place as a huge outlined number, with the name in big condensed type.
+   with its own sky (a sunset for first, dusk for second, embers for third) over the horizon,
+   and the place as a huge outlined number, with the name in big condensed type.
    Everyone else is a slanted strip with a kills bar measured against the leader. All the art is
    drawn with CSS; everything that moves is a transform or an opacity.
    ========================================================= */
@@ -63,8 +63,6 @@
   --sky-1: #2a1640;
   --sky-2: #a2365e;
   --sky-3: #f09045;
-  --sun-1: #fff1c2;
-  --sun-2: #f4b64f;
   --accent: var(--c-gold-light);
   --horizon: 62%; /* where the sky meets the ground */
   position: relative;
@@ -81,16 +79,12 @@
   --sky-1: #0d1530;
   --sky-2: #3e3f78;
   --sky-3: #a9a6c9;
-  --sun-1: #ffffff;
-  --sun-2: #c9cbe0;
   --accent: #e4e6f2;
 }
 .tdm-poster--3 {
   --sky-1: #1c0b08;
   --sky-2: #7a2a16;
   --sky-3: #d9783a;
-  --sun-1: #ffd9a8;
-  --sun-2: #d9894a;
   --accent: #f2b682;
 }
 @keyframes tdm-poster-in {
@@ -100,57 +94,13 @@
   }
 }
 
-/* the art: sky, sun, the ground with its horizon lines, and the place number */
+/* the art: sky, the ground with its horizon lines, and the place number */
 .tdm-poster__art {
   position: absolute;
   inset: 0;
   z-index: -1;
   overflow: hidden;
   background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) calc(var(--horizon) * 0.6), var(--sky-3) var(--horizon));
-}
-.tdm-poster__sun {
-  position: absolute;
-  left: 50%;
-  top: calc(var(--horizon) - 12%); /* sitting on the horizon; the ground hides its foot */
-  width: 62%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: linear-gradient(180deg, var(--sun-1), var(--sun-2));
-  /* stripes cut across the lower half, as on an old sunset print */
-  -webkit-mask: linear-gradient(
-    180deg,
-    #000 0 50%,
-    transparent 50% 54%,
-    #000 54% 61%,
-    transparent 61% 65%,
-    #000 65% 71%,
-    transparent 71% 76%,
-    #000 76% 81%,
-    transparent 81% 87%,
-    #000 87% 91%,
-    transparent 91%
-  );
-  mask: linear-gradient(
-    180deg,
-    #000 0 50%,
-    transparent 50% 54%,
-    #000 54% 61%,
-    transparent 61% 65%,
-    #000 65% 71%,
-    transparent 71% 76%,
-    #000 76% 81%,
-    transparent 81% 87%,
-    #000 87% 91%,
-    transparent 91%
-  );
-  transform: translate3d(-50%, -50%, 0);
-  animation: tdm-sun-rise 1.4s var(--tdm-ease) both;
-  animation-delay: calc(var(--d) * 110ms + 200ms);
-}
-@keyframes tdm-sun-rise {
-  from {
-    transform: translate3d(-50%, -18%, 0);
-  }
 }
 .tdm-poster__ground {
   position: absolute;
@@ -472,14 +422,6 @@
     --horizon: 47%;
     aspect-ratio: 3 / 4.6;
   }
-  .tdm-poster--slot2 .tdm-poster__sun,
-  .tdm-poster--slot3 .tdm-poster__sun {
-    width: 58%;
-    top: calc(var(--horizon) - 9%);
-  }
-  .tdm-poster--slot1 .tdm-poster__sun {
-    width: 44%;
-  }
   .tdm-poster--slot2 .tdm-poster__num,
   .tdm-poster--slot3 .tdm-poster__num {
     font-size: 4.25rem;
@@ -529,7 +471,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .tdm-poster,
-  .tdm-poster__sun,
   .tdm-poster__num,
   .tdm-row,
   .tdm-row__meter i {

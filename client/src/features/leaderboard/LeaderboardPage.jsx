@@ -105,7 +105,7 @@ function formatUpdated(value) {
 
 /**
  * The TDM board, styled like a game's poster art: the top three as tall slanted posters (a
- * sunset sky with a striped sun, the place as a huge outlined number, the name in big type), and
+ * sunset sky, the place as a huge outlined number, the name in big type), and
  * everyone else as slanted strips with a bar for their kills against the leader's.
  */
 function TdmBoard() {
@@ -146,7 +146,6 @@ function TdmBoard() {
           {ranked.slice(0, 3).map((r, i) => (
             <li key={r.name} className={`tdm-poster tdm-poster--${Math.min(r.rank, 3)} tdm-poster--slot${i + 1}`} style={{ '--d': i }}>
               <div className="tdm-poster__art" aria-hidden="true">
-                <span className="tdm-poster__sun" />
                 <span className="tdm-poster__ground" />
                 <span className="tdm-poster__num">{String(r.rank).padStart(2, '0')}</span>
               </div>
